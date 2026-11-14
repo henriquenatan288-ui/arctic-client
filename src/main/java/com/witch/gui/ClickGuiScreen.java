@@ -33,6 +33,8 @@ public class ClickGuiScreen extends Screen {
 
 	private static final Set<Module> OPEN = new HashSet<>();
 	private static Category selected = Category.values()[0];
+	/** Progresso (0..1) da abertura dos ajustes de cada modulo; anima altura e giro da seta. */
+	private static final java.util.Map<Module, Float> EXP = new java.util.HashMap<>();
 	private static float scroll = 0f;
 
 	private String search = "";
@@ -147,14 +149,15 @@ public class ClickGuiScreen extends Screen {
 		int full = rowW();
 		int y = 0;
 		for (Module m : modules()) {
-			boolean open = OPEN.contains(m) && !m.settings().isEmpty();
+			float p = EXP.getOrDefault(m, 0f);
 			out.add(new Slot(m, false, 0, y, full, CARD));
-			if (open) {
+			if (p > 0.01f && !m.settings().isEmpty()) {
 				y += CARD + 2;
 				int total = 0;
 				for (Setting st : m.settings()) total += SettingRenderer.height(st, settingsW());
-				out.add(new Slot(m, true, 2, y, full - 4, total));
-				y += total + GAP2;
+				int shown = Math.round(total * (p * p * (3f - 2f * p)));
+				out.add(new Slot(m, true, 2, y, full - 4, shown));
+				y += shown + GAP2;
 			} else {
 				y += CARD + GAP2;
 			}
@@ -263,6 +266,13 @@ public class ClickGuiScreen extends Screen {
 		lastNanos = now;
 		openAnim = Mth.lerp(Math.min(1f, speed * com.witch.module.GuiAnimationModule.rate()), openAnim, 1f);
 		float a = openAnim;
+		for (Module em : modules()) {
+			boolean want = OPEN.contains(em) && !em.settings().isEmpty();
+			float ep = EXP.getOrDefault(em, 0f), et = want ? 1f : 0f;
+			ep += (et - ep) * Math.min(1f, speed * 0.22f);
+			if (Math.abs(et - ep) < 0.004f) ep = et;
+			EXP.put(em, ep);
+		}
 		tipNow = null;
 		clampScroll();
 		int fh = FontUtil.height();
@@ -335,30 +345,40 @@ public class ClickGuiScreen extends Screen {
 			int sx0 = cx + sl.x, sy0 = base + sl.y;
 			if (sy0 + sl.h < cy || sy0 > cy + ch) continue;
 			if (sl.block) {
-				RenderUtil.roundRect(g, sx0, sy0 - 1, sl.w, sl.h + 2, 5, RenderUtil.alpha(0xFF23272D, a));
-				RenderUtil.roundRect(g, sx0 + 1, sy0, sl.w - 2, sl.h, 4, RenderUtil.alpha(0xFF14171B, a));
+				RenderUtil.roundRect(g, sx0, sy0 - 1, sl.w, sl.h + 2, 5, RenderUtil.alpha(0x1AFFFFFF, a));
+				RenderUtil.roundRect(g, sx0 + 1, sy0, sl.w - 2, sl.h, 4, RenderUtil.alpha(0x66000000, a));
+				g.enableScissor(sx0, sy0, sx0 + sl.w, sy0 + sl.h);
 				int ry = sy0;
 				for (Setting st : m.settings()) {
 					int sh = SettingRenderer.height(st, settingsW());
 					SettingRenderer.draw(g, st, sx0 + 2, ry, settingsW() - 4, sh, a, 0f);
 					ry += sh;
 				}
+				g.disableScissor();
 				continue;
 			}
 			boolean hover = RenderUtil.inside(mx, my, sx0, sy0, sl.w, CARD) && my >= cy && my < cy + ch;
 			m.toggleAnim = Mth.lerp(Math.min(1f, speed * 0.3f), m.toggleAnim, m.isEnabled() ? 1f : 0f);
 			m.hoverAnim = Mth.lerp(Math.min(1f, speed * 0.3f), m.hoverAnim, hover ? 1f : 0f);
 			float t = m.toggleAnim;
-			int border = RenderUtil.mix(RenderUtil.mix(0xFF262A31, 0xFF3A3F47, m.hoverAnim), 0xFFE2E4E8, t);
-			int fill = RenderUtil.mix(RenderUtil.mix(0xFF16191E, 0xFF1B1F25, m.hoverAnim), 0xFF1D2025, t);
+			int border = RenderUtil.mix(RenderUtil.mix(0x1AFFFFFF, 0x38FFFFFF, m.hoverAnim), 0xFFE2E4E8, t);
+			int fill = RenderUtil.mix(RenderUtil.mix(0x59000000, 0x42000000, m.hoverAnim), 0xFF1D2025, t);
 			if (t > 0.02f) RenderUtil.roundRect(g, sx0 - 2, sy0 - 2, sl.w + 4, CARD + 4, 7, RenderUtil.alpha(0xFFFFFFFF, 0.06f * t * a));
 			RenderUtil.roundRect(g, sx0, sy0, sl.w, CARD, 5, RenderUtil.alpha(border, a));
 			RenderUtil.roundRect(g, sx0 + 1, sy0 + 1, sl.w - 2, CARD - 2, 4, RenderUtil.alpha(fill, a));
+			if (m.hoverAnim > 0.02f && t < 0.98f) RenderUtil.roundRect(g, sx0 + 1, sy0 + 1, Math.max(8, Math.round((sl.w - 2) * m.hoverAnim)), CARD - 2, 4, RenderUtil.alpha(0x14FFFFFF, a));
+			if (t > 0.02f) g.fill(sx0 + 2, sy0 + CARD - 4 - Math.round((CARD - 8) * t), sx0 + 4, sy0 + CARD - 4, RenderUtil.alpha(ACC, a));
 			boolean has = !m.settings().isEmpty();
 			boolean open = OPEN.contains(m);
 			int right = sx0 + sl.w - 6;
 			if (has) {
-				CategoryIcons.blit(g, open ? CategoryIcons.CHEV_UP : CategoryIcons.CHEV_DOWN, right - 9, sy0 + (CARD - 9) / 2, 9, RenderUtil.alpha(open ? TXT : 0xFF8E939B, a));
+				float pe = EXP.getOrDefault(m, 0f);
+				g.pose().pushMatrix();
+				g.pose().translate(right - 9 + 4.5f, sy0 + (CARD - 9) / 2f + 4.5f);
+				g.pose().rotate((float) Math.PI * pe);
+				g.pose().translate(-4.5f, -4.5f);
+				CategoryIcons.blit(g, CategoryIcons.CHEV_DOWN, 0, 0, 9, RenderUtil.alpha(RenderUtil.mix(0xFF8E939B, TXT, pe), a));
+				g.pose().popMatrix();
 				right -= 14;
 			}
 			int swx = right - 20, swy = sy0 + (CARD - 10) / 2;
