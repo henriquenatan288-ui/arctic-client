@@ -130,6 +130,23 @@ public class AllTest implements FabricClientGameTest {
 			}
 		}
 		c.runOnClient(mc -> MusicPlayer.stop());
+
+		// ClickGUI por cima de um mundo de verdade (para ver o desfoque), com um modulo ligado e outro expandido
+		try (var sp = c.worldBuilder().create()) {
+			sp.getClientWorld().waitForChunksRender();
+			c.runOnClient(mc -> {
+				var lj = com.witch.module.ModuleManager.byName("Long Jump");
+				if (lj != null) lj.setEnabled(true);
+				mc.gui.setScreen(new ClickGuiScreen(com.witch.module.ModuleManager.byName("Bhop")));
+			});
+			c.waitTicks(20);
+			c.takeScreenshot("07-clickgui-mundo");
+			c.runOnClient(mc -> {
+				var lj = com.witch.module.ModuleManager.byName("Long Jump");
+				if (lj != null) lj.setEnabled(false);
+				mc.gui.setScreen(null);
+			});
+		}
 		log("MUSICTEST fim");
 	}
 }
