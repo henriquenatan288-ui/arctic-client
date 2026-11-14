@@ -133,7 +133,7 @@ public class AllTest implements FabricClientGameTest {
 
 		// ClickGUI por cima de um mundo de verdade (para ver o desfoque), com um modulo ligado e outro expandido
 		try (var sp = c.worldBuilder().create()) {
-			sp.getClientWorld().waitForChunksRender();
+			sp.getClientLevel().waitForChunksRender();
 			c.runOnClient(mc -> {
 				var lj = com.witch.module.ModuleManager.byName("Long Jump");
 				if (lj != null) lj.setEnabled(true);
