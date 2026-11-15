@@ -89,17 +89,21 @@ void main() {
 
     // borda com luz: texels vizinhos transparentes => contorno do item brilha
     vec2 px = 1.0 / vec2(textureSize(Sampler0, 0));
+    vec2 f = fract(texCoord0 / px);
     float e1 = 0.0;
     float e2 = 0.0;
     vec2 d[4] = vec2[](vec2(1, 0), vec2(-1, 0), vec2(0, 1), vec2(0, -1));
     for (int i = 0; i < 4; i++) {
-        if (texture(Sampler0, texCoord0 + d[i] * px).a < 0.1) e1 = 1.0;
-        if (texture(Sampler0, texCoord0 + d[i] * px * 2.0).a < 0.1) e2 = 1.0;
+        float near = dot(d[i], f - 0.5) + 0.5; // 0..1 em direcao ao vizinho
+        if (texture(Sampler0, texCoord0 + d[i] * px).a < 0.1) {
+            e1 = max(e1, smoothstep(0.62, 0.9, near));
+            e2 = max(e2, smoothstep(0.35, 0.62, near));
+        }
     }
     float pulse = 0.85 + 0.15 * sin(t * 2.0);
     vec3 glow = vec3(0.45, 1.0, 0.85);
-    col = mix(col, glow * 1.25 * pulse, e1 * 0.9);
-    col += glow * 0.35 * e2 * (1.0 - e1);
+    col = mix(col, glow * 1.25 * pulse, e1 * 0.85);
+    col += glow * 0.30 * e2 * (1.0 - e1);
 
     vec4 color = vec4(col, tex.a) * ColorModulator;
     color.rgb = mix(overlayColor.rgb, color.rgb, overlayColor.a);
