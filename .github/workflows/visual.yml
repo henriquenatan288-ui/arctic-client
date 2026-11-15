@@ -43,6 +43,7 @@ jobs:
           echo "JARS: $J" > out/javap.txt
           for j in $J; do for c in 'net.minecraft.client.renderer.item.ItemStackRenderState$LayerRenderState' 'net.minecraft.client.renderer.SubmitNodeCollector' 'net.minecraft.client.renderer.item.ItemStackRenderState' 'net.minecraft.client.renderer.item.ItemModelResolver'; do javap -p -cp "$j" "$c" >> out/javap.txt 2>&1 || true; done; done
           grep -n -E "MUSICTEST|GUARDTEST|CONFIGTEST|What went wrong|FAILURE|Exception|Caused by|error:|Error|gametest|screenshot|Screenshot" visual.log | head -40 | while IFS= read -r l; do echo "::notice::$l"; done
+          set +e +o pipefail
           for j in $(find ~/.gradle ~/.cache -name "*.jar" -path "*minecraft*" 2>/dev/null | grep -v sources | head -20); do unzip -l "$j" 2>/dev/null | grep -E "end_portal|rendertype_item|core/entity\.(f|v)sh|core/position" | sed "s#^#$j #" >> out/shaders-list.txt; done
           for j in $(find ~/.gradle ~/.cache -name "*.jar" -path "*minecraft*" 2>/dev/null | grep -v sources | head -20); do unzip -o -q "$j" 'assets/minecraft/shaders/core/rendertype_end_portal*' 'assets/minecraft/shaders/core/entity*' 'assets/minecraft/shaders/core/position*' 'assets/minecraft/shaders/include/*' -d out/sh 2>/dev/null || true; done
           M=$(find ~/.gradle ~/.cache -name "minecraft-merged-deobf-26.2.jar" 2>/dev/null | head -1)
