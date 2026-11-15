@@ -4,7 +4,6 @@ import com.witch.render.GalaxyTools;
 import java.lang.reflect.Method;
 import net.minecraft.client.renderer.feature.ItemFeatureRenderer;
 import net.minecraft.client.renderer.rendertype.RenderType;
-import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.resources.model.geometry.BakedQuad;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -35,6 +34,10 @@ public class ItemFeatureRendererMixin {
 	@Redirect(method = "prepareMainSubmit", require = 0,
 			at = @At(value = "INVOKE", target = "Lnet/minecraft/client/resources/model/geometry/BakedQuad$MaterialInfo;itemRenderType()Lnet/minecraft/client/renderer/rendertype/RenderType;"))
 	private RenderType witch$type(BakedQuad.MaterialInfo info) {
-		return GalaxyTools.active ? RenderTypes.endPortal() : info.itemRenderType();
+		if (GalaxyTools.active) {
+			RenderType t = GalaxyTools.type();
+			if (t != null) return t;
+		}
+		return info.itemRenderType();
 	}
 }
