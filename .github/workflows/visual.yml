@@ -39,6 +39,9 @@ jobs:
           find . -path ./out -prune -o -type d -name screenshots -print | head
           find . -name "*.png" -path "*screenshots*" -exec cp {} out/ \; || true
           cp visual.log out/ || true
+          J=$(find ~/.gradle ~/.cache -name "minecraft-*.jar" -path "*loom*" 2>/dev/null | grep -v sources | head -3)
+          echo "JARS: $J" > out/javap.txt
+          for j in $J; do for c in 'net.minecraft.client.renderer.item.ItemStackRenderState$LayerRenderState' 'net.minecraft.client.renderer.SubmitNodeCollector' 'net.minecraft.client.renderer.feature.ItemFeatureRenderer'; do javap -c -p -cp "$j" "$c" >> out/javap.txt 2>&1 || true; done; done
           grep -n -E "MUSICTEST|GUARDTEST|CONFIGTEST|What went wrong|FAILURE|Exception|Caused by|error:|Error|gametest|screenshot|Screenshot" visual.log | head -40 | while IFS= read -r l; do echo "::notice::$l"; done
           tail -2000 visual.log > out/visual-tail.log; rm -f out/visual.log
           rm -rf /tmp/shots-repo; mkdir -p /tmp/shots-repo; cp -r out/* /tmp/shots-repo/ || true
