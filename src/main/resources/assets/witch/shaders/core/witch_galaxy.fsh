@@ -62,30 +62,30 @@ void main() {
 
     // camadas em profundidades diferentes (o deslocamento muda com a escala)
     float t = GameTime * 1200.0 * 8.0;
-    vec3 col = mix(vec3(0.015, 0.025, 0.09), vec3(0.06, 0.03, 0.16), fbm(sc * 1.3 + vec2(t * 0.010, -t * 0.006)));
+    vec3 col = mix(vec3(0.012, 0.075, 0.085), vec3(0.03, 0.12, 0.12), fbm(sc * 1.3 + vec2(t * 0.010, -t * 0.006)));
 
     float n1 = fbm(sc * 2.2 + vec2(3.0, 1.0) + vec2(t * 0.020, t * 0.012));
-    col += vec3(0.10, 0.22, 0.75) * smoothstep(0.42, 0.85, n1) * 0.9;
+    col += vec3(0.07, 0.30, 0.30) * smoothstep(0.40, 0.85, n1) * 1.2;
 
     float n2 = fbm(sc * 3.6 + vec2(11.0, 5.0) + n1 + vec2(-t * 0.030, t * 0.018));
-    col += vec3(0.42, 0.20, 0.95) * smoothstep(0.45, 0.9, n2) * 0.8;
+    col += vec3(0.20, 0.45, 0.32) * smoothstep(0.45, 0.9, n2) * 1.1;
 
     float n3 = fbm(sc * 6.0 + vec2(2.0, 8.0) + vec2(t * 0.045, -t * 0.03));
-    col += vec3(0.25, 0.55, 1.0) * smoothstep(0.62, 0.95, n3) * 0.45;
+    col += vec3(0.10, 0.40, 0.75) * smoothstep(0.62, 0.95, n3) * 0.6;
 
     float s = stars(sc * 55.0 + vec2(t * 0.05, 0.0), 0.93) + 0.7 * stars(sc * 90.0 + 5.0 + vec2(t * 0.10, 0.0), 0.95) + 0.5 * stars(sc * 140.0 + 9.0 + vec2(t * 0.18, 0.0), 0.96);
-    col += vec3(0.85, 0.92, 1.0) * s;
+    col += vec3(0.80, 1.0, 0.95) * s;
 
     // mantem o desenho do item visivel: o brilho da textura original realca os detalhes
     // piso de brilho: nenhuma parte some no escuro
-    col = max(col, vec3(0.07, 0.10, 0.26));
+    col = max(col, vec3(0.04, 0.12, 0.13));
     float lum = dot(tex.rgb, vec3(0.299, 0.587, 0.114));
     col = col * (0.70 + 0.8 * lum) + tex.rgb * 0.22;
     // sombreamento por face: separa frente e laterais (da profundidade ao formato)
     float shade = clamp(vertexColor.r, 0.0, 1.0);
     col *= mix(0.55, 1.15, shade);
     // brilho nas bordas da textura (partes escuras do desenho original viram contorno claro)
-    col += vec3(0.20, 0.30, 0.65) * (1.0 - smoothstep(0.0, 0.35, lum)) * 0.35;
+    col += vec3(0.10, 0.35, 0.33) * (1.0 - smoothstep(0.0, 0.35, lum)) * 0.30;
 
     vec4 color = vec4(col, tex.a) * ColorModulator;
     color.rgb = mix(overlayColor.rgb, color.rgb, overlayColor.a);
