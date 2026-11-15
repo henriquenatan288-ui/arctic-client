@@ -132,24 +132,20 @@ public class AllTest implements FabricClientGameTest {
 		c.runOnClient(mc -> MusicPlayer.stop());
 
 		c.runOnClient(mc -> {
-			String[] names = {"net.minecraft.client.renderer.RenderPipelines", "net.minecraft.client.renderer.rendertype.RenderTypes", "net.minecraft.client.renderer.RenderType",
-					"net.minecraft.client.renderer.item.ItemStackRenderState", "net.minecraft.client.renderer.item.ItemStackRenderState$LayerRenderState",
-					"net.minecraft.client.renderer.entity.ItemRenderer", "net.minecraft.client.renderer.rendertype.RenderSetup"};
+			String[] names = {"net.minecraft.client.renderer.item.ItemStackRenderState", "net.minecraft.client.renderer.item.ItemStackRenderState$LayerRenderState",
+					"net.minecraft.client.renderer.item.ItemModelResolver", "net.minecraft.client.renderer.SubmitNodeCollector",
+					"net.minecraft.client.renderer.entity.state.ItemEntityRenderState", "net.minecraft.client.renderer.entity.ItemEntityRenderer"};
 			for (String cn : names) {
 				try {
 					Class<?> k = Class.forName(cn);
-					System.out.println("MUSICTEST refl2 CLASS " + cn);
-					for (java.lang.reflect.Field f : k.getDeclaredFields()) {
-						String fn = f.getName().toLowerCase();
-						if (fn.contains("portal") || fn.contains("gateway") || fn.contains("glint") || fn.contains("end")) System.out.println("MUSICTEST refl2 F " + cn + "." + f.getName());
-					}
+					System.out.println("MUSICTEST refl3 CLASS " + cn);
+					for (java.lang.reflect.Field f : k.getDeclaredFields()) System.out.println("MUSICTEST refl3 F " + f.getName() + " : " + f.getType().getSimpleName());
 					for (java.lang.reflect.Method m : k.getDeclaredMethods()) {
-						String mn = m.getName().toLowerCase();
-						if (mn.contains("portal") || mn.contains("gateway") || mn.contains("glint") || mn.contains("rendertype") || mn.contains("layer") || mn.contains("pipeline") || mn.contains("texture") || mn.contains("sampler"))
-							System.out.println("MUSICTEST refl2 M " + cn + "." + m.getName() + java.util.Arrays.toString(m.getParameterTypes()));
+						if (m.getName().contains("$") || m.getName().startsWith("handler") || m.getName().startsWith("lambda")) continue;
+						System.out.println("MUSICTEST refl3 M " + m.getName() + java.util.Arrays.toString(m.getParameterTypes()).replace("class ", "").replace("interface ", "").replaceAll("net\\.minecraft\\.[a-z.]*\\.", ""));
 					}
 				} catch (Throwable t) {
-					System.out.println("MUSICTEST refl2 MISSING " + cn);
+					System.out.println("MUSICTEST refl3 MISSING " + cn);
 				}
 			}
 		});
