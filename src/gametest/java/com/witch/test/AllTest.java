@@ -164,7 +164,7 @@ public class AllTest implements FabricClientGameTest {
 				if (lj != null) lj.setEnabled(false);
 				mc.gui.setScreen(null);
 			});
-			String[] its = {"DIAMOND_PICKAXE", "NETHERITE_SWORD", "IRON_PICKAXE"};
+			String[] its = {"DIAMOND_PICKAXE", "NETHERITE_SWORD", "DIAMOND_AXE", "NETHERITE_SHOVEL", "DIAMOND_HOE", "IRON_PICKAXE"};
 			for (String it : its) {
 				c.runOnClient(mc -> {
 					try {
