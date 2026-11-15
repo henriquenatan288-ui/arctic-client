@@ -39,7 +39,10 @@ public final class GalaxyTools {
 			var f = net.minecraft.client.renderer.RenderPipelines.class.getDeclaredField("ITEM_SNIPPET");
 			f.setAccessible(true);
 			var snippet = (com.mojang.blaze3d.pipeline.RenderPipeline.Snippet) f.get(null);
-			var pipe = com.mojang.blaze3d.pipeline.RenderPipeline.builder(snippet)
+			var gf = net.minecraft.client.renderer.RenderPipelines.class.getDeclaredField("GLOBALS_SNIPPET");
+			gf.setAccessible(true);
+			var globals = (com.mojang.blaze3d.pipeline.RenderPipeline.Snippet) gf.get(null);
+			var pipe = com.mojang.blaze3d.pipeline.RenderPipeline.builder(globals, snippet)
 					.withLocation("pipeline/witch_galaxy")
 					.withFragmentShader(net.minecraft.resources.Identifier.fromNamespaceAndPath("witch", "core/witch_galaxy"))
 					.withShaderDefine("ALPHA_CUTOUT", 0.1f)

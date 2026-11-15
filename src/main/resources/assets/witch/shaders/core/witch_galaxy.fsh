@@ -2,6 +2,7 @@
 
 #moj_import <minecraft:fog.glsl>
 #moj_import <minecraft:dynamictransforms.glsl>
+#moj_import <minecraft:globals.glsl>
 
 uniform sampler2D Sampler0;
 
@@ -60,18 +61,19 @@ void main() {
     vec2 sc = gl_FragCoord.xy / 360.0;
 
     // camadas em profundidades diferentes (o deslocamento muda com a escala)
-    vec3 col = mix(vec3(0.015, 0.025, 0.09), vec3(0.06, 0.03, 0.16), fbm(sc * 1.3));
+    float t = GameTime * 1200.0;
+    vec3 col = mix(vec3(0.015, 0.025, 0.09), vec3(0.06, 0.03, 0.16), fbm(sc * 1.3 + vec2(t * 0.010, -t * 0.006)));
 
-    float n1 = fbm(sc * 2.2 + vec2(3.0, 1.0));
+    float n1 = fbm(sc * 2.2 + vec2(3.0, 1.0) + vec2(t * 0.020, t * 0.012));
     col += vec3(0.10, 0.22, 0.75) * smoothstep(0.42, 0.85, n1) * 0.9;
 
-    float n2 = fbm(sc * 3.6 + vec2(11.0, 5.0) + n1);
+    float n2 = fbm(sc * 3.6 + vec2(11.0, 5.0) + n1 + vec2(-t * 0.030, t * 0.018));
     col += vec3(0.42, 0.20, 0.95) * smoothstep(0.45, 0.9, n2) * 0.8;
 
-    float n3 = fbm(sc * 6.0 + vec2(2.0, 8.0));
+    float n3 = fbm(sc * 6.0 + vec2(2.0, 8.0) + vec2(t * 0.045, -t * 0.03));
     col += vec3(0.25, 0.55, 1.0) * smoothstep(0.62, 0.95, n3) * 0.45;
 
-    float s = stars(sc * 55.0, 0.93) + 0.7 * stars(sc * 90.0 + 5.0, 0.95) + 0.5 * stars(sc * 140.0 + 9.0, 0.96);
+    float s = stars(sc * 55.0 + vec2(t * 0.05, 0.0), 0.93) + 0.7 * stars(sc * 90.0 + 5.0 + vec2(t * 0.10, 0.0), 0.95) + 0.5 * stars(sc * 140.0 + 9.0 + vec2(t * 0.18, 0.0), 0.96);
     col += vec3(0.85, 0.92, 1.0) * s;
 
     // mantem o desenho do item visivel: o brilho da textura original realca os detalhes
