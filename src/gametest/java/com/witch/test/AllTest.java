@@ -131,6 +131,28 @@ public class AllTest implements FabricClientGameTest {
 		}
 		c.runOnClient(mc -> MusicPlayer.stop());
 
+		c.runOnClient(mc -> {
+			String[] names = {"net.minecraft.client.renderer.RenderPipelines", "net.minecraft.client.renderer.rendertype.RenderTypes", "net.minecraft.client.renderer.RenderType",
+					"net.minecraft.client.renderer.item.ItemStackRenderState", "net.minecraft.client.renderer.item.ItemStackRenderState$LayerRenderState",
+					"net.minecraft.client.renderer.entity.ItemRenderer", "net.minecraft.client.renderer.rendertype.RenderSetup"};
+			for (String cn : names) {
+				try {
+					Class<?> k = Class.forName(cn);
+					System.out.println("MUSICTEST refl2 CLASS " + cn);
+					for (java.lang.reflect.Field f : k.getDeclaredFields()) {
+						String n = f.getName().toLowerCase();
+						if (n.contains("portal") || n.contains("gateway") || n.contains("glint") || n.contains("end")) System.out.println("MUSICTEST refl2 F " + cn + "." + f.getName());
+					}
+					for (java.lang.reflect.Method m : k.getDeclaredMethods()) {
+						String n = m.getName().toLowerCase();
+						if (n.contains("portal") || n.contains("gateway") || n.contains("glint") || n.contains("rendertype") || n.contains("layer") || n.contains("pipeline") || n.contains("texture") || n.contains("sampler"))
+							System.out.println("MUSICTEST refl2 M " + cn + "." + m.getName() + java.util.Arrays.toString(m.getParameterTypes()));
+					}
+				} catch (Throwable t) {
+					System.out.println("MUSICTEST refl2 MISSING " + cn);
+				}
+			}
+		});
 		// ClickGUI por cima de um mundo de verdade (para ver o desfoque), com um modulo ligado e outro expandido
 		try (var sp = c.worldBuilder().create()) {
 			sp.getClientLevel().waitForChunksRender();
