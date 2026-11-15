@@ -18,7 +18,11 @@
     "MouseHandlerMixin",
     "MultiPlayerGameModeMixin",
     "EntityKnockbackMixin",
-    "EntityRendererNametagMixin"
+    "EntityRendererNametagMixin",
+    "ItemModelResolverMixin",
+    "ItemStackRenderStateMixin",
+    "LayerRenderStateMixin",
+    "ItemFeatureRendererMixin"
   ],
   "injectors": {
     "defaultRequire": 0
