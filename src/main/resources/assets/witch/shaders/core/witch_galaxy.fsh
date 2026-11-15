@@ -61,7 +61,7 @@ void main() {
     vec2 sc = gl_FragCoord.xy / 360.0;
 
     // camadas em profundidades diferentes (o deslocamento muda com a escala)
-    float t = GameTime * 1200.0;
+    float t = GameTime * 1200.0 * 8.0;
     vec3 col = mix(vec3(0.015, 0.025, 0.09), vec3(0.06, 0.03, 0.16), fbm(sc * 1.3 + vec2(t * 0.010, -t * 0.006)));
 
     float n1 = fbm(sc * 2.2 + vec2(3.0, 1.0) + vec2(t * 0.020, t * 0.012));
