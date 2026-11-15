@@ -28,6 +28,47 @@ public final class GalaxyTools {
 		return set.contains(stack.getItem());
 	}
 
+	private static Object type;
+	private static boolean failed;
+
+	/** RenderType proprio (shader de galaxia sobre o formato do item), ou null se falhar. */
+	public static net.minecraft.client.renderer.rendertype.RenderType type() {
+		if (type != null) return (net.minecraft.client.renderer.rendertype.RenderType) type;
+		if (failed) return null;
+		try {
+			var f = net.minecraft.client.renderer.RenderPipelines.class.getDeclaredField("ITEM_SNIPPET");
+			f.setAccessible(true);
+			var snippet = (com.mojang.blaze3d.pipeline.RenderPipeline.Snippet) f.get(null);
+			var pipe = com.mojang.blaze3d.pipeline.RenderPipeline.builder(snippet)
+					.withLocation("pipeline/witch_galaxy")
+					.withFragmentShader(net.minecraft.resources.Identifier.fromNamespaceAndPath("witch", "core/witch_galaxy"))
+					.withShaderDefine("ALPHA_CUTOUT", 0.1f)
+					.build();
+			try {
+				var r = net.minecraft.client.renderer.RenderPipelines.class.getDeclaredMethod("register", com.mojang.blaze3d.pipeline.RenderPipeline.class);
+				r.setAccessible(true);
+				pipe = (com.mojang.blaze3d.pipeline.RenderPipeline) r.invoke(null, pipe);
+			} catch (Throwable t) {
+				System.out.println("[Witch] galaxia: register falhou: " + t);
+			}
+			var setup = net.minecraft.client.renderer.rendertype.RenderSetup.builder(pipe)
+					.withTexture("Sampler0", net.minecraft.client.renderer.texture.TextureAtlas.LOCATION_ITEMS)
+					.useLightmap().useOverlay().affectsCrumbling()
+					.setOutline(net.minecraft.client.renderer.rendertype.RenderSetup.OutlineProperty.AFFECTS_OUTLINE)
+					.createRenderSetup();
+			var c = net.minecraft.client.renderer.rendertype.RenderType.class.getDeclaredMethod("create", String.class, net.minecraft.client.renderer.rendertype.RenderSetup.class);
+			c.setAccessible(true);
+			type = c.invoke(null, "witch_galaxy", setup);
+			System.out.println("[Witch] galaxia: pipeline criado");
+			return (net.minecraft.client.renderer.rendertype.RenderType) type;
+		} catch (Throwable t) {
+			failed = true;
+			System.out.println("[Witch] galaxia: falhou, usando fallback: " + t);
+			t.printStackTrace();
+			return null;
+		}
+	}
+
 	/** Lista marcadora: o render de itens reconhece pela classe. */
 	public static final class Quads extends ArrayList<BakedQuad> {
 		public Quads(List<BakedQuad> src) { super(src); }
