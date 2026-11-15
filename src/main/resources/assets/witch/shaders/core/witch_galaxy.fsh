@@ -77,8 +77,15 @@ void main() {
     col += vec3(0.85, 0.92, 1.0) * s;
 
     // mantem o desenho do item visivel: o brilho da textura original realca os detalhes
+    // piso de brilho: nenhuma parte some no escuro
+    col = max(col, vec3(0.07, 0.10, 0.26));
     float lum = dot(tex.rgb, vec3(0.299, 0.587, 0.114));
-    col = col * (0.55 + 0.9 * lum) + tex.rgb * 0.10;
+    col = col * (0.70 + 0.8 * lum) + tex.rgb * 0.22;
+    // sombreamento por face: separa frente e laterais (da profundidade ao formato)
+    float shade = clamp(vertexColor.r, 0.0, 1.0);
+    col *= mix(0.55, 1.15, shade);
+    // brilho nas bordas da textura (partes escuras do desenho original viram contorno claro)
+    col += vec3(0.20, 0.30, 0.65) * (1.0 - smoothstep(0.0, 0.35, lum)) * 0.35;
 
     vec4 color = vec4(col, tex.a) * ColorModulator;
     color.rgb = mix(overlayColor.rgb, color.rgb, overlayColor.a);
