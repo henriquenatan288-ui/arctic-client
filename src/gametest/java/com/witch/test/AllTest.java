@@ -164,6 +164,17 @@ public class AllTest implements FabricClientGameTest {
 				if (lj != null) lj.setEnabled(false);
 				mc.gui.setScreen(null);
 			});
+			String[] its = {"DIAMOND_PICKAXE", "NETHERITE_SWORD", "IRON_PICKAXE"};
+			for (String it : its) {
+				c.runOnClient(mc -> {
+					try {
+						var item = (net.minecraft.world.item.Item) net.minecraft.world.item.Items.class.getField(it).get(null);
+						mc.player.getInventory().setItem(mc.player.getInventory().getSelectedSlot(), new net.minecraft.world.item.ItemStack(item));
+					} catch (Throwable t) { System.out.println("MUSICTEST item erro " + t); }
+				});
+				c.waitTicks(15);
+				c.takeScreenshot("08-galaxia-" + it);
+			}
 		}
 		log("MUSICTEST fim");
 	}
