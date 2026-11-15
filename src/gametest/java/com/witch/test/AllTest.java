@@ -176,6 +176,26 @@ public class AllTest implements FabricClientGameTest {
 				c.takeScreenshot("08-galaxia-" + it);
 			}
 		}
+		// ferramentas ampliadas numa tela (para ver o molde pixel a pixel)
+		try {
+			c.runOnClient(mc -> mc.gui.setScreen(new net.minecraft.client.gui.screens.Screen(net.minecraft.network.chat.Component.literal("t")) {
+				@Override
+				public void extractRenderState(net.minecraft.client.gui.GuiGraphicsExtractor g, int mx, int my, float pt) {
+					g.fill(0, 0, this.width, this.height, 0xFF7A7A7A);
+					var items = new net.minecraft.world.item.Item[]{net.minecraft.world.item.Items.DIAMOND_PICKAXE, net.minecraft.world.item.Items.NETHERITE_SWORD, net.minecraft.world.item.Items.DIAMOND_AXE, net.minecraft.world.item.Items.IRON_PICKAXE};
+					for (int i = 0; i < items.length; i++) {
+						g.pose().pushMatrix();
+						g.pose().translate(20 + i * 100, 40);
+						g.pose().scale(5f, 5f);
+						g.item(new net.minecraft.world.item.ItemStack(items[i]), 0, 0);
+						g.pose().popMatrix();
+					}
+				}
+			}));
+			c.waitTicks(10);
+			c.takeScreenshot("09-zoom-ferramentas");
+			c.runOnClient(mc -> mc.gui.setScreen(null));
+		} catch (Throwable t) { System.out.println("MUSICTEST zoom erro " + t); }
 		log("MUSICTEST fim");
 	}
 }
