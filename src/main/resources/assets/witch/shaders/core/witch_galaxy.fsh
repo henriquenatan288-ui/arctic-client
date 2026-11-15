@@ -87,6 +87,13 @@ void main() {
     // brilho nas bordas da textura (partes escuras do desenho original viram contorno claro)
     col += vec3(0.10, 0.35, 0.33) * (1.0 - smoothstep(0.0, 0.35, lum)) * 0.30;
 
+    // mascara (como no Avaritia): so a cabeca/lamina vira galaxia; cabo e detalhes escuros mantem a textura original
+    float sat = max(tex.r, max(tex.g, tex.b)) - min(tex.r, min(tex.g, tex.b));
+    float warm = step(tex.b * 1.2 + 0.02, tex.r); // marrom/cinza quente = cabo
+    float m = smoothstep(0.05, 0.18, sat) * (1.0 - warm);
+    vec3 orig = tex.rgb * (0.55 + 0.9 * clamp(vertexColor.r, 0.0, 1.0));
+    col = mix(orig, col, clamp(m * 0.85 + 0.15, 0.0, 1.0));
+
     // borda com luz: texels vizinhos transparentes => contorno do item brilha
     vec2 px = 1.0 / vec2(textureSize(Sampler0, 0));
     vec2 f = fract(texCoord0 / px);
