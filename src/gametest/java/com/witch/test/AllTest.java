@@ -140,12 +140,12 @@ public class AllTest implements FabricClientGameTest {
 					Class<?> k = Class.forName(cn);
 					System.out.println("MUSICTEST refl2 CLASS " + cn);
 					for (java.lang.reflect.Field f : k.getDeclaredFields()) {
-						String n = f.getName().toLowerCase();
-						if (n.contains("portal") || n.contains("gateway") || n.contains("glint") || n.contains("end")) System.out.println("MUSICTEST refl2 F " + cn + "." + f.getName());
+						String fn = f.getName().toLowerCase();
+						if (fn.contains("portal") || fn.contains("gateway") || fn.contains("glint") || fn.contains("end")) System.out.println("MUSICTEST refl2 F " + cn + "." + f.getName());
 					}
 					for (java.lang.reflect.Method m : k.getDeclaredMethods()) {
-						String n = m.getName().toLowerCase();
-						if (n.contains("portal") || n.contains("gateway") || n.contains("glint") || n.contains("rendertype") || n.contains("layer") || n.contains("pipeline") || n.contains("texture") || n.contains("sampler"))
+						String mn = m.getName().toLowerCase();
+						if (mn.contains("portal") || mn.contains("gateway") || mn.contains("glint") || mn.contains("rendertype") || mn.contains("layer") || mn.contains("pipeline") || mn.contains("texture") || mn.contains("sampler"))
 							System.out.println("MUSICTEST refl2 M " + cn + "." + m.getName() + java.util.Arrays.toString(m.getParameterTypes()));
 					}
 				} catch (Throwable t) {
