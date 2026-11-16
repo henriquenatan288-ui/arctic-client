@@ -58,65 +58,64 @@ void main() {
         discard;
     }
 
-    // coordenadas de tela: o item vira uma "janela" para o espaco
-    // escala pela tamanho do item na tela (inventario e mao ficam com a mesma "densidade" de galaxia)
+    // Espaco de tela, centrado: o item e uma "janela" para o espaco. Cada camada usa escala e rotacao proprias,
+    // entao itens em posicoes diferentes da tela (e o balanco da mao) deslocam as camadas de forma diferente = paralaxe.
     vec2 px0 = 1.0 / vec2(textureSize(Sampler0, 0));
     float ppt = fw > 1e-6 ? px0.x / fw : 12.0; // pixels de tela por texel
-    ppt = clamp(ppt, 3.0, 80.0);
-    vec2 sc = gl_FragCoord.xy / (ppt * 28.0);
+    ppt = clamp(ppt, 3.0, 160.0);
+    vec2 q = (gl_FragCoord.xy - 0.5 * ScreenSize) / (ppt * 14.0);
 
-    // camadas em profundidades diferentes (o deslocamento muda com a escala)
     float t = GameTime * 1200.0 * 8.0;
-    vec3 col = mix(vec3(0.012, 0.075, 0.085), vec3(0.03, 0.12, 0.12), fbm(sc * 1.3 + vec2(t * 0.010, -t * 0.006)));
 
-    float n1 = fbm(sc * 2.2 + vec2(3.0, 1.0) + vec2(t * 0.020, t * 0.012));
+    // nevoa de fundo (cores padrao do portal: azul-petroleo e verde)
+    vec3 col = mix(vec3(0.012, 0.075, 0.085), vec3(0.03, 0.12, 0.12), fbm(q * 1.3 + vec2(t * 0.010, -t * 0.006)));
+    float n1 = fbm(q * 2.2 + vec2(3.0, 1.0) + vec2(t * 0.020, t * 0.012));
     col += vec3(0.07, 0.30, 0.30) * smoothstep(0.40, 0.85, n1) * 1.2;
-
-    float n2 = fbm(sc * 3.6 + vec2(11.0, 5.0) + n1 + vec2(-t * 0.030, t * 0.018));
+    float n2 = fbm(q * 3.6 + vec2(11.0, 5.0) + n1 + vec2(-t * 0.030, t * 0.018));
     col += vec3(0.20, 0.45, 0.32) * smoothstep(0.45, 0.9, n2) * 1.1;
-
-    float n3 = fbm(sc * 6.0 + vec2(2.0, 8.0) + vec2(t * 0.045, -t * 0.03));
+    float n3 = fbm(q * 6.0 + vec2(2.0, 8.0) + vec2(t * 0.045, -t * 0.03));
     col += vec3(0.10, 0.40, 0.75) * smoothstep(0.62, 0.95, n3) * 0.6;
 
-    float s = stars(sc * 55.0 + vec2(t * 0.05, 0.0), 0.93) + 0.7 * stars(sc * 90.0 + 5.0 + vec2(t * 0.10, 0.0), 0.95) + 0.5 * stars(sc * 140.0 + 9.0 + vec2(t * 0.18, 0.0), 0.96);
-    col += vec3(0.80, 1.0, 0.95) * s;
+    // camadas de estrelas: cada uma gira num angulo diferente, tem escala e velocidade proprias e uma cor sorteada
+    vec3 sc3 = vec3(0.0);
+    for (int i = 0; i < 5; i++) {
+        float fi = float(i);
+        float ang = fi * 2.399 + 0.5;
+        mat2 rot = mat2(cos(ang), -sin(ang), sin(ang), cos(ang));
+        vec2 p = rot * q * (34.0 + fi * 24.0) + vec2(t * (0.04 + 0.05 * fi), t * 0.02 * fi) + fi * 17.3;
+        float s = stars(p, 0.925 + 0.012 * fi) * (1.0 - 0.13 * fi);
+        vec3 tint = 0.5 + 0.5 * cos(6.2831 * (hash(vec2(fi, 3.7)) + vec3(0.0, 0.33, 0.67)));
+        tint = mix(tint, vec3(0.80, 1.0, 0.95), 0.6);
+        sc3 += tint * s;
+    }
+    col += sc3;
+    col = max(col, vec3(0.04, 0.12, 0.13)); // piso: nada some no escuro
 
-    // mantem o desenho do item visivel: o brilho da textura original realca os detalhes
-    // piso de brilho: nenhuma parte some no escuro
-    col = max(col, vec3(0.04, 0.12, 0.13));
-    float lum = dot(tex.rgb, vec3(0.299, 0.587, 0.114));
-    col = col * (0.70 + 0.8 * lum) + tex.rgb * 0.22;
-    // sombreamento por face: separa frente e laterais (da profundidade ao formato)
-    float shade = clamp(vertexColor.r, 0.0, 1.0);
+    // mascara pela propria arte: pixels vermelhos (cabeca/lamina) viram galaxia; cabo e contorno ficam como a textura
+    float redness = tex.r - max(tex.g, tex.b);
+    float m = smoothstep(0.05, 0.12, redness);
+    // o relevo da arte (vermelho claro/escuro) modula a galaxia, mantendo o volume do desenho
+    float relief = clamp(tex.r * 1.6, 0.0, 1.0);
+    col *= mix(0.55, 1.35, relief);
+    float shade = clamp(vertexColor.r, 0.0, 1.0); // sombreamento por face: separa frente e laterais
     col *= mix(0.55, 1.15, shade);
-    // brilho nas bordas da textura (partes escuras do desenho original viram contorno claro)
-    col += vec3(0.10, 0.35, 0.33) * (1.0 - smoothstep(0.0, 0.35, lum)) * 0.30;
+    vec3 orig = tex.rgb * (0.55 + 0.9 * shade);
+    col = mix(orig, col, m);
 
-    // mascara (como no Avaritia): so a cabeca/lamina vira galaxia; cabo e detalhes escuros mantem a textura original
-    float sat = max(tex.r, max(tex.g, tex.b)) - min(tex.r, min(tex.g, tex.b));
-    float warm = step(tex.b * 1.2 + 0.02, tex.r); // marrom/cinza quente = cabo
-    float m = smoothstep(0.05, 0.18, sat) * (1.0 - warm);
-    m = max(m, smoothstep(0.30, 0.50, lum) * (1.0 - warm)); // metal claro/cinza (ex.: netherite) tambem vira galaxia
-    vec3 orig = tex.rgb * (0.55 + 0.9 * clamp(vertexColor.r, 0.0, 1.0));
-    col = mix(orig, col, clamp(m * 0.85 + 0.15, 0.0, 1.0));
-
-    // borda com luz: texels vizinhos transparentes => contorno do item brilha
-    vec2 px = 1.0 / vec2(textureSize(Sampler0, 0));
+    // borda com luz: so onde a galaxia encosta em vazio
+    vec2 px = px0;
     vec2 f = fract(texCoord0 / px);
     float e1 = 0.0;
-    float e2 = 0.0;
     float nr = dot(vec2(1, 0), f - 0.5) + 0.5;
     float nl = dot(vec2(-1, 0), f - 0.5) + 0.5;
     float nu = dot(vec2(0, 1), f - 0.5) + 0.5;
     float nd = dot(vec2(0, -1), f - 0.5) + 0.5;
-    if (texture(Sampler0, texCoord0 + vec2(px.x, 0.0)).a < 0.1) { e1 = max(e1, smoothstep(0.62, 0.9, nr)); e2 = max(e2, smoothstep(0.35, 0.62, nr)); }
-    if (texture(Sampler0, texCoord0 - vec2(px.x, 0.0)).a < 0.1) { e1 = max(e1, smoothstep(0.62, 0.9, nl)); e2 = max(e2, smoothstep(0.35, 0.62, nl)); }
-    if (texture(Sampler0, texCoord0 + vec2(0.0, px.y)).a < 0.1) { e1 = max(e1, smoothstep(0.62, 0.9, nu)); e2 = max(e2, smoothstep(0.35, 0.62, nu)); }
-    if (texture(Sampler0, texCoord0 - vec2(0.0, px.y)).a < 0.1) { e1 = max(e1, smoothstep(0.62, 0.9, nd)); e2 = max(e2, smoothstep(0.35, 0.62, nd)); }
+    if (texture(Sampler0, texCoord0 + vec2(px.x, 0.0)).a < 0.1) { e1 = max(e1, smoothstep(0.62, 0.9, nr)); }
+    if (texture(Sampler0, texCoord0 - vec2(px.x, 0.0)).a < 0.1) { e1 = max(e1, smoothstep(0.62, 0.9, nl)); }
+    if (texture(Sampler0, texCoord0 + vec2(0.0, px.y)).a < 0.1) { e1 = max(e1, smoothstep(0.62, 0.9, nu)); }
+    if (texture(Sampler0, texCoord0 - vec2(0.0, px.y)).a < 0.1) { e1 = max(e1, smoothstep(0.62, 0.9, nd)); }
     float pulse = 0.85 + 0.15 * sin(t * 2.0);
-    vec3 glow = vec3(0.45, 1.0, 0.85);
-    col = mix(col, glow * 1.25 * pulse, e1 * 0.85);
-    col += glow * 0.30 * e2 * (1.0 - e1);
+    col = mix(col, vec3(0.45, 1.0, 0.85) * 1.25 * pulse, e1 * 0.85 * m);
 
     vec4 color = vec4(col, tex.a) * ColorModulator;
     color.rgb = mix(overlayColor.rgb, color.rgb, overlayColor.a);

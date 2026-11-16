@@ -19,6 +19,7 @@ public final class ModuleDescriptions {
 			case "FreeLook" -> "Gira a camera em volta do personagem sem mudar para onde ele olha.";
 			case "Freecam" -> "Camera livre fora do corpo, sem limite de distancia.";
 			case "Fullbright" -> "Clareia o mundo (visao noturna no seu cliente).";
+			case "Galaxy" -> "Galaxia animada (shader) nas ferramentas de diamante e netherite.";
 			case "Hide Name" -> "Esconde a scoreboard da direita inteira (limpo pra print/video).";
 			case "Jesus" -> "Andar sobre a agua.";
 			case "Mood Filter" -> "Escurece a tela, tom frio e vinheta.";

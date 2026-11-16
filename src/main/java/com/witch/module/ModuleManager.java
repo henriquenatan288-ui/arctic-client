@@ -70,6 +70,7 @@ public final class ModuleManager {
 		MODULES.add(new NametagsModule());
 		MODULES.add(new AutoArmorModule());
 		MODULES.add(new FullbrightModule());
+		MODULES.add(new GalaxyModule());
 		MODULES.add(new FreecamModule());
 		MODULES.add(new FreeLookModule());
 		MODULES.add(new BreakWaveModule());
