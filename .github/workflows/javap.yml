@@ -23,8 +23,11 @@ jobs:
       - name: javap
         shell: bash
         run: |
+          set +e +o pipefail
           mkdir -p out
-          M=$(find ~/.gradle ~/.cache -name "minecraft-merged-deobf-26.2.jar" 2>/dev/null | head -1)
+          find / -name "*.jar" -path "*minecraft*" 2>/dev/null | head -40 > out/jars.txt
+          M=$(find / -name "minecraft-merged*.jar" 2>/dev/null | head -1)
+          [ -z "$M" ] && M=$(find ~/.gradle -name "*.jar" -size +20M 2>/dev/null | head -1)
           echo "$M" > out/jar.txt
           javap -p -c -constants -cp "$M" net.minecraft.client.renderer.feature.ItemFeatureRenderer > out/ifr.txt 2>&1 || true
           javap -p -c -constants -cp "$M" 'net.minecraft.client.renderer.feature.ItemFeatureRenderer$Submit' > out/ifr_submit.txt 2>&1 || true
@@ -33,7 +36,8 @@ jobs:
           javap -p -constants -cp "$M" net.minecraft.client.renderer.SubmitNodeCollector > out/snc.txt 2>&1 || true
           unzip -o -q "$M" 'assets/minecraft/shaders/core/glint*' 'assets/minecraft/shaders/core/item*' -d out/sh 2>/dev/null || true
           unzip -l "$M" | grep -E "glint" > out/glintfiles.txt || true
-          for j in $(find ~/.gradle -name "*client*.jar" -o -name "minecraft-*assets*" 2>/dev/null | head -5); do unzip -l "$j" 2>/dev/null | grep -E "enchanted_glint" | sed "s#^#$j #" >> out/glintfiles.txt; done
+          for j in $(find ~/.gradle -name "*.jar" 2>/dev/null | head -400); do unzip -l "$j" 2>/dev/null | grep -E "enchanted_glint|witch_galaxy" | sed "s#^#$j #" >> out/glintfiles.txt; done
+          true
       - name: Publish
         run: |
           cd out
