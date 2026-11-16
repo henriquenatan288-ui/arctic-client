@@ -219,10 +219,10 @@ public class ClickGuiScreen extends Screen {
 	}
 
 	// barra superior
-	private int barW() { return Math.min(this.width - 12, 360); }
-	private int barX() { return (this.width - barW()) / 2; }
+	private int barW() { return 8 + 108 + 6 + btnW("Perfis") + 4 + btnW("Music") + 4 + btnW("HUD") + 6; }
+	private int barX() { return this.width - barW() - 8; }
 	private static final int BAR_Y = 8, BAR_H = 22;
-	private int searchX() { return barX() + 78; }
+	private int searchX() { return barX() + 8; }
 	private int searchW() { return 108; }
 	private int btnW(String t) { return FontUtil.width(t) + 14; }
 	private int hudX() { return barX() + barW() - 6 - btnW("HUD"); }
@@ -302,7 +302,7 @@ public class ClickGuiScreen extends Screen {
 		}
 		tipNow = null;
 
-		g.fill(0, 0, this.width, this.height, RenderUtil.alpha(0x38000000, a));
+		g.fill(0, 0, this.width, this.height, RenderUtil.alpha(0x78000000, a));
 
 		topBar(g, mx, my, a);
 
@@ -326,7 +326,6 @@ public class ClickGuiScreen extends Screen {
 				int th = fh + 8;
 				int tx = Mth.clamp(mx + 10, 6, this.width - tw - 6);
 				int ty = Mth.clamp(my + 12, 6, this.height - th - 6);
-				RenderUtil.roundRect(g, tx - 1, ty - 1, tw + 2, th + 2, 5, RenderUtil.alpha(rgb(accA(), 0x80), a));
 				RenderUtil.roundRect(g, tx, ty, tw, th, 4, RenderUtil.alpha(0xFF0C0E11, a * 0.97f));
 				FontUtil.draw(g, ModuleRow.fit(d, tw - 10), tx + 6, ty + 4, RenderUtil.alpha(TXT, a));
 			}
@@ -335,22 +334,27 @@ public class ClickGuiScreen extends Screen {
 
 	private void topBar(GuiGraphicsExtractor g, int mx, int my, float a) {
 		int fh = FontUtil.height();
+		// caixa do usuario (canto superior esquerdo): cabeca da skin + nome
+		String nick = TitleSkin.nick();
+		int uw = Math.max(86, FontUtil.width(nick) + 44), uh = BAR_H + 8, ux = 8, uy = BAR_Y;
+		RenderUtil.softShadow(g, ux, uy + 3, uw, uh, 12, RenderUtil.alpha(0xFF000000, 0.45f * a));
+		RenderUtil.roundRect(g, ux, uy, uw, uh, uh / 2, RenderUtil.alpha(0xFF14171C, 0.62f * a));
+		int hs = uh - 10;
+		RenderUtil.roundRect(g, ux + 5, uy + 5, hs, hs, 4, RenderUtil.alpha(0xFF000000, 0.35f * a));
+		try {
+			net.minecraft.client.gui.components.PlayerFaceExtractor.extractRenderState(g, TitleSkin.skin(), ux + 5, uy + 5, hs, RenderUtil.alpha(0xFFFFFFFF, a));
+		} catch (Throwable ignored) {
+			// sem cabeca: fica so o fundo
+		}
+		FontUtil.draw(g, ModuleRow.fit(nick, uw - hs - 18), ux + hs + 11, uy + 6, RenderUtil.alpha(0xFFF2F3F5, a));
+		small(g, "Witch Client", ux + hs + 11, uy + uh - 8, RenderUtil.alpha(accA(), a));
+		// barra de busca e botoes (canto superior direito)
 		int x = barX(), y = BAR_Y, w = barW(), h = BAR_H;
-		RenderUtil.softShadow(g, x, y + 3, w, h, 12, RenderUtil.alpha(0xFF000000, 0.5f * a));
-		RenderUtil.roundRect(g, x, y, w, h, h / 2, RenderUtil.alpha(0xFFFFFFFF, 0.13f * a));
-		RenderUtil.roundRect(g, x + 1, y + 1, w - 2, h - 2, h / 2 - 1, RenderUtil.alpha(0xFF12151B, 0.62f * a));
-		// logo
-		int ls = 12, lx = x + 9, ly = y + (h - ls) / 2;
-		RenderUtil.glow(g, lx + ls / 2, ly + ls / 2, 14, RenderUtil.alpha(accA(), 0.45f * a));
-		RenderUtil.roundRect(g, lx, ly, ls, ls, 4, RenderUtil.alpha(accA(), a));
-		RenderUtil.roundRect(g, lx + 3, ly + 3, ls - 6, ls - 6, 2, RenderUtil.alpha(accB(), a));
-		FontUtil.draw(g, "Witch", lx + ls + 6, y + (h - fh) / 2, RenderUtil.alpha(0xFFF2F3F5, a));
-		g.fill(searchX() - 6, y + 5, searchX() - 5, y + h - 5, RenderUtil.alpha(0xFFFFFFFF, 0.14f * a));
-		// busca
+		RenderUtil.softShadow(g, x, y + 3, w, h, 12, RenderUtil.alpha(0xFF000000, 0.45f * a));
+		RenderUtil.roundRect(g, x, y, w, h, h / 2, RenderUtil.alpha(0xFF14171C, 0.62f * a));
 		int sx = searchX(), sy = y + 3, sw = searchW(), sh = h - 6;
-		RenderUtil.roundRect(g, sx, sy, sw, sh, sh / 2, RenderUtil.alpha(searchFocused ? rgb(accA(), 0xAA) : 0x22FFFFFF, a));
-		RenderUtil.roundRect(g, sx + 1, sy + 1, sw - 2, sh - 2, sh / 2 - 1, RenderUtil.alpha(0xCC0B0D11, a));
-		CategoryIcons.blit(g, CategoryIcons.SEARCH, sx + 6, sy + (sh - 8) / 2, 8, RenderUtil.alpha(0xFF8A8F97, a));
+		RenderUtil.roundRect(g, sx, sy, sw, sh, sh / 2, RenderUtil.alpha(searchFocused ? 0xFF0B0D11 : 0x99000000, a));
+		CategoryIcons.blit(g, CategoryIcons.SEARCH, sx + 6, sy + (sh - 8) / 2, 8, RenderUtil.alpha(searchFocused ? accA() : 0xFF8A8F97, a));
 		String shown;
 		int scol;
 		if (search.isEmpty() && !searchFocused) {
@@ -362,7 +366,6 @@ public class ClickGuiScreen extends Screen {
 			scol = TXT;
 		}
 		FontUtil.draw(g, ModuleRow.fit(shown, sw - 24), sx + 17, sy + (sh - fh) / 2, RenderUtil.alpha(scol, a));
-		// botoes
 		button(g, "Perfis", perfX(), y, mx, my, a, false);
 		button(g, "Music", musicX(), y, mx, my, a, false);
 		button(g, "HUD", hudX(), y, mx, my, a, true);
@@ -392,17 +395,14 @@ public class ClickGuiScreen extends Screen {
 		int on = 0, total = ModuleManager.byCategory(c).size();
 		for (Module m : ModuleManager.byCategory(c)) if (m.isEnabled()) on++;
 
-		float op = Mth.clamp(com.witch.module.GuiSettingsModule.menuOpacity() * 0.62f, 0.42f, 0.88f) * a;
+		float op = Mth.clamp(com.witch.module.GuiSettingsModule.menuOpacity() * 0.55f, 0.38f, 0.85f) * a;
 		RenderUtil.softShadow(g, x, y + 4, pw, h, 12, RenderUtil.alpha(0xFF000000, 0.55f * a));
-		RenderUtil.roundRect(g, x, y, pw, h, 7, RenderUtil.alpha(0xFFFFFFFF, 0.13f * a));
-		RenderUtil.roundRect(g, x + 1, y + 1, pw - 2, h - 2, 6, RenderUtil.alpha(0xFF12151B, op));
+		RenderUtil.roundRect(g, x, y, pw, h, 7, RenderUtil.alpha(0xFF0F1216, op));
 		// cabecalho
 		g.enableScissor(x, y, x + pw, y + HH);
-		RenderUtil.roundRect(g, x + 1, y + 1, pw - 2, h - 2, 6, RenderUtil.alpha(0xFF000000, 0.20f * a));
+		RenderUtil.roundRect(g, x, y, pw, h, 7, RenderUtil.alpha(0xFF000000, 0.22f * a));
 		g.disableScissor();
-		g.fill(x + 8, y + 1, x + pw - 8, y + 2, RenderUtil.alpha(0xFFFFFFFF, 0.18f * a));
 		boolean anyOn = on > 0;
-		hgrad(g, x + 1, y + HH, pw - 2, 1, RenderUtil.alpha(rgb(accA(), anyOn ? 0x90 : 0x30), a), RenderUtil.alpha(rgb(accB(), anyOn ? 0x20 : 0x10), a));
 		if (anyOn) RenderUtil.glow(g, x + 12, y + HH / 2, 12, RenderUtil.alpha(accA(), 0.30f * a));
 		CategoryIcons.draw(g, c, x + 8, y + (HH - 7) / 2, RenderUtil.alpha(anyOn ? accA() : 0xFF9AA0A8, a));
 		FontUtil.draw(g, c.label, x + 20, y + (HH - fh) / 2, RenderUtil.alpha(0xFFF2F3F5, a));
@@ -428,7 +428,6 @@ public class ClickGuiScreen extends Screen {
 			int sy0 = base + s.y;
 			if (sy0 + s.h < clipTop || sy0 > clipBot) continue;
 			if (s.block) {
-				RenderUtil.roundRect(g, bx + 1, sy0 - 1, iw - 2, s.h + 2, 4, RenderUtil.alpha(rgb(accA(), 0x22), a));
 				RenderUtil.roundRect(g, bx + 2, sy0, iw - 4, s.h, 3, RenderUtil.alpha(0x70000000, a));
 				g.enableScissor(bx, Math.max(sy0, clipTop), bx + iw, Math.min(sy0 + s.h, clipBot));
 				int ry = sy0;
@@ -444,18 +443,9 @@ public class ClickGuiScreen extends Screen {
 			m.toggleAnim = Mth.lerp(Math.min(1f, speed * 0.3f), m.toggleAnim, m.isEnabled() ? 1f : 0f);
 			m.hoverAnim = Mth.lerp(Math.min(1f, speed * 0.3f), m.hoverAnim, hover ? 1f : 0f);
 			float t = m.toggleAnim;
-			int border = RenderUtil.mix(RenderUtil.mix(0x0EFFFFFF, 0x2CFFFFFF, m.hoverAnim), rgb(accA(), 0x99), t);
-			int fill = RenderUtil.mix(RenderUtil.mix(0x28000000, 0x1C000000, m.hoverAnim), rgb(accA(), 0x40), t);
+			int fill = RenderUtil.mix(RenderUtil.mix(0x00000000, 0x14FFFFFF, m.hoverAnim), rgb(accA(), 0x4A), t);
 			if (t > 0.02f) RenderUtil.glow(g, bx + iw / 2, sy0 + CARD / 2, iw / 2 + 4, RenderUtil.alpha(accA(), 0.10f * t * a));
-			RenderUtil.roundRect(g, bx, sy0, iw, CARD, 5, RenderUtil.alpha(border, a));
-			RenderUtil.roundRect(g, bx + 1, sy0 + 1, iw - 2, CARD - 2, 4, RenderUtil.alpha(fill, a));
-			if (m.hoverAnim > 0.02f && t < 0.98f) {
-				RenderUtil.roundRect(g, bx + 1, sy0 + 1, Math.max(8, Math.round((iw - 2) * m.hoverAnim)), CARD - 2, 4, RenderUtil.alpha(0x12FFFFFF, a * (1f - t)));
-			}
-			// ponto de estado
-			int dcx = bx + 8, dcy = sy0 + CARD / 2;
-			if (t > 0.02f) RenderUtil.glow(g, dcx, dcy, 8, RenderUtil.alpha(accA(), 0.55f * t * a));
-			RenderUtil.roundRect(g, dcx - 2, dcy - 2, 4, 4, 2, RenderUtil.alpha(RenderUtil.mix(0xFF565B64, accA(), t), a));
+			RenderUtil.roundRect(g, bx, sy0, iw, CARD, 5, RenderUtil.alpha(fill, a));
 			int right = bx + iw - 5;
 			boolean has = !m.settings().isEmpty();
 			if (has) {
@@ -468,7 +458,7 @@ public class ClickGuiScreen extends Screen {
 				g.pose().popMatrix();
 				right -= 10;
 			}
-			int nameMax = right - (bx + 16) - 4;
+			int nameMax = right - (bx + 7) - 4;
 			if (m.keybind.key() != 0) {
 				String kl = m.keybind.label();
 				int kw = Math.round(FontUtil.width(kl) * SMALL) + 6;
@@ -476,10 +466,10 @@ public class ClickGuiScreen extends Screen {
 				RenderUtil.roundRect(g, kx, sy0 + 3, kw, CARD - 6, 3, RenderUtil.alpha(0x30FFFFFF, a));
 				RenderUtil.roundRect(g, kx + 1, sy0 + 4, kw - 2, CARD - 8, 2, RenderUtil.alpha(0xFF0F1114, a));
 				small(g, kl, kx + 3, sy0 + CARD / 2f, RenderUtil.alpha(0xFFB5B9C0, a));
-				nameMax = kx - (bx + 16) - 4;
+				nameMax = kx - (bx + 7) - 4;
 			}
-			int tc = RenderUtil.mix(0xFFA9AEB6, 0xFFFFFFFF, t);
-			FontUtil.draw(g, ModuleRow.fit(m.name, Math.max(16, nameMax)), bx + 16, sy0 + (CARD - fh) / 2, RenderUtil.alpha(tc, a));
+			int tc = RenderUtil.mix(0xFFB4B8BF, 0xFFFFFFFF, t);
+			FontUtil.draw(g, ModuleRow.fit(m.name, Math.max(16, nameMax)), bx + 7, sy0 + (CARD - fh) / 2, RenderUtil.alpha(tc, a));
 			if (hover) tipNow = m;
 		}
 		g.disableScissor();
