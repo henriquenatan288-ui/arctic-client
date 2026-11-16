@@ -19,7 +19,14 @@ public final class GalaxyTools {
 
 	private static Set<Item> set;
 
+	/**
+	 * O efeito agora e ASSETS (textura animada, tools/gen_galaxy_tools.py), que roda em qualquer GPU/camada GL.
+	 * O caminho de shader proprio fica desligado por padrao (falhava no celular); ligue com -Dwitch.galaxyShader=true.
+	 */
+	private static final boolean SHADER = Boolean.getBoolean("witch.galaxyShader");
+
 	public static boolean isGalaxy(ItemStack stack) {
+		if (!SHADER) return false;
 		if (stack == null || stack.isEmpty()) return false;
 		if (set == null) {
 			set = Set.of(Items.DIAMOND_SWORD, Items.DIAMOND_PICKAXE, Items.DIAMOND_AXE, Items.DIAMOND_SHOVEL, Items.DIAMOND_HOE,
