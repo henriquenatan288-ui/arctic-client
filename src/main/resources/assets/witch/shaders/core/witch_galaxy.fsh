@@ -105,14 +105,14 @@ void main() {
     vec2 f = fract(texCoord0 / px);
     float e1 = 0.0;
     float e2 = 0.0;
-    vec2 d[4] = vec2[](vec2(1, 0), vec2(-1, 0), vec2(0, 1), vec2(0, -1));
-    for (int i = 0; i < 4; i++) {
-        float near = dot(d[i], f - 0.5) + 0.5; // 0..1 em direcao ao vizinho
-        if (texture(Sampler0, texCoord0 + d[i] * px).a < 0.1) {
-            e1 = max(e1, smoothstep(0.62, 0.9, near));
-            e2 = max(e2, smoothstep(0.35, 0.62, near));
-        }
-    }
+    float nr = dot(vec2(1, 0), f - 0.5) + 0.5;
+    float nl = dot(vec2(-1, 0), f - 0.5) + 0.5;
+    float nu = dot(vec2(0, 1), f - 0.5) + 0.5;
+    float nd = dot(vec2(0, -1), f - 0.5) + 0.5;
+    if (texture(Sampler0, texCoord0 + vec2(px.x, 0.0)).a < 0.1) { e1 = max(e1, smoothstep(0.62, 0.9, nr)); e2 = max(e2, smoothstep(0.35, 0.62, nr)); }
+    if (texture(Sampler0, texCoord0 - vec2(px.x, 0.0)).a < 0.1) { e1 = max(e1, smoothstep(0.62, 0.9, nl)); e2 = max(e2, smoothstep(0.35, 0.62, nl)); }
+    if (texture(Sampler0, texCoord0 + vec2(0.0, px.y)).a < 0.1) { e1 = max(e1, smoothstep(0.62, 0.9, nu)); e2 = max(e2, smoothstep(0.35, 0.62, nu)); }
+    if (texture(Sampler0, texCoord0 - vec2(0.0, px.y)).a < 0.1) { e1 = max(e1, smoothstep(0.62, 0.9, nd)); e2 = max(e2, smoothstep(0.35, 0.62, nd)); }
     float pulse = 0.85 + 0.15 * sin(t * 2.0);
     vec3 glow = vec3(0.45, 1.0, 0.85);
     col = mix(col, glow * 1.25 * pulse, e1 * 0.85);

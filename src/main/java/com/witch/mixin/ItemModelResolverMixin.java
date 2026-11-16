@@ -16,7 +16,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class ItemModelResolverMixin {
 	@Inject(method = "appendItemLayers", at = @At("HEAD"), require = 0)
 	private void witch$head(ItemStackRenderState s, ItemStack stack, ItemDisplayContext c, Level l, ItemOwner o, int seed, CallbackInfo ci) {
-		GalaxyTools.pending = GalaxyTools.isGalaxy(stack);
+		// no inventario/GUI fica a textura normal (a galaxia so na mao, no chao e em quadros)
+		GalaxyTools.pending = c != ItemDisplayContext.GUI && GalaxyTools.isGalaxy(stack);
 	}
 
 	@Inject(method = "appendItemLayers", at = @At("RETURN"), require = 0)
