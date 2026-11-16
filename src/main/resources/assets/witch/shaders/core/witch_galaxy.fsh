@@ -52,13 +52,18 @@ float stars(vec2 p, float density) {
 }
 
 void main() {
+    float fw = max(fwidth(texCoord0.x), fwidth(texCoord0.y)); // antes do discard (derivadas precisam de fluxo uniforme)
     vec4 tex = texture(Sampler0, texCoord0);
     if (tex.a < 0.1) {
         discard;
     }
 
     // coordenadas de tela: o item vira uma "janela" para o espaco
-    vec2 sc = gl_FragCoord.xy / 360.0;
+    // escala pela tamanho do item na tela (inventario e mao ficam com a mesma "densidade" de galaxia)
+    vec2 px0 = 1.0 / vec2(textureSize(Sampler0, 0));
+    float ppt = fw > 1e-6 ? px0.x / fw : 12.0; // pixels de tela por texel
+    ppt = clamp(ppt, 3.0, 80.0);
+    vec2 sc = gl_FragCoord.xy / (ppt * 28.0);
 
     // camadas em profundidades diferentes (o deslocamento muda com a escala)
     float t = GameTime * 1200.0 * 8.0;
@@ -91,6 +96,7 @@ void main() {
     float sat = max(tex.r, max(tex.g, tex.b)) - min(tex.r, min(tex.g, tex.b));
     float warm = step(tex.b * 1.2 + 0.02, tex.r); // marrom/cinza quente = cabo
     float m = smoothstep(0.05, 0.18, sat) * (1.0 - warm);
+    m = max(m, smoothstep(0.30, 0.50, lum) * (1.0 - warm)); // metal claro/cinza (ex.: netherite) tambem vira galaxia
     vec3 orig = tex.rgb * (0.55 + 0.9 * clamp(vertexColor.r, 0.0, 1.0));
     col = mix(orig, col, clamp(m * 0.85 + 0.15, 0.0, 1.0));
 
