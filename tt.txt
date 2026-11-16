@@ -1,0 +1,18 @@
+Compiled from "TextureTransform.java"
+public class net.minecraft.client.renderer.rendertype.TextureTransform {
+  public static final double MAX_ENCHANTMENT_GLINT_SPEED_MILLIS = 8.0d;
+  private final java.lang.String name;
+  private final java.util.function.Supplier<org.joml.Matrix4f> supplier;
+  public static final net.minecraft.client.renderer.rendertype.TextureTransform DEFAULT_TEXTURING;
+  public static final net.minecraft.client.renderer.rendertype.TextureTransform GLINT_TEXTURING;
+  public static final net.minecraft.client.renderer.rendertype.TextureTransform ENTITY_GLINT_TEXTURING;
+  public static final net.minecraft.client.renderer.rendertype.TextureTransform ARMOR_ENTITY_GLINT_TEXTURING;
+  public net.minecraft.client.renderer.rendertype.TextureTransform(java.lang.String, java.util.function.Supplier<org.joml.Matrix4f>);
+  public org.joml.Matrix4f createMatrix();
+  public java.lang.String toString();
+  private static org.joml.Matrix4f setupGlintTexturing(float);
+  private static org.joml.Matrix4f lambda$static$2();
+  private static org.joml.Matrix4f lambda$static$1();
+  private static org.joml.Matrix4f lambda$static$0();
+  static {};
+}

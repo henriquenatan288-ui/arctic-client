@@ -1,0 +1,152 @@
+Compiled from "ItemFeatureRenderer.java"
+public final class net.minecraft.client.renderer.feature.ItemFeatureRenderer$Submit extends java.lang.Record implements net.minecraft.client.renderer.feature.submit.TranslucentSubmit {
+  private final com.mojang.blaze3d.vertex.PoseStack$Pose pose;
+
+  private final net.minecraft.world.item.ItemDisplayContext displayContext;
+
+  private final int lightCoords;
+
+  private final int overlayCoords;
+
+  private final int outlineColor;
+
+  private final int[] tintLayers;
+
+  private final java.util.List<net.minecraft.client.resources.model.geometry.BakedQuad> quads;
+
+  private final net.minecraft.client.renderer.item.ItemStackRenderState$FoilType foilType;
+
+  public net.minecraft.client.renderer.feature.ItemFeatureRenderer$Submit(com.mojang.blaze3d.vertex.PoseStack$Pose, net.minecraft.world.item.ItemDisplayContext, int, int, int, int[], java.util.List<net.minecraft.client.resources.model.geometry.BakedQuad>, net.minecraft.client.renderer.item.ItemStackRenderState$FoilType);
+    Code:
+         0: aload_0
+         1: invokespecial #51                 // Method java/lang/Record."<init>":()V
+         4: aload_0
+         5: aload_1
+         6: putfield      #53                 // Field pose:Lcom/mojang/blaze3d/vertex/PoseStack$Pose;
+         9: aload_0
+        10: aload_2
+        11: putfield      #55                 // Field displayContext:Lnet/minecraft/world/item/ItemDisplayContext;
+        14: aload_0
+        15: iload_3
+        16: putfield      #57                 // Field lightCoords:I
+        19: aload_0
+        20: iload         4
+        22: putfield      #59                 // Field overlayCoords:I
+        25: aload_0
+        26: iload         5
+        28: putfield      #61                 // Field outlineColor:I
+        31: aload_0
+        32: aload         6
+        34: putfield      #63                 // Field tintLayers:[I
+        37: aload_0
+        38: aload         7
+        40: putfield      #65                 // Field quads:Ljava/util/List;
+        43: aload_0
+        44: aload         8
+        46: putfield      #67                 // Field foilType:Lnet/minecraft/client/renderer/item/ItemStackRenderState$FoilType;
+        49: return
+
+  public boolean hasTranslucency();
+    Code:
+         0: aload_0
+         1: invokevirtual #74                 // Method quads:()Ljava/util/List;
+         4: invokeinterface #80,  1           // InterfaceMethod java/util/List.iterator:()Ljava/util/Iterator;
+         9: astore_1
+        10: aload_1
+        11: invokeinterface #85,  1           // InterfaceMethod java/util/Iterator.hasNext:()Z
+        16: ifeq          47
+        19: aload_1
+        20: invokeinterface #89,  1           // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+        25: checkcast     #24                 // class net/minecraft/client/resources/model/geometry/BakedQuad
+        28: astore_2
+        29: aload_2
+        30: invokevirtual #93                 // Method net/minecraft/client/resources/model/geometry/BakedQuad.materialInfo:()Lnet/minecraft/client/resources/model/geometry/BakedQuad$MaterialInfo;
+        33: invokevirtual #97                 // Method net/minecraft/client/resources/model/geometry/BakedQuad$MaterialInfo.itemRenderType:()Lnet/minecraft/client/renderer/rendertype/RenderType;
+        36: invokevirtual #102                // Method net/minecraft/client/renderer/rendertype/RenderType.hasBlending:()Z
+        39: ifeq          44
+        42: iconst_1
+        43: ireturn
+        44: goto          10
+        47: iconst_0
+        48: ireturn
+
+  public float distanceToCameraSq();
+    Code:
+         0: aload_0
+         1: getfield      #53                 // Field pose:Lcom/mojang/blaze3d/vertex/PoseStack$Pose;
+         4: invokevirtual #109                // Method com/mojang/blaze3d/vertex/PoseStack$Pose.pose:()Lorg/joml/Matrix4f;
+         7: invokestatic  #113                // InterfaceMethod net/minecraft/client/renderer/feature/submit/TranslucentSubmit.computeDistanceToCameraSq:(Lorg/joml/Matrix4fc;)F
+        10: freturn
+
+  public net.minecraft.client.renderer.feature.FeatureRendererType<net.minecraft.client.renderer.feature.ItemFeatureRenderer$Submit> featureType();
+    Code:
+         0: getstatic     #120                // Field net/minecraft/client/renderer/feature/ItemFeatureRenderer.TYPE:Lnet/minecraft/client/renderer/feature/FeatureRendererType;
+         3: areturn
+
+  public final java.lang.String toString();
+    Code:
+         0: aload_0
+         1: invokedynamic #142,  0            // InvokeDynamic #0:toString:(Lnet/minecraft/client/renderer/feature/ItemFeatureRenderer$Submit;)Ljava/lang/String;
+         6: areturn
+
+  public final int hashCode();
+    Code:
+         0: aload_0
+         1: invokedynamic #147,  0            // InvokeDynamic #0:hashCode:(Lnet/minecraft/client/renderer/feature/ItemFeatureRenderer$Submit;)I
+         6: ireturn
+
+  public final boolean equals(java.lang.Object);
+    Code:
+         0: aload_0
+         1: aload_1
+         2: invokedynamic #153,  0            // InvokeDynamic #0:equals:(Lnet/minecraft/client/renderer/feature/ItemFeatureRenderer$Submit;Ljava/lang/Object;)Z
+         7: ireturn
+
+  public com.mojang.blaze3d.vertex.PoseStack$Pose pose();
+    Code:
+         0: aload_0
+         1: getfield      #53                 // Field pose:Lcom/mojang/blaze3d/vertex/PoseStack$Pose;
+         4: areturn
+
+  public net.minecraft.world.item.ItemDisplayContext displayContext();
+    Code:
+         0: aload_0
+         1: getfield      #55                 // Field displayContext:Lnet/minecraft/world/item/ItemDisplayContext;
+         4: areturn
+
+  public int lightCoords();
+    Code:
+         0: aload_0
+         1: getfield      #57                 // Field lightCoords:I
+         4: ireturn
+
+  public int overlayCoords();
+    Code:
+         0: aload_0
+         1: getfield      #59                 // Field overlayCoords:I
+         4: ireturn
+
+  public int outlineColor();
+    Code:
+         0: aload_0
+         1: getfield      #61                 // Field outlineColor:I
+         4: ireturn
+
+  public int[] tintLayers();
+    Code:
+         0: aload_0
+         1: getfield      #63                 // Field tintLayers:[I
+         4: areturn
+
+  public java.util.List<net.minecraft.client.resources.model.geometry.BakedQuad> quads();
+    Code:
+         0: aload_0
+         1: getfield      #65                 // Field quads:Ljava/util/List;
+         4: areturn
+
+  public net.minecraft.client.renderer.item.ItemStackRenderState$FoilType foilType();
+    Code:
+         0: aload_0
+         1: getfield      #67                 // Field foilType:Lnet/minecraft/client/renderer/item/ItemStackRenderState$FoilType;
+         4: areturn
+}
