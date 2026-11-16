@@ -16,7 +16,7 @@ S = 32            # tamanho final
 SS = 4            # supersample
 H = S * SS        # 128 (periodo do toro)
 N = 32            # quadros (um ciclo completo, tudo em loop perfeito)
-OUT = os.path.join(os.path.dirname(__file__), '..', 'src/main/resources/assets/minecraft/textures/item')
+OUT = os.path.join(os.path.dirname(__file__), '..', 'src/main/resources/resourcepacks/witch_galaxy/assets/minecraft/textures/item')
 
 A = np.array([0.70710678, -0.70710678])   # eixo do cabo (para cima/direita)
 P = np.array([0.70710678, 0.70710678])    # perpendicular (para baixo/direita)
