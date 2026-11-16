@@ -1,0 +1,44 @@
+name: javap
+on:
+  push:
+    branches: [javap]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  dump:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 25
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: 9.5.1
+      - name: Compile (baixa o Minecraft)
+        run: gradle compileJava --no-daemon 2>&1 | tail -5
+      - name: javap
+        shell: bash
+        run: |
+          mkdir -p out
+          M=$(find ~/.gradle ~/.cache -name "minecraft-merged-deobf-26.2.jar" 2>/dev/null | head -1)
+          echo "$M" > out/jar.txt
+          javap -p -c -constants -cp "$M" net.minecraft.client.renderer.feature.ItemFeatureRenderer > out/ifr.txt 2>&1 || true
+          javap -p -c -constants -cp "$M" 'net.minecraft.client.renderer.feature.ItemFeatureRenderer$Submit' > out/ifr_submit.txt 2>&1 || true
+          javap -p -constants -cp "$M" net.minecraft.client.renderer.rendertype.TextureTransform > out/tt.txt 2>&1 || true
+          javap -p -c -cp "$M" net.minecraft.client.renderer.rendertype.TextureTransform > out/tt_c.txt 2>&1 || true
+          javap -p -constants -cp "$M" net.minecraft.client.renderer.SubmitNodeCollector > out/snc.txt 2>&1 || true
+          unzip -o -q "$M" 'assets/minecraft/shaders/core/glint*' 'assets/minecraft/shaders/core/item*' -d out/sh 2>/dev/null || true
+          unzip -l "$M" | grep -E "glint" > out/glintfiles.txt || true
+          for j in $(find ~/.gradle -name "*client*.jar" -o -name "minecraft-*assets*" 2>/dev/null | head -5); do unzip -l "$j" 2>/dev/null | grep -E "enchanted_glint" | sed "s#^#$j #" >> out/glintfiles.txt; done
+      - name: Publish
+        run: |
+          cd out
+          git init -q -b javap-out
+          git config user.name ci; git config user.email ci@example.com
+          git add -A
+          git commit -qm dump
+          git push -qf "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" javap-out
