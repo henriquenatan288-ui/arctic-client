@@ -103,7 +103,7 @@ public class ModuleEditorScreen extends Screen {
 		int x = colX(), w = colW(), t = top(), b = bottom();
 		clampScroll();
 		RenderUtil.softShadow(g, x - 8, t - 6, w + 16, b - t + 12, 14, RenderUtil.alpha(0xFF000000, 0.5f * a));
-		RenderUtil.roundRect(g, x - 8, t - 6, w + 16, b - t + 12, 8, RenderUtil.alpha(0xFF0B0A0C, 0.78f * a));
+		RenderUtil.roundRect(g, x - 8, t - 6, w + 16, b - t + 12, 8, RenderUtil.alpha(0xFF040406, 0.42f * a));
 		RenderUtil.glow(g, x - 8, t - 6, 40, RenderUtil.alpha(GuiBackdrop.RED, 0.18f * a));
 		RenderUtil.glow(g, x + w + 8, b + 6, 40, RenderUtil.alpha(GuiBackdrop.RED, 0.14f * a));
 		if (m.settings().isEmpty()) {

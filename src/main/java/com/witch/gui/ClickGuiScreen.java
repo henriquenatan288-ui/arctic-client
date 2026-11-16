@@ -282,43 +282,57 @@ public class ClickGuiScreen extends Screen {
 		m.toggleAnim = Mth.lerp(Math.min(1f, speed * 0.3f), m.toggleAnim, m.isEnabled() ? 1f : 0f);
 		m.hoverAnim = Mth.lerp(Math.min(1f, speed * 0.3f), m.hoverAnim, hover ? 1f : 0f);
 		float t = m.toggleAnim;
-		int border = RenderUtil.mix(RenderUtil.mix(0x1CFFFFFF, 0x3CFFFFFF, m.hoverAnim), RenderUtil.alpha(RED, 0.85f), t);
-		int fill = RenderUtil.mix(0xFF0D0B0E, 0xFF1E0A0F, t);
-		RenderUtil.roundRect(g, rx, ry, rw, ROW_H, 7, RenderUtil.alpha(border, a));
-		RenderUtil.roundRect(g, rx + 1, ry + 1, rw - 2, ROW_H - 2, 6, RenderUtil.alpha(fill, 0.86f * a));
-		if (t > 0.02f) {
-			RenderUtil.glow(g, rx + 6, ry + 4, 22, RenderUtil.alpha(RED, 0.34f * t * a));
-			RenderUtil.glow(g, rx + rw - 6, ry + ROW_H - 4, 22, RenderUtil.alpha(RED, 0.30f * t * a));
+		int h = ROW_H;
+		// vidro preto quase transparente com borda fina
+		int border = RenderUtil.mix(RenderUtil.mix(0x2EFFFFFF, 0x4CFFFFFF, m.hoverAnim), RenderUtil.alpha(RED, 0.55f), t * 0.45f);
+		RenderUtil.roundRect(g, rx, ry, rw, h, 7, RenderUtil.alpha(border, a));
+		RenderUtil.roundRect(g, rx + 1, ry + 1, rw - 2, h - 2, 6, RenderUtil.alpha(RenderUtil.mix(0xFF050507, 0xFF1A070C, t), (0.34f + 0.20f * t) * a));
+		// brilho diagonal suave
+		g.enableScissor(rx + 2, ry + 1, rx + rw - 2, ry + h - 1);
+		int sx0 = rx + Math.round(rw * 0.50f);
+		for (int yy = 0; yy < h; yy += 2) {
+			g.fill(sx0 - yy / 2, ry + yy, sx0 - yy / 2 + 18, ry + yy + 2, RenderUtil.alpha(0x0AFFFFFF, a));
 		}
+		g.disableScissor();
+		// cantos com luz vermelha (sempre sutil; mais forte ligado)
+		float rim = 0.30f + 0.60f * t;
+		RenderUtil.glow(g, rx + 5, ry + 4, 18, RenderUtil.alpha(RED, (0.10f + 0.28f * t) * a));
+		RenderUtil.glow(g, rx + rw - 5, ry + h - 4, 18, RenderUtil.alpha(RED, (0.10f + 0.26f * t) * a));
+		int rc = RenderUtil.alpha(RED, rim * a);
+		g.fill(rx + 7, ry, rx + 20, ry + 1, rc);
+		g.fill(rx, ry + 7, rx + 1, ry + 15, rc);
+		g.fill(rx + rw - 20, ry + h - 1, rx + rw - 7, ry + h, rc);
+		g.fill(rx + rw - 1, ry + h - 15, rx + rw, ry + h - 7, rc);
 		if (m.hoverAnim > 0.02f) {
-			RenderUtil.roundRect(g, rx + 1, ry + 1, Math.max(10, Math.round((rw - 2) * m.hoverAnim)), ROW_H - 2, 6, RenderUtil.alpha(0x0CFFFFFF, a));
+			RenderUtil.roundRect(g, rx + 1, ry + 1, Math.max(10, Math.round((rw - 2) * m.hoverAnim)), h - 2, 6, RenderUtil.alpha(0x0AFFFFFF, a));
 		}
 		// icone + divisoria
-		CategoryIcons.draw(g, m.category, rx + 9, ry + (ROW_H - 7) / 2, RenderUtil.alpha(RenderUtil.mix(0xFF8F8789, 0xFFFF6B78, t), a));
-		g.fill(rx + 26, ry + 6, rx + 27, ry + ROW_H - 6, RenderUtil.alpha(0xFFFFFFFF, 0.10f * a));
+		CategoryIcons.draw(g, m.category, rx + 9, ry + (h - 7) / 2, RenderUtil.alpha(RenderUtil.mix(0xFF9A9294, 0xFFFF6B78, t), a));
+		g.fill(rx + 26, ry + 6, rx + 27, ry + h - 6, RenderUtil.alpha(0xFFFFFFFF, 0.12f * a));
 		boolean plus = hasPlus(m);
 		int px = plusX(rx);
 		int nameMax = (pillX(rx, m) - 6) - (rx + 34);
 		if (nameMax < 24) nameMax = (plus ? px : rx + rw - 8) - (rx + 34) - 4;
-		boolean pillOk = nameMax >= 24 && pillX(rx, m) - 6 - (rx + 34) >= 24;
-		int tc = RenderUtil.mix(0xFFB9B3B5, 0xFFFFFFFF, t);
-		FontUtil.draw(g, ModuleRow.fit(m.name, Math.max(16, nameMax)), rx + 34, ry + (ROW_H - fh) / 2, RenderUtil.alpha(tc, a));
+		boolean pillOk = pillVisible(rx, m);
+		int tc = RenderUtil.mix(0xFFC2BCBE, 0xFFFFFFFF, t);
+		FontUtil.draw(g, ModuleRow.fit(m.name, Math.max(16, nameMax)), rx + 34, ry + (h - fh) / 2, RenderUtil.alpha(tc, a));
 		if (pillOk) {
-			int kw = pillW(m), kx = pillX(rx, m), kh = 14, ky = ry + (ROW_H - kh) / 2;
+			int kw = pillW(m), kx = pillX(rx, m), kh = 14, ky = ry + (h - kh) / 2;
 			boolean lis = m.keybind.listening;
-			RenderUtil.roundRect(g, kx, ky, kw, kh, 7, RenderUtil.alpha(lis ? RenderUtil.alpha(RED, 0.9f) : 0x2CFFFFFF, a));
-			RenderUtil.roundRect(g, kx + 1, ky + 1, kw - 2, kh - 2, 6, RenderUtil.alpha(0xFF0A090B, 0.95f * a));
+			RenderUtil.roundRect(g, kx, ky, kw, kh, 7, RenderUtil.alpha(lis ? RenderUtil.alpha(RED, 0.95f) : 0x40FFFFFF, a));
+			RenderUtil.roundRect(g, kx + 1, ky + 1, kw - 2, kh - 2, 6, RenderUtil.alpha(0xFF030304, 0.60f * a));
 			String kl = keyLabel(m);
 			int tw = Math.round(FontUtil.width(kl) * SMALL);
-			small(g, kl, kx + (kw - tw) / 2, ky + kh / 2f, RenderUtil.alpha(m.keybind.key() == 0 && !lis ? 0xFF8A8486 : 0xFFE8E4E5, a));
+			small(g, kl, kx + (kw - tw) / 2, ky + kh / 2f, RenderUtil.alpha(m.keybind.key() == 0 && !lis ? 0xFF9A9294 : 0xFFEDE8E9, a));
 		}
 		if (plus) {
-			g.fill(px, ry + 5, px + 1, ry + ROW_H - 5, RenderUtil.alpha(0xFFFFFFFF, 0.10f * a));
-			boolean ph = RenderUtil.inside(mx, my, px, ry, 24, ROW_H) && hover;
-			int pc = RenderUtil.alpha(ph ? 0xFFFFFFFF : 0xFFA39C9E, a);
-			int cx = px + 12, cy = ry + ROW_H / 2;
-			g.fill(cx - 3, cy, cx + 4, cy + 1, pc);
-			g.fill(cx, cy - 3, cx + 1, cy + 4, pc);
+			boolean ph = RenderUtil.inside(mx, my, px, ry, 24, h) && hover;
+			RenderUtil.roundRect(g, px, ry + 1, 23, h - 2, 6, RenderUtil.alpha(ph ? 0x16FFFFFF : 0x08FFFFFF, a));
+			g.fill(px, ry + 4, px + 1, ry + h - 4, RenderUtil.alpha(0xFFFFFFFF, 0.16f * a));
+			int pc = RenderUtil.alpha(ph ? 0xFFFFFFFF : 0xFFB5AEB0, a);
+			int cx = px + 12, cy = ry + h / 2;
+			g.fill(cx - 4, cy, cx + 5, cy + 1, pc);
+			g.fill(cx, cy - 4, cx + 1, cy + 5, pc);
 		}
 		if (hover) tipNow = m;
 	}
