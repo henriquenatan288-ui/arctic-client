@@ -2,6 +2,7 @@ package com.witch.module;
 
 import com.witch.setting.ColorSetting;
 import com.witch.setting.IntSetting;
+import net.minecraft.client.renderer.fog.FogData;
 import net.minecraft.client.renderer.state.level.SkyRenderState;
 
 /** Ceu com cor de sua escolha e mais estrelas (usa o estado de render do ceu, sem shader). */
@@ -30,5 +31,16 @@ public class SkyModule extends Module {
 		s.skyColor = mix(s.skyColor, instance.color.get(), instance.tint.get() / 100f);
 		float st = instance.stars.get() / 100f;
 		if (st > s.starBrightness) s.starBrightness = st;
+	}
+
+	/** Tinge tambem a cor da nevoa (o horizonte e quase todo o ceu visivel): sem isso so o topo mudava de cor. */
+	public static void applyFog(FogData d) {
+		if (instance == null || !instance.isEnabled() || d == null || d.color == null) return;
+		float t = instance.tint.get() / 100f;
+		if (t <= 0f) return;
+		int c = instance.color.get();
+		d.color.x = d.color.x * (1f - t) + ((c >> 16) & 0xFF) / 255f * t;
+		d.color.y = d.color.y * (1f - t) + ((c >> 8) & 0xFF) / 255f * t;
+		d.color.z = d.color.z * (1f - t) + (c & 0xFF) / 255f * t;
 	}
 }

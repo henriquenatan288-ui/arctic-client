@@ -37,7 +37,7 @@ public final class GuiBackdrop {
 	}
 
 	public static void draw(GuiGraphicsExtractor g, int w, int h, float a) {
-		g.fill(0, 0, w, h, RenderUtil.alpha(0x6A040406, a));
+		g.fill(0, 0, w, h, RenderUtil.alpha(0x38040406, a));
 		float s = Math.max(w, h) / 600f;
 		band(g, w, h, -170 * s, 60 * s, RenderUtil.alpha(0x06FFFFFF, a), RenderUtil.alpha(0x0AFFFFFF, a));
 		band(g, w, h, -20 * s, 110 * s, RenderUtil.alpha(0x06FFFFFF, a), RenderUtil.alpha(0x0CFFFFFF, a));

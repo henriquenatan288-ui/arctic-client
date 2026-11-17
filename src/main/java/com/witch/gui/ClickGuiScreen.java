@@ -284,9 +284,9 @@ public class ClickGuiScreen extends Screen {
 		float t = m.toggleAnim;
 		int h = ROW_H;
 		// vidro preto quase transparente com borda fina
-		int border = RenderUtil.mix(RenderUtil.mix(0x2EFFFFFF, 0x4CFFFFFF, m.hoverAnim), RenderUtil.alpha(RED, 0.55f), t * 0.45f);
-		RenderUtil.roundRect(g, rx, ry, rw, h, 7, RenderUtil.alpha(border, a));
-		RenderUtil.roundRect(g, rx + 1, ry + 1, rw - 2, h - 2, 6, RenderUtil.alpha(RenderUtil.mix(0xFF050507, 0xFF1A070C, t), (0.34f + 0.20f * t) * a));
+		int border = RenderUtil.mix(RenderUtil.mix(0x5CFFFFFF, 0x8CFFFFFF, m.hoverAnim), RenderUtil.alpha(RED, 0.85f), t * 0.45f);
+		RenderUtil.roundRect(g, rx, ry, rw, h, 7, RenderUtil.alpha(RenderUtil.mix(0xFF050507, 0xFF1A070C, t), (0.20f + 0.16f * t) * a));
+		RenderUtil.roundRing(g, rx, ry, rw, h, 7, RenderUtil.alpha(border, a));
 		// brilho diagonal suave
 		g.enableScissor(rx + 2, ry + 1, rx + rw - 2, ry + h - 1);
 		int sx0 = rx + Math.round(rw * 0.50f);
@@ -319,8 +319,8 @@ public class ClickGuiScreen extends Screen {
 		if (pillOk) {
 			int kw = pillW(m), kx = pillX(rx, m), kh = 14, ky = ry + (h - kh) / 2;
 			boolean lis = m.keybind.listening;
-			RenderUtil.roundRect(g, kx, ky, kw, kh, 7, RenderUtil.alpha(lis ? RenderUtil.alpha(RED, 0.95f) : 0x40FFFFFF, a));
-			RenderUtil.roundRect(g, kx + 1, ky + 1, kw - 2, kh - 2, 6, RenderUtil.alpha(0xFF030304, 0.60f * a));
+			RenderUtil.roundRect(g, kx, ky, kw, kh, 7, RenderUtil.alpha(0xFF030304, 0.28f * a));
+			RenderUtil.roundRing(g, kx, ky, kw, kh, 7, RenderUtil.alpha(lis ? RenderUtil.alpha(RED, 0.95f) : 0x70FFFFFF, a));
 			String kl = keyLabel(m);
 			int tw = Math.round(FontUtil.width(kl) * SMALL);
 			small(g, kl, kx + (kw - tw) / 2, ky + kh / 2f, RenderUtil.alpha(m.keybind.key() == 0 && !lis ? 0xFF9A9294 : 0xFFEDE8E9, a));

@@ -17,5 +17,6 @@ public abstract class FogRendererMixin {
 	private void witch$fog(Camera camera, int renderDistance, DeltaTracker delta, float partial, ClientLevel level,
 			CallbackInfoReturnable<FogData> cir) {
 		FogModule.apply(cir.getReturnValue());
+		com.witch.module.SkyModule.applyFog(cir.getReturnValue());
 	}
 }

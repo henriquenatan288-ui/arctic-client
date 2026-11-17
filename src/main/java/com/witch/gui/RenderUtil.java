@@ -35,6 +35,26 @@ public final class RenderUtil {
 	 * Retangulo arredondado: 9 blits de uma textura branca pre-suavizada (tintada pela cor).
 	 * Antes eram dezenas de fills por retangulo (cada canto linha a linha), o que derrubava o FPS no celular.
 	 */
+	/** Contorno de 1px arredondado (so a borda; o miolo fica transparente, sem veu). */
+	public static void roundRing(GuiGraphicsExtractor g, int x, int y, int w, int h, int r, int color) {
+		if (w < 2 * r + 2 || h < 2 * r + 2) { r = Math.max(1, Math.min(r, Math.min(w, h) / 2 - 1)); }
+		g.fill(x + r, y, x + w - r, y + 1, color);
+		g.fill(x + r, y + h - 1, x + w - r, y + h, color);
+		g.fill(x, y + r, x + 1, y + h - r, color);
+		g.fill(x + w - 1, y + r, x + w, y + h - r, color);
+		for (int j = 0; j < r; j++) {
+			for (int i = 0; i < r; i++) {
+				double d = Math.hypot(r - i - 0.5, r - j - 0.5);
+				if (d <= r && d > r - 1.25) {
+					g.fill(x + i, y + j, x + i + 1, y + j + 1, color);
+					g.fill(x + w - 1 - i, y + j, x + w - i, y + j + 1, color);
+					g.fill(x + i, y + h - 1 - j, x + i + 1, y + h - j, color);
+					g.fill(x + w - 1 - i, y + h - 1 - j, x + w - i, y + h - j, color);
+				}
+			}
+		}
+	}
+
 	public static void roundRect(GuiGraphicsExtractor g, int x, int y, int w, int h, int radius, int color) {
 		if (w <= 0 || h <= 0 || ((color >>> 24) & 0xFF) == 0) return;
 		int r = Math.min(radius, Math.min(w, h) / 2);
