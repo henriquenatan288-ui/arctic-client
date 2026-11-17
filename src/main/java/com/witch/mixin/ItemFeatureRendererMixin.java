@@ -19,16 +19,21 @@ public class ItemFeatureRendererMixin {
 	@Inject(method = "prepareMainSubmit", at = @At("HEAD"), require = 0)
 	private void witch$head(@Coerce Object submit, CallbackInfo ci) {
 		boolean on = false;
+		boolean glow = false;
 		try {
 			if (witch$quads == null) {
 				witch$quads = submit.getClass().getDeclaredMethod("quads");
 				witch$quads.setAccessible(true);
 			}
-			on = witch$quads.invoke(submit) instanceof GalaxyTools.Quads;
+			Object q = witch$quads.invoke(submit);
+			on = q instanceof GalaxyTools.Quads;
+			glow = q instanceof GalaxyTools.GlowQuads;
 		} catch (Throwable t) {
 			on = false;
+			glow = false;
 		}
 		GalaxyTools.active = on;
+		GalaxyTools.activeGlow = glow;
 	}
 
 	@Redirect(method = "prepareMainSubmit", require = 0,
@@ -36,6 +41,10 @@ public class ItemFeatureRendererMixin {
 	private RenderType witch$type(BakedQuad.MaterialInfo info) {
 		if (GalaxyTools.active) {
 			RenderType t = GalaxyTools.type();
+			if (t != null) return t;
+		}
+		if (GalaxyTools.activeGlow) {
+			RenderType t = com.witch.render.GlowItems.type();
 			if (t != null) return t;
 		}
 		return info.itemRenderType();

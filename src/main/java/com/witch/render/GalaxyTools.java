@@ -16,6 +16,9 @@ public final class GalaxyTools {
 	public static boolean pending;
 	/** true enquanto o ItemFeatureRenderer desenha uma camada galaxia (modo shader). */
 	public static boolean active;
+	/** Glow Items: mesmo esquema (pendente ao montar o item, ativo ao desenhar a camada). */
+	public static boolean pendingGlow;
+	public static boolean activeGlow;
 
 	/** Ultimo estado do efeito, mostrado em toast pelo modulo (o usuario nao consegue ler log no celular). */
 	public static volatile String status;
@@ -120,9 +123,16 @@ public final class GalaxyTools {
 		public Quads(List<BakedQuad> src) { super(src); }
 	}
 
+	/** Lista marcadora do Glow Items. */
+	public static final class GlowQuads extends ArrayList<BakedQuad> {
+		public GlowQuads(List<BakedQuad> src) { super(src); }
+	}
+
 	/** Duck interface na camada de render. */
 	public interface Flag {
 		boolean witch$galaxy();
 		void witch$setGalaxy(boolean v);
+		boolean witch$glow();
+		void witch$setGlow(boolean v);
 	}
 }

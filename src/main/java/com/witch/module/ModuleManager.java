@@ -72,6 +72,7 @@ public final class ModuleManager {
 		MODULES.add(new FullbrightModule());
 		MODULES.add(new GalaxyModule());
 		MODULES.add(new PlayersGalaxyModule());
+		MODULES.add(new GlowItemsModule());
 		MODULES.add(new FreecamModule());
 		MODULES.add(new FreeLookModule());
 		MODULES.add(new BreakWaveModule());
