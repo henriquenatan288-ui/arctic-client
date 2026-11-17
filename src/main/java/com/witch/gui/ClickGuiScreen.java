@@ -33,6 +33,10 @@ public class ClickGuiScreen extends Screen {
 	private static final int NAV_Y = 10, NAV_H = 26;
 	private static final int ROW_H = 26, GAP = 6, PAD_X = 14;
 	private static final float SMALL = 0.72f;
+	/** Escala geral do ClickGUI (menor = mais coisa na tela). */
+	private static final float UI = 0.8f;
+	private int vw() { return Math.round(this.width / UI); }
+	private int vh() { return Math.round(this.height / UI); }
 
 	private String search = "";
 	private boolean searchFocused = false;
@@ -73,11 +77,11 @@ public class ClickGuiScreen extends Screen {
 	}
 
 	private int searchW() {
-		return Math.min(110, Math.max(70, this.width / 6));
+		return Math.min(110, Math.max(70, vw() / 6));
 	}
 
 	private int searchX() {
-		return this.width - 12 - searchW();
+		return vw() - 12 - searchW();
 	}
 
 	private int tabsX() {
@@ -91,8 +95,8 @@ public class ClickGuiScreen extends Screen {
 
 	private int listX() { return PAD_X; }
 	private int listY() { return NAV_Y + NAV_H + 14; }
-	private int listW() { return this.width - PAD_X * 2; }
-	private int listH() { return this.height - listY() - 18; }
+	private int listW() { return vw() - PAD_X * 2; }
+	private int listH() { return vh() - listY() - 18; }
 
 	private int cols() {
 		return Mth.clamp((listW() + GAP) / (180 + GAP), 1, 3);
@@ -176,6 +180,10 @@ public class ClickGuiScreen extends Screen {
 			// sem desfoque
 		}
 		GuiBackdrop.draw(g, this.width, this.height, a);
+		g.pose().pushMatrix();
+		g.pose().scale(UI, UI);
+		mx = Math.round(mx / UI);
+		my = Math.round(my / UI);
 		int fh = FontUtil.height();
 		tipNow = null;
 
@@ -196,7 +204,7 @@ public class ClickGuiScreen extends Screen {
 		g.disableScissor();
 		if (mods.isEmpty()) {
 			String none = search.isEmpty() ? "Sem modulos nesta categoria." : "Nenhum modulo encontrado.";
-			FontUtil.draw(g, none, (this.width - FontUtil.width(none)) / 2, ly + 20, RenderUtil.alpha(0xFF8E8688, a));
+			FontUtil.draw(g, none, (vw() - FontUtil.width(none)) / 2, ly + 20, RenderUtil.alpha(0xFF8E8688, a));
 		}
 		int total = contentH(mods.size());
 		if (total > lh) {
@@ -205,20 +213,21 @@ public class ClickGuiScreen extends Screen {
 			RenderUtil.roundRect(g, lx + lw + 6, ly + Math.round((lh - th) * f), 2, th, 1, RenderUtil.alpha(RED, 0.8f * a));
 		}
 
-		small(g, Minecraft.getInstance().getFps() + " FPS   RSHIFT fecha", 12, this.height - 10, RenderUtil.alpha(0xFF6F686B, a));
+		small(g, Minecraft.getInstance().getFps() + " FPS   RSHIFT fecha", 12, vh() - 10, RenderUtil.alpha(0xFF6F686B, a));
 
 		if (tipNow != tipLast) { tipLast = tipNow; tipSince = System.currentTimeMillis(); }
 		if (tipNow != null && com.witch.module.GuiSettingsModule.tooltips() && System.currentTimeMillis() - tipSince > 450) {
 			String d = ModuleDescriptions.of(tipNow.name);
 			if (d != null && !d.isEmpty()) {
-				int tw = Math.min(this.width - 16, FontUtil.width(d) + 12);
+				int tw = Math.min(vw() - 16, FontUtil.width(d) + 12);
 				int th = fh + 8;
-				int tx = Mth.clamp(mx + 10, 6, this.width - tw - 6);
-				int ty = Mth.clamp(my + 12, 6, this.height - th - 6);
+				int tx = Mth.clamp(mx + 10, 6, vw() - tw - 6);
+				int ty = Mth.clamp(my + 12, 6, vh() - th - 6);
 				RenderUtil.roundRect(g, tx, ty, tw, th, 4, RenderUtil.alpha(0xFF0A090B, 0.97f * a));
 				FontUtil.draw(g, ModuleRow.fit(d, tw - 10), tx + 6, ty + 4, RenderUtil.alpha(0xFFE8E4E5, a));
 			}
 		}
+		g.pose().popMatrix();
 	}
 
 	private void nav(GuiGraphicsExtractor g, int mx, int my, float a) {
@@ -273,7 +282,7 @@ public class ClickGuiScreen extends Screen {
 			scol = 0xFFFFFFFF;
 		}
 		FontUtil.draw(g, ModuleRow.fit(shown, sw - 28), sx + 7, sy + (sh - fh) / 2, RenderUtil.alpha(scol, a));
-		GuiBackdrop.redRule(g, 12, NAV_Y + NAV_H + 4, this.width - 24, a * 0.6f);
+		GuiBackdrop.redRule(g, 12, NAV_Y + NAV_H + 4, vw() - 24, a * 0.6f);
 	}
 
 	private void row(GuiGraphicsExtractor g, Module m, int rx, int ry, int rw, int mx, int my, float a, float speed, int clipY, int clipH) {
@@ -284,25 +293,12 @@ public class ClickGuiScreen extends Screen {
 		float t = m.toggleAnim;
 		int h = ROW_H;
 		// vidro preto quase transparente com borda fina
-		int border = RenderUtil.mix(RenderUtil.mix(0x5CFFFFFF, 0x8CFFFFFF, m.hoverAnim), RenderUtil.alpha(RED, 0.85f), t * 0.45f);
+		int border = RenderUtil.mix(RenderUtil.mix(0x5CFFFFFF, 0x8CFFFFFF, m.hoverAnim), RenderUtil.alpha(RED, 0.95f), t * 0.75f);
 		RenderUtil.roundRect(g, rx, ry, rw, h, 7, RenderUtil.alpha(RenderUtil.mix(0xFF050507, 0xFF1A070C, t), (0.20f + 0.16f * t) * a));
 		RenderUtil.roundRing(g, rx, ry, rw, h, 7, RenderUtil.alpha(border, a));
-		// brilho diagonal suave
-		g.enableScissor(rx + 2, ry + 1, rx + rw - 2, ry + h - 1);
-		int sx0 = rx + Math.round(rw * 0.50f);
-		for (int yy = 0; yy < h; yy += 2) {
-			g.fill(sx0 - yy / 2, ry + yy, sx0 - yy / 2 + 18, ry + yy + 2, RenderUtil.alpha(0x0AFFFFFF, a));
-		}
-		g.disableScissor();
 		// cantos com luz vermelha (sempre sutil; mais forte ligado)
-		float rim = 0.30f + 0.60f * t;
 		RenderUtil.glow(g, rx + 5, ry + 4, 18, RenderUtil.alpha(RED, (0.10f + 0.28f * t) * a));
 		RenderUtil.glow(g, rx + rw - 5, ry + h - 4, 18, RenderUtil.alpha(RED, (0.10f + 0.26f * t) * a));
-		int rc = RenderUtil.alpha(RED, rim * a);
-		g.fill(rx + 7, ry, rx + 20, ry + 1, rc);
-		g.fill(rx, ry + 7, rx + 1, ry + 15, rc);
-		g.fill(rx + rw - 20, ry + h - 1, rx + rw - 7, ry + h, rc);
-		g.fill(rx + rw - 1, ry + h - 15, rx + rw, ry + h - 7, rc);
 		if (m.hoverAnim > 0.02f) {
 			RenderUtil.roundRect(g, rx + 1, ry + 1, Math.max(10, Math.round((rw - 2) * m.hoverAnim)), h - 2, 6, RenderUtil.alpha(0x0AFFFFFF, a));
 		}
@@ -341,7 +337,7 @@ public class ClickGuiScreen extends Screen {
 
 	@Override
 	public boolean mouseClicked(MouseButtonEvent click, boolean doubled) {
-		double mx = click.x(), my = click.y();
+		double mx = click.x() / UI, my = click.y() / UI;
 		int button = click.button();
 		deferred = null;
 		dragging = false;
@@ -391,7 +387,7 @@ public class ClickGuiScreen extends Screen {
 	@Override
 	public boolean mouseDragged(MouseButtonEvent click, double offsetX, double offsetY) {
 		if (dragging) {
-			double dy = click.y() - pressY;
+			double dy = click.y() / UI - pressY;
 			if (moved || Math.abs(dy) > 3) {
 				moved = true;
 				deferred = null;

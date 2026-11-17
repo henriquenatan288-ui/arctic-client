@@ -35,23 +35,35 @@ public final class RenderUtil {
 	 * Retangulo arredondado: 9 blits de uma textura branca pre-suavizada (tintada pela cor).
 	 * Antes eram dezenas de fills por retangulo (cada canto linha a linha), o que derrubava o FPS no celular.
 	 */
-	/** Contorno de 1px arredondado (so a borda; o miolo fica transparente, sem veu). */
+	private static final net.minecraft.resources.Identifier RING =
+			net.minecraft.resources.Identifier.fromNamespaceAndPath("witch", "textures/gui/ring.png");
+	private static final int GT = 96, GC = 40, GM = GT - 2 * GC;
+
+	/** Contorno fino arredondado e suavizado (textura com blur: sem degraus nos cantos). O miolo fica transparente. */
 	public static void roundRing(GuiGraphicsExtractor g, int x, int y, int w, int h, int r, int color) {
-		if (w < 2 * r + 2 || h < 2 * r + 2) { r = Math.max(1, Math.min(r, Math.min(w, h) / 2 - 1)); }
-		g.fill(x + r, y, x + w - r, y + 1, color);
-		g.fill(x + r, y + h - 1, x + w - r, y + h, color);
-		g.fill(x, y + r, x + 1, y + h - r, color);
-		g.fill(x + w - 1, y + r, x + w, y + h - r, color);
-		for (int j = 0; j < r; j++) {
-			for (int i = 0; i < r; i++) {
-				double d = Math.hypot(r - i - 0.5, r - j - 0.5);
-				if (d <= r && d > r - 1.25) {
-					g.fill(x + i, y + j, x + i + 1, y + j + 1, color);
-					g.fill(x + w - 1 - i, y + j, x + w - i, y + j + 1, color);
-					g.fill(x + i, y + h - 1 - j, x + i + 1, y + h - j, color);
-					g.fill(x + w - 1 - i, y + h - 1 - j, x + w - i, y + h - j, color);
-				}
-			}
+		if (w <= 0 || h <= 0 || ((color >>> 24) & 0xFF) == 0) return;
+		r = Math.min(r, Math.min(w, h) / 2);
+		if (r <= 0) {
+			g.fill(x, y, x + w, y + 1, color);
+			g.fill(x, y + h - 1, x + w, y + h, color);
+			g.fill(x, y + 1, x + 1, y + h - 1, color);
+			g.fill(x + w - 1, y + 1, x + w, y + h - 1, color);
+			return;
+		}
+		var P = net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED;
+		int mw = w - 2 * r, mh = h - 2 * r;
+		int x2 = x + w - r, y2 = y + h - r;
+		g.blit(P, RING, x, y, 0f, 0f, r, r, GC, GC, GT, GT, color);
+		g.blit(P, RING, x2, y, (float) (GT - GC), 0f, r, r, GC, GC, GT, GT, color);
+		g.blit(P, RING, x, y2, 0f, (float) (GT - GC), r, r, GC, GC, GT, GT, color);
+		g.blit(P, RING, x2, y2, (float) (GT - GC), (float) (GT - GC), r, r, GC, GC, GT, GT, color);
+		if (mw > 0) {
+			g.blit(P, RING, x + r, y, (float) GC, 0f, mw, r, GM, GC, GT, GT, color);
+			g.blit(P, RING, x + r, y2, (float) GC, (float) (GT - GC), mw, r, GM, GC, GT, GT, color);
+		}
+		if (mh > 0) {
+			g.blit(P, RING, x, y + r, 0f, (float) GC, r, mh, GC, GM, GT, GT, color);
+			g.blit(P, RING, x2, y + r, (float) (GT - GC), (float) GC, r, mh, GC, GM, GT, GT, color);
 		}
 	}
 
