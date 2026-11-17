@@ -2,7 +2,7 @@ package com.witch.gui;
 
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 
-/** Tela de carregamento do Witch Client (mundo / entrando em servidor). Monocromatica, com barra fina e linhas brilhantes. */
+/** Tela de carregamento do Witch Client (mundo / entrando em servidor): minimalista, linha de progresso de 1px. */
 public final class WitchLoading {
 	private WitchLoading() {}
 
@@ -18,110 +18,69 @@ public final class WitchLoading {
 	private static long startMs = 0L;
 	private static long lastMs = 0L;
 
-	/** Luz suave (camadas de baixa opacidade) centrada em (cx, cy). */
+	/** Luz suave centrada em (cx, cy) (usada pelas telas de menu). */
 	public static void glow(GuiGraphicsExtractor g, int cx, int cy, int r, float alpha) {
-		for (int i = 0; i < 9; i++) {
-			float k = 1f - i / 9f;
-			int rr = Math.round(r * k);
-			int rh = Math.round(r * k * 0.6f);
-			if (rr < 2 || rh < 2) break;
-			RenderUtil.roundRect(g, cx - rr, cy - rh, rr * 2, rh * 2, rh, RenderUtil.alpha(0xFF2F7BFF, alpha * 0.028f));
-		}
+		RenderUtil.glow(g, cx, cy, r, RenderUtil.alpha(Minimal.light() ? 0xFFFFFFFF : 0xFF8C1C2A, Math.min(1f, alpha * 0.12f)));
 	}
 
-	/** Fundo do Witch: degrade escuro e linhas brilhantes balancando nos cantos de baixo. */
+	/** Fundo das telas de menu (selecao de mundo, multiplayer, opcoes...). */
 	public static void backdrop(GuiGraphicsExtractor g, int w, int h, double t) {
-		// fundo: degrade escuro
-		int n = 24;
-		for (int i = 0; i < n; i++) {
-			int y0 = h * i / n, y1 = h * (i + 1) / n;
-			g.fill(0, y0, w, y1, RenderUtil.mix(0xFF0B0D10, 0xFF050607, i / (float) (n - 1)));
-		}
+		Minimal.background(g, w, h, System.currentTimeMillis() / 1000.0, false);
 	}
 
-	/** Estrelas subindo devagar e piscando. */
-	private static void stars(GuiGraphicsExtractor g, int w, int h, double t) {
-		java.util.Random r = new java.util.Random(11L);
-		for (int i = 0; i < 60; i++) {
-			float fx = r.nextFloat(), fy = r.nextFloat(), ph = r.nextFloat() * 6.28f, sp = 0.4f + r.nextFloat();
-			int x = (int) (fx * w);
-			int y = (int) (((fy - t * 0.012 * sp) % 1.0 + 1.0) % 1.0 * h);
-			float a = (0.25f + 0.55f * (0.5f + 0.5f * (float) Math.sin(t * 1.4 * sp + ph))) * 0.55f;
-			g.fill(x, y, x + 1, y + 1, RenderUtil.alpha(0xFFFFFFFF, a));
-		}
-	}
-
-	/** 12 pontos girando em volta da logo, com rastro que apaga. */
-	private static void spinner(GuiGraphicsExtractor g, int cx, int cy, int r, double t) {
-		int n = 12;
-		double head = (t * 1.6) % 1.0 * n;
-		for (int i = 0; i < n; i++) {
-			double d = ((head - i) % n + n) % n;
-			float a = (float) Math.max(0.0, 1.0 - d / 7.0);
-			if (a <= 0.02f) continue;
-			double ang = i * Math.PI * 2 / n - Math.PI / 2;
-			int x = cx + (int) Math.round(Math.cos(ang) * r), y = cy + (int) Math.round(Math.sin(ang) * r * 0.62);
-			RenderUtil.roundRect(g, x - 1, y - 1, 3, 3, 1, RenderUtil.alpha(0xFF2F7BFF, a * 0.9f));
-		}
-	}
-
-	/** progress 0..1, ou negativo = indeterminado (barra que desliza). */
+	/** progress 0..1, ou negativo = indeterminado (trecho que desliza). */
 	public static void draw(GuiGraphicsExtractor g, int w, int h, String title, String sub, float progress, String hint) {
-		double t = System.nanoTime() / 1_000_000_000.0;
 		long nowMs = System.currentTimeMillis();
+		double sec = nowMs / 1000.0;
 		if (nowMs - lastMs > 1500L) startMs = nowMs;
 		lastMs = nowMs;
+		float age = (nowMs - startMs) / 1000f;
 		long elapsed = (nowMs - startMs) / 1000L;
 
-		UiTex.titleBg(g, w, h);
-		g.fill(0, 0, w, h, 0x77000000);
+		Minimal.background(g, w, h, sec, true);
+		float in = Minimal.easeOut(age / 0.6f);
+		int cx = w / 2, cy = h / 2;
 
-		int cx = w / 2;
-		int cy = h / 2;
+		Minimal.wordmark(g, cx, cy - 34, 1.0f, 9f, in, 999f);
 
-		float breathe = 1f + 0.035f * (float) Math.sin(t * 2.2);
-		int lw = Math.round(Math.min(96, w / 3) * breathe);
-		glow(g, cx, cy - 36, 120, 0.8f + 0.2f * (float) Math.sin(t * 2.2));
-		WitchLogo.draw(g, cx - lw / 2, cy - 38 - WitchLogo.height(lw) / 2, lw, 1f);
-		spinner(g, cx, cy - 38, Math.min(96, w / 3) / 2 + 22, t);
-
-		int dots = (int) (t * 2.5) % 4;
-		FontUtil.draw(g, title, cx - FontUtil.width(title) / 2, cy - 14, 0xFFD6F5DC);
-		FontUtil.draw(g, ".".repeat(dots), cx + FontUtil.width(title) / 2, cy - 14, 0xFFD6F5DC);
-
-		// barra
-		int bw = Math.min(180, w - 40);
-		int bx = cx - bw / 2;
-		int by = cy + 4;
-		RenderUtil.roundRect(g, bx, by, bw, 3, 1, 0x33FFFFFF);
+		// linha de progresso de 1px
+		int bw = Math.min(190, w - 60);
+		int bx = cx - bw / 2, by = cy - 4;
+		g.fill(bx, by, bx + bw, by + 1, RenderUtil.alpha(Minimal.line(), 0.14f * in));
 		if (progress >= 0f) {
-			int fw = Math.max(3, Math.round(bw * Math.min(1f, progress)));
-			RenderUtil.roundRect(g, bx, by, fw, 3, 1, 0xFF2F7BFF);
-			int sw = Math.min(28, fw);
-			int sx = bx + (int) ((fw - sw) * ((t * 0.8) % 1.0));
-			RenderUtil.roundRect(g, sx, by, sw, 3, 1, 0x66FFFFFF);
-			String pct = Math.round(Math.min(1f, progress) * 100) + "%  -  " + elapsed + "s";
-			FontUtil.draw(g, pct, cx - FontUtil.width(pct) / 2, by + 8, 0xFF8FA0BD);
+			float p = Math.min(1f, progress);
+			int fw = Math.max(1, Math.round(bw * p));
+			g.fill(bx, by, bx + fw, by + 1, RenderUtil.alpha(Minimal.accent(), in));
+			// brilho leve na ponta
+			RenderUtil.glow(g, bx + fw, by, 9, RenderUtil.alpha(Minimal.accent(), 0.55f * in));
 		} else {
-			int seg = bw / 4;
-			double p = (t * 0.9) % 1.0;
-			int sx = bx + (int) ((bw + seg) * p) - seg;
+			float ph = (float) ((sec * 0.55) % 1.0);
+			int seg = bw / 3;
+			int sx = bx + Math.round((bw + seg) * ph) - seg;
 			int x0 = Math.max(bx, sx), x1 = Math.min(bx + bw, sx + seg);
-			if (x1 - x0 > 2) RenderUtil.roundRect(g, x0, by, x1 - x0, 3, 1, 0xFF2F7BFF);
+			if (x1 - x0 > 1) {
+				float mid = (x0 + x1) / 2f;
+				for (int x = x0; x < x1; x += 2) {
+					float f = 1f - Math.abs(x - mid) / ((x1 - x0) / 2f);
+					g.fill(x, by, Math.min(x + 2, x1), by + 1, RenderUtil.alpha(Minimal.accent(), f * in));
+				}
+			}
 		}
 
+		Minimal.spaced(g, title.toUpperCase(), cx, by + 14, 0.8f, 3f, Minimal.fg(), in, true);
+		String info = progress >= 0f ? Math.round(Math.min(1f, progress) * 100) + "%   " + elapsed + "s" : elapsed + "s";
+		Minimal.spaced(g, info, cx, by + 28, 0.7f, 2f, Minimal.dim(), in, true);
 		if (sub != null && !sub.isEmpty()) {
-			FontUtil.draw(g, sub, cx - FontUtil.width(sub) / 2, by + 22, 0xFF8FA0BD);
+			Minimal.spaced(g, sub, cx, by + 42, 0.7f, 0.6f, Minimal.dim(), in * 0.9f, true);
 		}
+
 		if (hint == null || hint.isEmpty()) {
-			hint = "Dica: " + TIPS[(int) ((nowMs / 6000L) % TIPS.length)];
+			hint = TIPS[(int) ((nowMs / 6000L) % TIPS.length)];
 		}
-		if (hint != null && !hint.isEmpty()) {
-			long ph = nowMs % 6000L;
-			float fa = Math.min(1f, Math.min(ph, 6000L - ph) / 600f);
-			FontUtil.draw(g, hint, cx - FontUtil.width(hint) / 2, h - 28, RenderUtil.alpha(0xFF6F7F99, fa));
-		}
-		String credit = "WITCH CLIENT MADE BY BISTECK";
-		FontUtil.draw(g, credit, w - FontUtil.width(credit) - 8, h - FontUtil.height() - 6, 0xFF1F2F55);
+		long ph = nowMs % 6000L;
+		float fa = Math.min(1f, Math.min(ph, 6000L - ph) / 700f);
+		Minimal.spaced(g, hint, cx, h - 30, 0.7f, 0.8f, Minimal.faint(), fa, true);
+		String credit = "MADE BY BISTECK";
+		Minimal.spaced(g, credit, w - 14 - Minimal.spacedWidth(credit, 0.62f, 2f), h - 16, 0.62f, 2f, Minimal.faint(), 0.7f, false);
 	}
 }

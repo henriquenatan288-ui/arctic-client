@@ -10,6 +10,7 @@ public class GuiSettingsModule extends Module {
 	private final ColorSetting accent = add(new ColorSetting("Accent", 7));
 	private final IntSetting opacity = add(new IntSetting("Window opacity", 0, 100, 12, "%"));
 	private final IntSetting menuOpacity = add(new IntSetting("Menu opacity", 5, 100, 100, "%"));
+	private final IntSetting menuTheme = add(new IntSetting("Tema do menu (1 escuro, 2 claro)", 1, 2, 1, ""));
 	private final IntSetting tooltips = add(new IntSetting("Tooltips (0/1)", 0, 1, 1, ""));
 
 	public GuiSettingsModule() {
@@ -30,6 +31,11 @@ public class GuiSettingsModule extends Module {
 	/** Cor de destaque (padrao branco). */
 	public static int accent() {
 		return instance == null ? 0xFFFFFFFF : instance.accent.get();
+	}
+
+	/** true = telas de inicio/carregamento no tema claro. */
+	public static boolean menuLight() {
+		return instance != null && instance.menuTheme.get() == 2;
 	}
 
 	public static boolean glow() {
