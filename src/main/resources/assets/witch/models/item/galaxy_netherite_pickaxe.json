@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/handheld",
+  "textures": {
+    "layer0": "witch:item/galaxy_netherite_pickaxe"
+  }
+}
