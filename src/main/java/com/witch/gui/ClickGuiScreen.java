@@ -226,8 +226,8 @@ public class ClickGuiScreen extends Screen {
 		// caixa do usuario: cabeca da skin + nome
 		String nick = TitleSkin.nick();
 		int ux = 12, uy = NAV_Y, uw = userW(), uh = NAV_H;
-		RenderUtil.roundRect(g, ux, uy, uw, uh, 8, RenderUtil.alpha(0x20FFFFFF, a));
-		RenderUtil.roundRect(g, ux + 1, uy + 1, uw - 2, uh - 2, 7, RenderUtil.alpha(0xFF0C0B0D, 0.85f * a));
+		RenderUtil.roundRect(g, ux, uy, uw, uh, 8, RenderUtil.alpha(0xFF050507, 0.30f * a));
+		RenderUtil.roundRing(g, ux, uy, uw, uh, 8, RenderUtil.alpha(0x50FFFFFF, a));
 		int hs = uh - 8;
 		try {
 			PlayerFaceExtractor.extractRenderState(g, TitleSkin.skin(), ux + 4, uy + 4, hs, RenderUtil.alpha(0xFFFFFFFF, a));
@@ -246,11 +246,11 @@ public class ClickGuiScreen extends Screen {
 			boolean hov = RenderUtil.inside(mx, my, tx, NAV_Y, tw, NAV_H);
 			if (i > 0) g.fill(tx, NAV_Y + 6, tx + 1, NAV_Y + NAV_H - 6, RenderUtil.alpha(0xFFFFFFFF, 0.10f * a));
 			if (sel) {
-				for (int k = 0; k < 8; k++) {
-					g.fill(tx + 4, NAV_Y + NAV_H - 3 - k, tx + tw - 4, NAV_Y + NAV_H - 2 - k, RenderUtil.alpha(RED, 0.16f * (1f - k / 8f) * a));
+				// selecao fina: linha de 1px + brilho bem leve
+				for (int k = 0; k < 3; k++) {
+					g.fill(tx + 8, NAV_Y + NAV_H - 2 - k, tx + tw - 8, NAV_Y + NAV_H - 1 - k, RenderUtil.alpha(RED, 0.07f * (1f - k / 3f) * a));
 				}
-				RenderUtil.glow(g, tx + tw / 2, NAV_Y + NAV_H - 2, tw / 2 + 6, RenderUtil.alpha(RED, 0.30f * a));
-				g.fill(tx + 6, NAV_Y + NAV_H - 3, tx + tw - 6, NAV_Y + NAV_H - 1, RenderUtil.alpha(RED, a));
+				g.fill(tx + 8, NAV_Y + NAV_H - 2, tx + tw - 8, NAV_Y + NAV_H - 1, RenderUtil.alpha(RED, a));
 			}
 			String nm = ModuleRow.fit(cs[i].label, tw - 6);
 			int col = sel ? 0xFFFFFFFF : (hov ? 0xFFE0DADC : 0xFF9A9395);
@@ -259,8 +259,8 @@ public class ClickGuiScreen extends Screen {
 
 		// busca
 		int sx = searchX(), sy = NAV_Y + 2, sw = searchW(), sh = NAV_H - 4;
-		RenderUtil.roundRect(g, sx, sy, sw, sh, 8, RenderUtil.alpha(searchFocused ? RenderUtil.alpha(RED, 0.8f) : 0x26FFFFFF, a));
-		RenderUtil.roundRect(g, sx + 1, sy + 1, sw - 2, sh - 2, 7, RenderUtil.alpha(0xFF0A090B, 0.9f * a));
+		RenderUtil.roundRect(g, sx, sy, sw, sh, 8, RenderUtil.alpha(0xFF050507, 0.30f * a));
+		RenderUtil.roundRing(g, sx, sy, sw, sh, 8, RenderUtil.alpha(searchFocused ? RenderUtil.alpha(RED, 0.9f) : 0x50FFFFFF, a));
 		CategoryIcons.blit(g, CategoryIcons.SEARCH, sx + sw - 15, sy + (sh - 9) / 2, 9, RenderUtil.alpha(searchFocused ? 0xFFFFFFFF : 0xFFA39C9E, a));
 		String shown;
 		int scol;
