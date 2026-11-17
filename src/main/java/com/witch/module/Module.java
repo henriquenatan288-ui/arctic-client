@@ -8,7 +8,7 @@ import java.util.List;
 
 public abstract class Module {
 	public final String name;
-	public final Category category;
+	public Category category;
 	private boolean enabled;
 	private final List<Setting> settings = new ArrayList<>();
 	public final KeybindSetting keybind = new KeybindSetting();

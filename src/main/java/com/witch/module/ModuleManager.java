@@ -174,6 +174,7 @@ public final class ModuleManager {
 		MODULES.add(new MiscModules.MouseSens());
 
 		MODULES.removeIf(m -> !com.witch.Edition.allows(m.name));
+		regroup();
 
 		for (Module m : MODULES) {
 			if (m instanceof EspSource s) {
@@ -181,6 +182,31 @@ public final class ModuleManager {
 			}
 		}
 		EspRenderer.init();
+	}
+
+	/** Arruma a categoria de cada modulo pelo que ele faz (so muda onde aparece no ClickGUI). */
+	private static void regroup() {
+		String[][] map = {
+				// mundo: ESP, buscadores e camera
+				{"WORLD", "X-Ray Hologram", "Player ESP", "Storage ESP", "Farm ESP", "Tracers", "Ancient Finder", "Sus Chunk Finder",
+						"Sus Hole Finder", "Sus Solo Finder", "Chunk Borders", "Waypoints", "Light Level", "Freecam", "FreeLook", "Zoom",
+						"FOV Changer", "Render Distance"},
+				// efeitos
+				{"EFFECTS", "Particles"},
+				// HUD: o que so mostra informacao na tela
+				{"HUD", "Mob Counter", "Nearby Players", "Weather HUD", "Armor HUD", "Coords HUD", "Inventory Counter", "Item Count",
+						"Combo Counter", "Hit Marker", "Low Health Alert", "Reach Display", "Target HUD", "Entity Distance"},
+				// combate
+				{"COMBAT", "Auto Anchor", "Auto Crystal", "Auto Mace", "Auto Totem", "Auto Armor", "Surround", "Trigger Bot", "Velocity"},
+				// utilidade
+				{"UTILITY", "Auto Mine", "Auto Torch"},
+		};
+		for (String[] row : map) {
+			Category c = Category.valueOf(row[0]);
+			for (int i = 1; i < row.length; i++) {
+				for (Module m : MODULES) if (m.name.equals(row[i])) m.category = c;
+			}
+		}
 	}
 
 	public static List<Module> all() {
