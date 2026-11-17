@@ -20,6 +20,7 @@ public final class ModuleDescriptions {
 			case "Freecam" -> "Camera livre fora do corpo, sem limite de distancia.";
 			case "Fullbright" -> "Clareia o mundo (visao noturna no seu cliente).";
 			case "Galaxy" -> "Galaxia animada (shader) nas ferramentas de diamante e netherite.";
+			case "Players Galaxy" -> "Voce e os outros jogadores cobertos pelo shader de galaxia.";
 			case "Hide Name" -> "Esconde a scoreboard da direita inteira (limpo pra print/video).";
 			case "Jesus" -> "Andar sobre a agua.";
 			case "Mood Filter" -> "Escurece a tela, tom frio e vinheta.";

@@ -22,7 +22,9 @@
     "ItemModelResolverMixin",
     "ItemStackRenderStateMixin",
     "LayerRenderStateMixin",
-    "ItemFeatureRendererMixin"
+    "ItemFeatureRendererMixin",
+    "LivingEntityRendererMixin",
+    "AvatarRendererMixin"
   ],
   "injectors": {
     "defaultRequire": 0
