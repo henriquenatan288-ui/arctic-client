@@ -10,13 +10,27 @@ public class WitchGametest implements FabricClientGameTest {
 	public void runTest(ClientGameTestContext context) {
 		context.waitTicks(120);
 		context.takeScreenshot("01-title");
+		context.runOnClient(mc -> mc.gui.setScreen(new com.witch.gui.WitchEnterScreen()));
+		context.waitTicks(90);
+		context.takeScreenshot("00-enter");
+		context.runOnClient(mc -> mc.gui.setScreen(new net.minecraft.client.gui.screens.Screen(net.minecraft.network.chat.Component.literal("t")) {
+			@Override
+			public void extractRenderState(net.minecraft.client.gui.GuiGraphicsExtractor g, int mx, int my, float d) {
+				com.witch.gui.WitchLoading.draw(g, this.width, this.height, "Carregando o mundo", "Gerando e baixando terreno", 0.45f, null);
+			}
+		}));
+		context.waitTicks(40);
+		context.takeScreenshot("00b-loading");
+		context.runOnClient(mc -> mc.gui.setScreen(new com.witch.gui.WitchTitleScreen()));
+		context.waitTicks(140);
+		context.takeScreenshot("01b-title-menu");
 		try (var sp = context.worldBuilder().create()) {
 			sp.getClientLevel().waitForChunksRender();
 			context.waitTicks(20);
 			context.takeScreenshot("03-world");
 			context.runOnClient(mc -> {
 				for (var m : com.witch.module.ModuleManager.all()) {
-					if (m.name.equals("Fullbright") || m.name.equals("Tracers") || m.name.equals("Player ESP") || m.name.equals("Fly") || m.name.equals("Crosshair") || m.name.equals("Sky") || m.name.equals("Fog") || m.name.equals("Glow Players") || m.name.equals("Jump Circles") || m.name.equals("Card Particles") || m.name.equals("Filter")) m.toggle();
+					if (m.name.equals("Fullbright") || m.name.equals("Tracers") || m.name.equals("Player ESP") || m.name.equals("Fly") || m.name.equals("Crosshair") || m.name.equals("Sky") || m.name.equals("Fog") || m.name.equals("Glow Players") || m.name.equals("Jump Circles") || m.name.equals("Particles 2D") || m.name.equals("Filter")) m.toggle();
 				}
 			});
 			context.waitTicks(40);
@@ -30,6 +44,10 @@ public class WitchGametest implements FabricClientGameTest {
 			context.waitTicks(10);
 			context.takeScreenshot("14-glowitem");
 			context.runOnClient(mc -> { var gm = com.witch.module.ModuleManager.byName("Glow Items"); if (gm != null && gm.isEnabled()) gm.toggle(); });
+			context.runOnClient(mc -> { for (String n : new String[] {"Players Galaxy", "No Legs", "Particles 3D"}) { var m = com.witch.module.ModuleManager.byName(n); if (m != null && !m.isEnabled()) m.toggle(); } mc.options.setCameraType(net.minecraft.client.CameraType.THIRD_PERSON_FRONT); });
+			context.waitTicks(40);
+			context.takeScreenshot("15-avatar");
+			context.runOnClient(mc -> { for (String n : new String[] {"Players Galaxy", "No Legs", "Particles 3D"}) { var m = com.witch.module.ModuleManager.byName(n); if (m != null && m.isEnabled()) m.toggle(); } mc.options.setCameraType(net.minecraft.client.CameraType.FIRST_PERSON); });
 			context.runOnClient(mc -> mc.gui.setScreen(new net.minecraft.client.gui.screens.inventory.InventoryScreen(mc.player)));
 			context.waitTicks(30);
 			context.takeScreenshot("07-inventory");
