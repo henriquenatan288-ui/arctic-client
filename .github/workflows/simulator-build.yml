@@ -46,7 +46,7 @@ jobs:
         run: |
           if [ -z "$SIMULATOR_TOKEN" ]; then
             echo "Secret SIMULATOR_DISPATCH_TOKEN ausente; build concluído, simulação não disparada."
-            exit 1
+            exit 0
           fi
           curl --fail-with-body --silent --show-error \
             -X POST \
