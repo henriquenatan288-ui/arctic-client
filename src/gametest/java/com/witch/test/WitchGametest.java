@@ -43,6 +43,9 @@ public class WitchGametest implements FabricClientGameTest {
 			context.waitTicks(60);
 			context.takeScreenshot("05-clickgui-world");
 		}
+		context.runOnClient(mc -> mc.gui.setScreen(new com.witch.gui.MeteorGuiScreen(com.witch.module.ModuleManager.byName("Players Galaxy"))));
+		context.waitTicks(60);
+		context.takeScreenshot("21-windows-gui");
 		context.runOnClient(mc -> mc.gui.setScreen(new ClickGuiScreen()));
 		context.waitTicks(60);
 		context.takeScreenshot("02-clickgui");
