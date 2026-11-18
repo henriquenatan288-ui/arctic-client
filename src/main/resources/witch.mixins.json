@@ -25,7 +25,8 @@
     "ItemFeatureRendererMixin",
     "LivingEntityRendererMixin",
     "AvatarRendererMixin",
-    "PlayerModelMixin"
+    "PlayerModelMixin",
+    "EquipmentLayerRendererMixin"
   ],
   "injectors": {
     "defaultRequire": 0

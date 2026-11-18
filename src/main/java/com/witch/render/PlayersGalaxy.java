@@ -9,22 +9,35 @@ import net.minecraft.resources.Identifier;
 public final class PlayersGalaxy {
 	private PlayersGalaxy() {}
 
-	private static Object pipeline;
-	private static boolean failed;
-	private static final Map<Identifier, RenderType> CACHE = new HashMap<>();
+	private static final Object[] PIPES = new Object[8 * 4 * 2];
+	private static final boolean[] FAILED = new boolean[8 * 4 * 2];
+	@SuppressWarnings("unchecked")
+	private static final Map<Identifier, RenderType>[] CACHES = new Map[8 * 4 * 2];
 	public static volatile String status;
 	public static volatile boolean statusOk;
+	private static boolean reportedOk;
+	/** O corpo que esta sendo desenhado agora (e suas camadas de armadura/elytra) e um jogador que recebe galaxia? */
+	public static boolean curBody;
 
-	private static com.mojang.blaze3d.pipeline.RenderPipeline pipeline() {
-		if (pipeline != null) return (com.mojang.blaze3d.pipeline.RenderPipeline) pipeline;
-		if (failed) return null;
+	private static int variant() {
+		var m = com.witch.module.PlayersGalaxyModule.instance;
+		return m == null ? (1 << 2 | 1) : (m.style.get() << 2 | m.relief.get());
+	}
+
+	private static com.mojang.blaze3d.pipeline.RenderPipeline pipeline(int v, boolean noCull) {
+		int key = v * 2 + (noCull ? 1 : 0);
+		if (PIPES[key] != null) return (com.mojang.blaze3d.pipeline.RenderPipeline) PIPES[key];
+		if (FAILED[key]) return null;
 		try {
-			var pipe = com.mojang.blaze3d.pipeline.RenderPipeline.builder(net.minecraft.client.renderer.RenderPipelines.ENTITY_SNIPPET)
-					.withLocation("pipeline/witch_galaxy_entity")
+			var b = com.mojang.blaze3d.pipeline.RenderPipeline.builder(net.minecraft.client.renderer.RenderPipelines.ENTITY_SNIPPET)
+					.withLocation("pipeline/witch_galaxy_entity_" + v + (noCull ? "_nc" : ""))
 					.withFragmentShader(Identifier.fromNamespaceAndPath("witch", "core/witch_galaxy_entity"))
 					.withShaderDefine("ALPHA_CUTOUT", 0.1f)
-					.withBindGroupLayout(net.minecraft.client.renderer.BindGroupLayouts.SAMPLER1)
-					.build();
+					.withShaderDefine("STYLE", v >> 2)
+					.withShaderDefine("RELIEF", v & 3)
+					.withBindGroupLayout(net.minecraft.client.renderer.BindGroupLayouts.SAMPLER1);
+			if (noCull) b.withCull(false); // armadura e elytra sao dupla face
+			var pipe = b.build();
 			try {
 				var r = net.minecraft.client.renderer.RenderPipelines.class.getDeclaredMethod("register", com.mojang.blaze3d.pipeline.RenderPipeline.class);
 				r.setAccessible(true);
@@ -34,12 +47,15 @@ public final class PlayersGalaxy {
 			}
 			var compiled = com.mojang.blaze3d.systems.RenderSystem.getDevice().precompilePipeline(pipe);
 			if (compiled == null || !compiled.isValid()) throw new IllegalStateException("shader nao compilou neste aparelho");
-			pipeline = pipe;
-			status = "shader OK";
-			statusOk = true;
+			PIPES[key] = pipe;
+			if (!reportedOk) {
+				reportedOk = true;
+				status = "shader OK";
+				statusOk = true;
+			}
 			return pipe;
 		} catch (Throwable t) {
-			failed = true;
+			FAILED[key] = true;
 			status = "shader FALHOU (skin normal)";
 			statusOk = false;
 			System.out.println("[Witch] players galaxy: motivo: " + t);
@@ -48,31 +64,48 @@ public final class PlayersGalaxy {
 		}
 	}
 
-	/** RenderType da skin com galaxia, ou null se o shader nao funcionar (ai vale o render normal). */
-	public static RenderType type(Identifier skin) {
-		if (skin == null) return null;
-		RenderType c = CACHE.get(skin);
+	/** RenderType da textura (skin, armadura ou elytra) com galaxia, ou null se o shader nao funcionar (ai vale o render normal). */
+	public static RenderType type(Identifier tex, boolean noCull) {
+		if (tex == null) return null;
+		int v = variant();
+		int key = v * 2 + (noCull ? 1 : 0);
+		Map<Identifier, RenderType> cache = CACHES[key];
+		if (cache == null) cache = CACHES[key] = new HashMap<>();
+		RenderType c = cache.get(tex);
 		if (c != null) return c;
-		var pipe = pipeline();
+		var pipe = pipeline(v, noCull);
 		if (pipe == null) return null;
 		try {
 			var setup = net.minecraft.client.renderer.rendertype.RenderSetup.builder(pipe)
-					.withTexture("Sampler0", skin)
+					.withTexture("Sampler0", tex)
 					.useLightmap().useOverlay().affectsCrumbling()
 					.setOutline(net.minecraft.client.renderer.rendertype.RenderSetup.OutlineProperty.AFFECTS_OUTLINE)
 					.createRenderSetup();
 			var m = RenderType.class.getDeclaredMethod("create", String.class, net.minecraft.client.renderer.rendertype.RenderSetup.class);
 			m.setAccessible(true);
 			c = (RenderType) m.invoke(null, "witch_galaxy_entity", setup);
-			CACHE.put(skin, c);
+			cache.put(tex, c);
 			return c;
 		} catch (Throwable t) {
-			failed = true;
+			FAILED[key] = true;
 			status = "shader FALHOU (skin normal)";
 			statusOk = false;
 			System.out.println("[Witch] players galaxy: type falhou: " + t);
 			return null;
 		}
+	}
+
+	public static RenderType type(Identifier skin) {
+		return type(skin, false);
+	}
+
+	/** Armadura (isArmor) ou elytra/asas (false) em jogador com galaxia, conforme as opcoes do modulo. */
+	public static RenderType equipment(Identifier tex) {
+		var m = com.witch.module.PlayersGalaxyModule.instance;
+		if (m == null || !curBody || tex == null || !com.witch.module.PlayersGalaxyModule.on) return null;
+		boolean armor = tex.getPath().contains("humanoid");
+		if (armor ? m.armor.get() != 2 : m.wings.get() != 2) return null;
+		return type(tex, true);
 	}
 
 	/** Esta skin/entidade deve receber galaxia? (modulo ligado + alvo) */

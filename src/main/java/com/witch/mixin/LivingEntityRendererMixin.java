@@ -17,12 +17,15 @@ public abstract class LivingEntityRendererMixin {
 	@Inject(method = "getRenderType", at = @At("RETURN"), cancellable = true, require = 0)
 	private void witch$galaxy(LivingEntityRenderState state, boolean visible, boolean ghost, boolean glowing,
 			CallbackInfoReturnable<RenderType> cir) {
-		if (!com.witch.module.PlayersGalaxyModule.on || !visible || ghost || cir.getReturnValue() == null) return;
-		if (!(state instanceof AvatarRenderState)) return;
+		// getRenderType roda antes das camadas (armadura/elytra) deste mesmo corpo: guarda se ele e um jogador com galaxia
+		PlayersGalaxy.curBody = false;
+		if (!com.witch.module.PlayersGalaxyModule.on || !(state instanceof AvatarRenderState)) return;
 		try {
 			var mc = net.minecraft.client.Minecraft.getInstance();
 			boolean self = mc.player != null && ((AvatarRenderState) state).id == mc.player.getId();
 			if (!PlayersGalaxy.wants(self)) return;
+			PlayersGalaxy.curBody = true;
+			if (!visible || ghost || cir.getReturnValue() == null) return;
 			RenderType t = PlayersGalaxy.type(((LivingEntityRenderer) (Object) this).getTextureLocation(state));
 			if (t != null) cir.setReturnValue(t);
 		} catch (Throwable ignored) {

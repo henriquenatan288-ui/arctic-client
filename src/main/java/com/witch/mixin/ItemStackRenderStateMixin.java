@@ -12,7 +12,7 @@ public class ItemStackRenderStateMixin {
 	@Inject(method = "newLayer", at = @At("RETURN"), require = 0)
 	private void witch$layer(CallbackInfoReturnable<ItemStackRenderState.LayerRenderState> cir) {
 		var f = (GalaxyTools.Flag) (Object) cir.getReturnValue();
-		f.witch$setGalaxy(GalaxyTools.pending);
+		f.witch$setGalaxy(GalaxyTools.pendingKind);
 		f.witch$setGlow(GalaxyTools.pendingGlow);
 	}
 }

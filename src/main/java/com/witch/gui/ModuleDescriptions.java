@@ -19,8 +19,8 @@ public final class ModuleDescriptions {
 			case "FreeLook" -> "Gira a camera em volta do personagem sem mudar para onde ele olha.";
 			case "Freecam" -> "Camera livre fora do corpo, sem limite de distancia.";
 			case "Fullbright" -> "Clareia o mundo (visao noturna no seu cliente).";
-			case "Galaxy" -> "Galaxia animada (shader) nas ferramentas de diamante e netherite.";
-			case "Players Galaxy" -> "Voce e os outros jogadores cobertos pelo shader de galaxia.";
+			case "Galaxy" -> "Galaxia nas ferramentas e, se quiser, em totem, maca dourada, elytra, armadura ou todos os itens. 7 estilos.";
+			case "Players Galaxy" -> "Jogadores cobertos pela galaxia, com armadura e elytra no corpo. 7 estilos e relevo ajustavel.";
 			case "Glow Items" -> "Linha brilhante na borda dos itens (mao, chao, quadros). Escolha a cor.";
 			case "Hide Name" -> "Esconde a scoreboard da direita inteira (limpo pra print/video).";
 			case "Jesus" -> "Andar sobre a agua.";

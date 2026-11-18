@@ -24,13 +24,13 @@ public class ItemModelResolverMixin {
 	@Inject(method = "appendItemLayers", at = @At("HEAD"), require = 0)
 	private void witch$head(ItemStackRenderState s, ItemStack stack, ItemDisplayContext c, Level l, ItemOwner o, int seed, CallbackInfo ci) {
 		// no inventario/GUI fica a textura normal (a galaxia so na mao, no chao e em quadros)
-		GalaxyTools.pending = c != ItemDisplayContext.GUI && GalaxyTools.isGalaxy(stack);
-		GalaxyTools.pendingGlow = !GalaxyTools.pending && c != ItemDisplayContext.GUI && com.witch.render.GlowItems.wants(stack);
+		GalaxyTools.pendingKind = c != ItemDisplayContext.GUI ? GalaxyTools.kind(stack) : 0;
+		GalaxyTools.pendingGlow = GalaxyTools.pendingKind == 0 && c != ItemDisplayContext.GUI && com.witch.render.GlowItems.wants(stack);
 	}
 
 	@Inject(method = "appendItemLayers", at = @At("RETURN"), require = 0)
 	private void witch$ret(ItemStackRenderState s, ItemStack stack, ItemDisplayContext c, Level l, ItemOwner o, int seed, CallbackInfo ci) {
-		GalaxyTools.pending = false;
+		GalaxyTools.pendingKind = 0;
 		GalaxyTools.pendingGlow = false;
 	}
 }
