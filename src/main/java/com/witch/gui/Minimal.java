@@ -69,15 +69,16 @@ public final class Minimal {
 			x = ((x % w) + w) % w;
 			float y = fy * (h + 24) - 12;
 			float edge = Math.min(1f, Math.min(fy, 1f - fy) * 8f); // some suave no topo/embaixo
-			float al = (0.10f + 0.26f * z) * edge * alpha * (lt ? 1.15f : 1f);
-			float s = 2.2f + 3.6f * z;
+			float al = (0.07f + 0.20f * z) * edge * alpha * (lt ? 1.2f : 1f);
 			float flutter = 0.45f + 0.55f * Math.abs((float) Math.cos(sec * 0.9 + PF[i]));
 			g.pose().pushMatrix();
 			g.pose().translate(x, y);
 			g.pose().rotate((float) (PW[i] + sec * PR[i]));
 			g.pose().scale(1f, flutter);
-			int iw = Math.max(3, Math.round(s * 2f)), ih = Math.max(2, Math.round(s));
+			float s = 1.3f + 2.0f * z;
+			int iw = Math.max(3, Math.round(s * 1.7f)), ih = Math.max(2, Math.round(s));
 			RenderUtil.roundRect(g, -iw / 2, -ih / 2, iw, ih, ih / 2, RenderUtil.alpha(col, al));
+			if (z > 0.55f) RenderUtil.glow(g, 0, 0, Math.round(s * 3.2f), RenderUtil.alpha(col, al * 0.35f)); // halo suave nas mais proximas
 			g.pose().popMatrix();
 		}
 	}
