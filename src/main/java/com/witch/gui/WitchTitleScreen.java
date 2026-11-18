@@ -242,7 +242,7 @@ public class WitchTitleScreen extends Screen {
 						case 0 -> mc.gui.setScreen(new SelectWorldScreen(this));
 						case 1 -> mc.gui.setScreen(new JoinMultiplayerScreen(this));
 						case 2 -> mc.gui.setScreen(new OptionsScreen(this, mc.options, false));
-						case 3 -> mc.gui.setScreen(new ClickGuiScreen());
+						case 3 -> mc.gui.setScreen(ClickGui.create());
 						default -> mc.stop();
 					}
 					return true;

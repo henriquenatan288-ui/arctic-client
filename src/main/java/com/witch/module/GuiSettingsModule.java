@@ -11,6 +11,7 @@ public class GuiSettingsModule extends Module {
 	private final IntSetting opacity = add(new IntSetting("Window opacity", 0, 100, 12, "%"));
 	private final IntSetting menuOpacity = add(new IntSetting("Menu opacity", 5, 100, 100, "%"));
 	private final IntSetting menuTheme = add(new IntSetting("Tema do menu (1 escuro, 2 claro)", 1, 2, 1, ""));
+	private final IntSetting style = add(new IntSetting("Estilo do ClickGUI (1 abas e barras, 2 janelas)", 1, 2, 2, ""));
 	private final IntSetting tooltips = add(new IntSetting("Tooltips (0/1)", 0, 1, 1, ""));
 
 	public GuiSettingsModule() {
@@ -36,6 +37,11 @@ public class GuiSettingsModule extends Module {
 	/** true = telas de inicio/carregamento no tema claro. */
 	public static boolean menuLight() {
 		return instance != null && instance.menuTheme.get() == 2;
+	}
+
+	/** true = ClickGUI em janelas por categoria. */
+	public static boolean windowStyle() {
+		return instance == null || instance.style.get() == 2;
 	}
 
 	public static boolean glow() {

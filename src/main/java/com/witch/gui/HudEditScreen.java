@@ -86,7 +86,7 @@ public class HudEditScreen extends Screen {
 
 	private void back() {
 		HudLayout.save();
-		Minecraft.getInstance().gui.setScreen(parent != null ? parent : new ClickGuiScreen());
+		Minecraft.getInstance().gui.setScreen(parent != null ? parent : ClickGui.create());
 	}
 
 	@Override

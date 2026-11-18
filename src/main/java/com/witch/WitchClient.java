@@ -68,13 +68,13 @@ public class WitchClient implements ClientModInitializer {
 			}
 			while (openGui.consumeClick()) {
 				if (client.gui.screen() == null) {
-					client.gui.setScreen(new ClickGuiScreen());
+					client.gui.setScreen(com.witch.gui.ClickGui.create());
 				}
 			}
 			while (openXraySettings.consumeClick()) {
 				if (client.gui.screen() == null) {
 					Module xray = ModuleManager.byName("X-Ray Hologram");
-					client.gui.setScreen(new ClickGuiScreen(xray));
+					client.gui.setScreen(com.witch.gui.ClickGui.create(xray));
 				}
 			}
 			if (client.player != null) {
