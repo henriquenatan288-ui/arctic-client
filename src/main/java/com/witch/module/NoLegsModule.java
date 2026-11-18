@@ -7,7 +7,7 @@ public class NoLegsModule extends Module {
 	public static NoLegsModule instance;
 	public static volatile boolean on;
 
-	public final IntSetting legs = add(new IntSetting("Pernas (1 nenhuma, 2 so esq, 3 so dir)", 1, 3, 1, ""));
+	public final IntSetting legs = add(new IntSetting("Pernas (1 nenhuma, 2 so esq, 3 so dir)", 1, 3, 2, ""));
 	public final IntSetting target = add(new IntSetting("Alvo (1 eu, 2 todos)", 1, 2, 1, ""));
 
 	public NoLegsModule() {
