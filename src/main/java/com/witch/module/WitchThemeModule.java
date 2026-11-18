@@ -1,8 +1,8 @@
 package com.witch.module;
 
-/** Preset: liga o filtro de humor e a poeira ambiente de uma vez (e desliga ao desativar). */
+/** Preset: liga o filtro (preset sombrio) e a poeira ambiente de uma vez (e desliga ao desativar). */
 public class WitchThemeModule extends Module {
-	private static final String[] PARTS = {"Mood Filter", "Ambient Dust"};
+	private static final String[] PARTS = {"Filter", "Ambient Dust"};
 
 	public WitchThemeModule() {
 		super("Witch Theme", Category.VISUALS);
@@ -18,6 +18,7 @@ public class WitchThemeModule extends Module {
 
 	@Override
 	protected void onEnable() {
+		if (FilterModule.instance != null) FilterModule.instance.use(4, 2); // sombrio, medio
 		set(true);
 	}
 

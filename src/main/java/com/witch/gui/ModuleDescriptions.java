@@ -24,10 +24,10 @@ public final class ModuleDescriptions {
 			case "Glow Items" -> "Linha brilhante na borda dos itens (mao, chao, quadros). Escolha a cor.";
 			case "Hide Name" -> "Esconde a scoreboard da direita inteira (limpo pra print/video).";
 			case "Jesus" -> "Andar sobre a agua.";
-			case "Mood Filter" -> "Escurece a tela, tom frio e vinheta.";
 			case "No Ghost Blocks" -> "Evita blocos fantasma ao quebrar/colocar.";
 			case "No Hurt Cam" -> "Tira o tranco da camera ao tomar dano.";
 			case "Particles 3D" -> "Formas 3D girando em volta de voce (cubos, diamantes, aneis ou infinito). Shape escolhe a forma.";
+			case "Fire Head" -> "Cabeca em chamas (particulas de fogo). So quem usa o Witch Client ve.";
 			case "No Legs" -> "Tira as pernas do seu personagem (as duas, so a esquerda ou so a direita). So voce ve.";
 			case "Mirror Floor" -> "Reflexo no chao parecendo espelho.";
 			case "Player ESP" -> "Destaca jogadores atraves das paredes.";

@@ -17,7 +17,7 @@ public final class PlayersGalaxy {
 	public static volatile boolean statusOk;
 	private static boolean reportedOk;
 	/** O corpo que esta sendo desenhado agora (e suas camadas de armadura/elytra) e um jogador que recebe galaxia? */
-	public static boolean curBody;
+	public static int curBody; // 0 nenhum, 1 jogador com galaxia, 2 outro ser (armor stand, mob...)
 
 	private static int variant() {
 		var m = com.witch.module.PlayersGalaxyModule.instance;
@@ -99,12 +99,14 @@ public final class PlayersGalaxy {
 		return type(skin, false);
 	}
 
-	/** Armadura (isArmor) ou elytra/asas (false) em jogador com galaxia, conforme as opcoes do modulo. */
+	/** Armadura ou elytra/asas do corpo atual com galaxia, conforme as opcoes do modulo (1 normal, 2 so jogadores, 3 todos os seres). */
 	public static RenderType equipment(Identifier tex) {
 		var m = com.witch.module.PlayersGalaxyModule.instance;
-		if (m == null || !curBody || tex == null || !com.witch.module.PlayersGalaxyModule.on) return null;
+		int body = curBody;
+		if (m == null || body == 0 || tex == null || !com.witch.module.PlayersGalaxyModule.on) return null;
 		boolean armor = tex.getPath().contains("humanoid");
-		if (armor ? m.armor.get() != 2 : m.wings.get() != 2) return null;
+		int opt = armor ? m.armor.get() : m.wings.get();
+		if (opt == 1 || (opt == 2 && body != 1)) return null;
 		return type(tex, true);
 	}
 

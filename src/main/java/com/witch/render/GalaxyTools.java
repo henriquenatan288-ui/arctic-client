@@ -16,6 +16,14 @@ public final class GalaxyTools {
 	public static int pendingKind;
 	/** Idem, enquanto o ItemFeatureRenderer desenha a camada (shader). */
 	public static int activeKind;
+	/** Tipo da camada enquanto um modelo especial (tridente) e desenhado; 0 fora disso. */
+	public static int specialKind;
+
+	/** Hotbar e inventario com galaxia? (nesses o efeito usa coordenadas do proprio item, nao da tela) */
+	public static boolean gui() {
+		var g = com.witch.module.GalaxyModule.instance;
+		return g != null && g.gui.get() == 2;
+	}
 	/** Glow Items: mesmo esquema (pendente ao montar o item, ativo ao desenhar a camada). */
 	public static boolean pendingGlow;
 	public static boolean activeGlow;
@@ -50,7 +58,7 @@ public final class GalaxyTools {
 
 	/** Totem, macas douradas, elytra e pecas de armadura (na mao/chao; no corpo e com o Players Galaxy). */
 	private static boolean extraItem(ItemStack stack) {
-		if (extras == null) extras = Set.of(Items.TOTEM_OF_UNDYING, Items.GOLDEN_APPLE, Items.ENCHANTED_GOLDEN_APPLE, Items.ELYTRA);
+		if (extras == null) extras = Set.of(Items.TOTEM_OF_UNDYING, Items.GOLDEN_APPLE, Items.ENCHANTED_GOLDEN_APPLE, Items.ELYTRA, Items.TRIDENT);
 		if (extras.contains(stack.getItem())) return true;
 		String p = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem()).getPath();
 		return p.endsWith("_helmet") || p.endsWith("_chestplate") || p.endsWith("_leggings") || p.endsWith("_boots");
@@ -108,7 +116,7 @@ public final class GalaxyTools {
 		Object o = pipes.get(key);
 		if (o != null) return (com.mojang.blaze3d.pipeline.RenderPipeline) o;
 		if (failedPipes.contains(key)) return null;
-		String what = kind == 2 ? "itens" : "ferramentas";
+		String what = (kind & 3) == 2 ? "itens" : "ferramentas";
 		try {
 			var f = net.minecraft.client.renderer.RenderPipelines.class.getDeclaredField("ITEM_SNIPPET");
 			f.setAccessible(true);
@@ -118,7 +126,8 @@ public final class GalaxyTools {
 					.withFragmentShader(net.minecraft.resources.Identifier.fromNamespaceAndPath("witch", "core/witch_galaxy"))
 					.withShaderDefine("ALPHA_CUTOUT", 0.1f)
 					.withShaderDefine("STYLE", style);
-			if (kind == 2) b.withShaderDefine("ANYITEM");
+			if ((kind & 3) == 2) b.withShaderDefine("ANYITEM");
+			if ((kind & 4) != 0) b.withShaderDefine("GUIITEM");
 			var pipe = b.build();
 			try {
 				var r = net.minecraft.client.renderer.RenderPipelines.class.getDeclaredMethod("register", com.mojang.blaze3d.pipeline.RenderPipeline.class);
@@ -142,7 +151,7 @@ public final class GalaxyTools {
 	}
 
 	/**
-	 * RenderType do shader de galaxia (kind 1 ferramenta mascarada, 2 item inteiro) sobre o atlas do sprite
+	 * RenderType do shader de galaxia (kind 1 ferramenta mascarada, 2 item inteiro; +4 = hotbar/inventario) sobre o atlas do sprite
 	 * (itens ou blocos), no estilo escolhido. null se o shader falhar (vale o render normal).
 	 */
 	public static net.minecraft.client.renderer.rendertype.RenderType type(int kind, net.minecraft.resources.Identifier atlas) {

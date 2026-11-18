@@ -74,6 +74,7 @@ public final class ModuleManager {
 		MODULES.add(new PlayersGalaxyModule());
 		MODULES.add(new GlowItemsModule());
 		MODULES.add(new NoLegsModule());
+		MODULES.add(new FireHeadModule());
 		MODULES.add(new FreecamModule());
 		MODULES.add(new FreeLookModule());
 		MODULES.add(new BreakWaveModule());
@@ -91,7 +92,6 @@ public final class ModuleManager {
 		MODULES.add(new GuiAnimationModule());
 		MODULES.add(new NoHurtCamModule());
 		MODULES.add(new AutoTotemModule());
-		MODULES.add(new MoodFilterModule());
 		MODULES.add(new HideNameModule());
 		MODULES.add(new WaypointsModule());
 		MODULES.add(new CoordsHudModule());
@@ -194,8 +194,8 @@ public final class ModuleManager {
 						"FOV Changer", "Render Distance"},
 				// efeitos
 				{"EFFECTS", "Particles 3D", "Particles 2D"},
-				{"AVATAR", "Players Galaxy", "No Legs"},
-				{"SHADERS", "Galaxy", "Glow Items", "Filter", "Mood Filter", "Mirror Floor"},
+				{"AVATAR", "Players Galaxy", "No Legs", "Fire Head"},
+				{"SHADERS", "Galaxy", "Glow Items", "Filter", "Mirror Floor"},
 				// HUD: o que so mostra informacao na tela
 				{"HUD", "Mob Counter", "Nearby Players", "Weather HUD", "Armor HUD", "Coords HUD", "Inventory Counter", "Item Count",
 						"Combo Counter", "Hit Marker", "Low Health Alert", "Reach Display", "Target HUD", "Entity Distance"},

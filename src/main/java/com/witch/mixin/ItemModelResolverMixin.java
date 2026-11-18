@@ -23,8 +23,9 @@ public class ItemModelResolverMixin {
 
 	@Inject(method = "appendItemLayers", at = @At("HEAD"), require = 0)
 	private void witch$head(ItemStackRenderState s, ItemStack stack, ItemDisplayContext c, Level l, ItemOwner o, int seed, CallbackInfo ci) {
-		// no inventario/GUI fica a textura normal (a galaxia so na mao, no chao e em quadros)
-		GalaxyTools.pendingKind = c != ItemDisplayContext.GUI ? GalaxyTools.kind(stack) : 0;
+		// hotbar/inventario: galaxia com coordenadas do proprio item (opcao do modulo); Glow Items nao entra la
+		int k = GalaxyTools.kind(stack);
+		GalaxyTools.pendingKind = c != ItemDisplayContext.GUI ? k : (k != 0 && GalaxyTools.gui() ? k | 4 : 0);
 		GalaxyTools.pendingGlow = GalaxyTools.pendingKind == 0 && c != ItemDisplayContext.GUI && com.witch.render.GlowItems.wants(stack);
 	}
 

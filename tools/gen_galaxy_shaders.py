@@ -186,9 +186,14 @@ void main() {
     // Espaco de tela, centrado: o item e uma "janela" para o espaco. Escala pelo tamanho do texel na tela,
     // entao itens em posicoes diferentes (e o balanco da mao) deslocam as camadas de forma diferente = paralaxe.
     vec2 px0 = 1.0 / vec2(textureSize(Sampler0, 0));
+#ifdef GUIITEM
+    // hotbar/inventario: o item e desenhado fora da tela (atlas proprio), entao gl_FragCoord nao serve; usa o texel do item
+    vec2 q = (texCoord0 / px0) / 14.0;
+#else
     float ppt = fw > 1e-6 ? px0.x / fw : 12.0; // pixels de tela por texel
     ppt = clamp(ppt, 3.0, 160.0);
     vec2 q = (gl_FragCoord.xy - 0.5 * ScreenSize) / (ppt * 14.0);
+#endif
     float t = GameTime * 1200.0 * 8.0;
     float n1;
     vec3 col = galaxy(q, t, 24.0, 34.0, 0.16, n1);
