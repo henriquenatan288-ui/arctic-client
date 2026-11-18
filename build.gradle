@@ -8,7 +8,7 @@ group = project.maven_group
 def witchEdition = (findProperty('edition') ?: 'light').toString().toLowerCase()
 
 base {
-	archivesName = project.archives_base_name + '-' + witchEdition
+	archivesName = project.archives_base_name + (witchEdition == 'beta' ? '-beta' : '')
 }
 
 dependencies {

@@ -28,7 +28,7 @@ public class CardParticlesModule extends Module {
 	private int tickN = 0;
 
 	public CardParticlesModule() {
-		super("Card Particles", Category.EFFECTS);
+		super("Particles 2D", Category.EFFECTS);
 		instance = this;
 		hook();
 	}

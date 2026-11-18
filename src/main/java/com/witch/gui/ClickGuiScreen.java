@@ -93,6 +93,27 @@ public class ClickGuiScreen extends Screen {
 		return Mth.clamp(avail / Category.values().length, 34, 64);
 	}
 
+	/** Abas compactas: se nao cabem todos os nomes, so a aba selecionada mostra o nome; as outras so o icone. */
+	private boolean compactTabs() {
+		int avail = searchX() - 10 - tabsX();
+		return avail / Category.values().length < 54;
+	}
+
+	private int tabWidth(int i) {
+		if (!compactTabs()) return tabW();
+		int avail = searchX() - 10 - tabsX();
+		Category[] cs = Category.values();
+		int selW = Math.min(80, FontUtil.width(cs[Math.max(0, selected.ordinal())].label) + 30);
+		int other = Math.max(22, (avail - selW) / (cs.length - 1));
+		return cs[i] == selected && search.isEmpty() ? selW : Math.min(other, 38);
+	}
+
+	private int tabX(int i) {
+		int x = tabsX();
+		for (int k = 0; k < i; k++) x += tabWidth(k);
+		return x;
+	}
+
 	private int listX() { return PAD_X; }
 	private int listY() { return NAV_Y + NAV_H + 14; }
 	private int listW() { return vw() - PAD_X * 2; }
@@ -248,9 +269,8 @@ public class ClickGuiScreen extends Screen {
 
 		// abas
 		Category[] cs = Category.values();
-		int tw = tabW(), tx0 = tabsX();
 		for (int i = 0; i < cs.length; i++) {
-			int tx = tx0 + i * tw;
+			int tx = tabX(i), tw = tabWidth(i);
 			boolean sel = cs[i] == selected && search.isEmpty();
 			boolean hov = RenderUtil.inside(mx, my, tx, NAV_Y, tw, NAV_H);
 			if (i > 0) g.fill(tx, NAV_Y + 6, tx + 1, NAV_Y + NAV_H - 6, RenderUtil.alpha(0xFFFFFFFF, 0.10f * a));
@@ -261,9 +281,18 @@ public class ClickGuiScreen extends Screen {
 				}
 				g.fill(tx + 8, NAV_Y + NAV_H - 2, tx + tw - 8, NAV_Y + NAV_H - 1, RenderUtil.alpha(RED, a));
 			}
-			String nm = ModuleRow.fit(cs[i].label, tw - 6);
 			int col = sel ? 0xFFFFFFFF : (hov ? 0xFFE0DADC : 0xFF9A9395);
-			FontUtil.draw(g, nm, tx + (tw - FontUtil.width(nm)) / 2, NAV_Y + (NAV_H - fh) / 2 - 1, RenderUtil.alpha(col, a));
+			if (compactTabs()) {
+				String nm = sel ? cs[i].label : "";
+				int iw = 9, gap = nm.isEmpty() ? 0 : 5;
+				int total = iw + gap + (nm.isEmpty() ? 0 : FontUtil.width(nm));
+				int ix = tx + (tw - total) / 2;
+				CategoryIcons.draw(g, cs[i], ix + 1, NAV_Y + (NAV_H - 7) / 2, RenderUtil.alpha(col, a));
+				if (!nm.isEmpty()) FontUtil.draw(g, nm, ix + iw + gap, NAV_Y + (NAV_H - fh) / 2 - 1, RenderUtil.alpha(col, a));
+			} else {
+				String nm = ModuleRow.fit(cs[i].label, tw - 6);
+				FontUtil.draw(g, nm, tx + (tw - FontUtil.width(nm)) / 2, NAV_Y + (NAV_H - fh) / 2 - 1, RenderUtil.alpha(col, a));
+			}
 		}
 
 		// busca
@@ -344,9 +373,8 @@ public class ClickGuiScreen extends Screen {
 		searchFocused = RenderUtil.inside(mx, my, searchX(), NAV_Y + 2, searchW(), NAV_H - 4);
 		if (searchFocused) return true;
 		Category[] cs = Category.values();
-		int tw = tabW(), tx0 = tabsX();
 		for (int i = 0; i < cs.length; i++) {
-			if (RenderUtil.inside(mx, my, tx0 + i * tw, NAV_Y, tw, NAV_H)) {
+			if (RenderUtil.inside(mx, my, tabX(i), NAV_Y, tabWidth(i), NAV_H)) {
 				selected = cs[i];
 				search = "";
 				scroll = 0f;

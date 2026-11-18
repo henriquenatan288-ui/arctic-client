@@ -7,7 +7,9 @@ public enum Category {
 	WORLD("World"),
 	UTILITY("Utility"),
 	HUD("HUD"),
-	EFFECTS("Effects");
+	EFFECTS("Effects"),
+	AVATAR("Avatar"),
+	SHADERS("Shaders");
 
 	public final String label;
 

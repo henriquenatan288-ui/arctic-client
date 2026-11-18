@@ -27,7 +27,9 @@ public final class ModuleDescriptions {
 			case "Mood Filter" -> "Escurece a tela, tom frio e vinheta.";
 			case "No Ghost Blocks" -> "Evita blocos fantasma ao quebrar/colocar.";
 			case "No Hurt Cam" -> "Tira o tranco da camera ao tomar dano.";
-			case "Particles" -> "Particulas extras.";
+			case "Particles 3D" -> "Formas 3D girando em volta de voce (cubos, diamantes, aneis ou infinito). Shape escolhe a forma.";
+			case "No Legs" -> "Tira as pernas do seu personagem (as duas, so a esquerda ou so a direita). So voce ve.";
+			case "Mirror Floor" -> "Reflexo no chao parecendo espelho.";
 			case "Player ESP" -> "Destaca jogadores atraves das paredes.";
 			case "Slow Hit Visual" -> "Visual de golpe lento.";
 			case "Speed" -> "Aumenta a velocidade de movimento (0 = normal).";
@@ -51,7 +53,7 @@ public final class ModuleDescriptions {
 			case "Glow Players" -> "Contorno brilhante nos outros jogadores.";
 			case "Jump Circles" -> "Anel de luz no chao ao pular.";
 			case "Kill Effect" -> "Som e efeito ao matar. Effect: 0 nenhum 1 cartas 2 faiscas 3 coracoes 4 totem. Sound type: 1 xp 2 level up 3 ding.";
-			case "Card Particles" -> "Particulas ao acertar, pular ou flutuando. Shape: 1 cartas 2 dinheiro 3 chapeu de bruxa 4 pato de cartola.";
+			case "Particles 2D" -> "Particulas ao acertar, pular ou flutuando. Shape: 1 cartas 2 dinheiro 3 chapeu de bruxa 4 pato de cartola.";
 			case "Filter" -> "Filtro de cor: 1 quente 2 frio 3 neon 4 escuro 5 por do sol 6 menta.";
 			case "Witch Theme" -> "Liga de uma vez o filtro de humor e a poeira ambiente.";
 			case "Sus Chunk Finder" -> "Procura chunks suspeitas num raio proprio (1 a 40).";

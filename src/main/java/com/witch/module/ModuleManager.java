@@ -73,6 +73,7 @@ public final class ModuleManager {
 		MODULES.add(new GalaxyModule());
 		MODULES.add(new PlayersGalaxyModule());
 		MODULES.add(new GlowItemsModule());
+		MODULES.add(new NoLegsModule());
 		MODULES.add(new FreecamModule());
 		MODULES.add(new FreeLookModule());
 		MODULES.add(new BreakWaveModule());
@@ -192,7 +193,9 @@ public final class ModuleManager {
 						"Sus Hole Finder", "Sus Solo Finder", "Chunk Borders", "Waypoints", "Light Level", "Freecam", "FreeLook", "Zoom",
 						"FOV Changer", "Render Distance"},
 				// efeitos
-				{"EFFECTS", "Particles"},
+				{"EFFECTS", "Particles 3D", "Particles 2D"},
+				{"AVATAR", "Players Galaxy", "No Legs"},
+				{"SHADERS", "Galaxy", "Glow Items", "Filter", "Mood Filter", "Mirror Floor"},
 				// HUD: o que so mostra informacao na tela
 				{"HUD", "Mob Counter", "Nearby Players", "Weather HUD", "Armor HUD", "Coords HUD", "Inventory Counter", "Item Count",
 						"Combo Counter", "Hit Marker", "Low Health Alert", "Reach Display", "Target HUD", "Entity Distance"},
