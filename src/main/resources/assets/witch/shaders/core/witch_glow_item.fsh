@@ -50,8 +50,8 @@ void main() {
 
     vec3 base = tex.rgb;
     vec3 col = base;
-    col = mix(col, glow * 0.9, e2 * (1.0 - e1) * 0.22);              // brilho suave por dentro
-    col = mix(col, mix(glow, vec3(1.0), 0.35) * 1.15 * pulse, e1 * 0.9); // linha da borda
+    col = mix(col, glow * 0.9, e2 * (1.0 - e1) * 0.45);              // brilho suave por dentro
+    col = mix(col, mix(glow, vec3(1.0), 0.5) * 1.6 * pulse, e1 * 0.95); // linha da borda
 
     vec4 color = vec4(col, tex.a);
     color *= vertexColor * ColorModulator;

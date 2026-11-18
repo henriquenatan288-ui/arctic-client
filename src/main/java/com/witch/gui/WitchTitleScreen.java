@@ -46,7 +46,8 @@ public class WitchTitleScreen extends Screen {
 		Minimal.wordmark(g, w / 2f, WitchEnterScreen.END_CY, WitchEnterScreen.END_SCALE, WitchEnterScreen.END_SPACING, wa, 999f);
 
 		menuX = Math.max(44, w / 11);
-		menuY = Math.max(96, h / 2 - itemH * 5 / 2 + 12);
+		itemH = Math.max(22, Math.min(32, (h - 28 - 58 - 22) / 5)); // telas baixas: itens mais juntos pra nao cobrir o rodape
+		menuY = Math.max(86, h / 2 - itemH * 5 / 2 + 12);
 
 		float ia = Minimal.easeOut((age - 0.1f) / 0.7f);
 		Minimal.spaced(g, "WELCOME BACK", menuX, menuY - 58 + (1f - ia) * 6f, 0.7f, 3f, Minimal.dim(), ia, false);
