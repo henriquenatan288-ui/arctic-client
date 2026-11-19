@@ -10,8 +10,8 @@ import net.minecraft.world.entity.player.Player;
 public class FireHeadModule extends Module {
 	public final IntSetting target = add(new IntSetting("Alvo (1 eu, 2 outros, 3 todos)", 1, 3, 1, ""));
 	public final IntSetting color = add(new IntSetting("Fogo (1 normal, 2 azul/alma, 3 os dois)", 1, 3, 1, ""));
-	public final IntSetting amount = add(new IntSetting("Quantidade", 1, 10, 6, ""));
-	public final IntSetting embers = add(new IntSetting("Brasas (1 nao, 2 sim)", 1, 2, 2, ""));
+	public final IntSetting amount = add(new IntSetting("Quantidade", 1, 10, 8, ""));
+	public final IntSetting embers = add(new IntSetting("Brasas (1 nao, 2 sim)", 1, 2, 1, ""));
 	public final IntSetting firstPerson = add(new IntSetting("Em primeira pessoa (1 esconder, 2 mostrar)", 1, 2, 1, ""));
 
 	private int dbg;
