@@ -12,6 +12,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 @Mixin(ItemStackRenderState.LayerRenderState.class)
 public class LayerRenderStateMixin implements GalaxyTools.Flag {
 	private int witch$galaxy;
+	private static int witch$dbg;
 	private boolean witch$glow;
 
 	@Override public boolean witch$glow() { return witch$glow; }
@@ -34,6 +35,7 @@ public class LayerRenderStateMixin implements GalaxyTools.Flag {
 	private void witch$special(net.minecraft.client.renderer.special.SpecialModelRenderer r, Object arg, com.mojang.blaze3d.vertex.PoseStack pose,
 			net.minecraft.client.renderer.SubmitNodeCollector c, int light, int overlay, boolean glint, int outline) {
 		GalaxyTools.specialKind = (witch$galaxy & 4) == 0 ? witch$galaxy : 0;
+		if (System.getProperty("witch.debug") != null && witch$dbg++ < 6) System.out.println("[WDBG] special renderer " + r.getClass().getSimpleName() + " kind=" + witch$galaxy);
 		try {
 			r.submit(arg, pose, c, light, overlay, glint, outline);
 		} finally {

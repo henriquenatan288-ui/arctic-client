@@ -16,12 +16,14 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 /** Galaxy: o tridente (item de modelo especial, sem quads) usa o shader de entidade na mao e no chao. */
 @Mixin(TridentSpecialRenderer.class)
 public abstract class TridentSpecialRendererMixin {
+	private static int dbg;
 	@SuppressWarnings({"rawtypes", "unchecked"})
 	@Redirect(method = "submit", require = 0, at = @At(value = "INVOKE",
 			target = "Lnet/minecraft/client/renderer/OrderedSubmitNodeCollector;submitModel(Lnet/minecraft/client/model/Model;Ljava/lang/Object;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/resources/Identifier;IIILnet/minecraft/client/renderer/feature/ModelFeatureRenderer$CrumblingOverlay;)V"))
 	private void witch$trident(OrderedSubmitNodeCollector c, Model model, Object state, PoseStack pose, Identifier tex,
 			int light, int overlay, int color, ModelFeatureRenderer.CrumblingOverlay crumbling) {
 		RenderType t = null;
+		if (System.getProperty("witch.debug") != null && dbg++ < 6) System.out.println("[WDBG] trident submitModel tex=" + tex + " specialKind=" + GalaxyTools.specialKind);
 		try {
 			if (GalaxyTools.specialKind != 0) t = PlayersGalaxy.type(tex, true);
 		} catch (Throwable ignored) {
