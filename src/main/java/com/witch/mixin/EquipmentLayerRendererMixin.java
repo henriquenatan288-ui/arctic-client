@@ -16,13 +16,14 @@ public abstract class EquipmentLayerRendererMixin {
 	@Redirect(method = "renderLayers", require = 0, at = @At(value = "INVOKE",
 			target = "Lnet/minecraft/client/renderer/rendertype/RenderTypes;armorCutoutNoCull(Lnet/minecraft/resources/Identifier;)Lnet/minecraft/client/renderer/rendertype/RenderType;"))
 	private RenderType witch$equipment(Identifier tex) {
+		boolean dbgOn = System.getProperty("witch.debug") != null && dbg++ < 8;
+		if (dbgOn) System.out.println("[WDBG] equipment hit tex=" + tex + " curBody=" + PlayersGalaxy.curBody);
 		try {
 			RenderType t = PlayersGalaxy.equipment(tex);
-			if (System.getProperty("witch.debug") != null && dbg++ < 8) {
-				System.out.println("[WDBG] equipment tex=" + tex + " curBody=" + PlayersGalaxy.curBody + " -> " + (t != null ? "galaxy" : "normal") + " status=" + PlayersGalaxy.status);
-			}
+			if (dbgOn) System.out.println("[WDBG] equipment -> " + (t != null ? "galaxy" : "normal") + " status=" + PlayersGalaxy.status);
 			if (t != null) return t;
-		} catch (Throwable ignored) {
+		} catch (Throwable e) {
+			if (dbgOn) e.printStackTrace();
 		}
 		return RenderTypes.armorCutoutNoCull(tex);
 	}
