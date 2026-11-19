@@ -103,6 +103,9 @@ public class WitchTitleScreen extends Screen {
 	/** Anda ate a posicao (pernas/bracos balancando) e depois faz um Dab. */
 	private static final boolean DAB = false; // o Dab parecia travado olhando pra baixo
 	private static final float WALK_YAW = -85f, FRONT_YAW = 20f;
+	/** Duracao da caminhada ate a posicao final. */
+	private static final double WALK_SECONDS = 4.5;
+	private boolean yawReleased;
 	private static java.lang.reflect.Field rotY;
 
 	private void setYaw(float deg) {
@@ -185,8 +188,8 @@ public class WitchTitleScreen extends Screen {
 			}
 			if (walkStart == 0L) walkStart = System.nanoTime();
 			double t = (System.nanoTime() - walkStart) / 1_000_000_000.0;
-			double k = Math.min(1.0, t / 1.6);
-			double ease = 1.0 - Math.pow(1.0 - k, 2);
+			double k = Math.min(1.0, t / WALK_SECONDS);
+			double ease = Math.sin(k * Math.PI / 2.0); // chega devagar, sem arrancada
 			int stopX = (int) (w * 0.68) - mw / 2;
 			int x = (int) (w + (stopX - w) * ease);
 			int y = h - 24 - mh;
@@ -202,10 +205,12 @@ public class WitchTitleScreen extends Screen {
 				wave(ease * cycles * Math.PI * 2.0, k >= 1.0 ? 0.0 : Math.min(1.0, (1.0 - k) / 0.15), k >= 1.0);
 				float turn = (float) Math.max(0.0, Math.min(1.0, (k - 0.62) / 0.38));
 				turn = turn * turn * (3 - 2 * turn);
-				setYaw(WALK_YAW + (FRONT_YAW - WALK_YAW) * turn);
+				// durante a caminhada o script controla o giro; depois que chega, o jogador gira livremente (arrastando)
+				if (k < 1.0) setYaw(WALK_YAW + (FRONT_YAW - WALK_YAW) * turn);
+				else if (!yawReleased) { yawReleased = true; setYaw(FRONT_YAW); }
 			skinWidget.extractRenderState(g, mx, my, 0f);
 			if (k >= 1.0) {
-				float na = (float) Math.min(1.0, Math.max(0.0, (t - 1.8) / 0.4));
+				float na = (float) Math.min(1.0, Math.max(0.0, (t - WALK_SECONDS - 0.2) / 0.4));
 				if (na > 0f) {
 					String nick = TitleSkin.nick().toUpperCase();
 					int ny = y - 16 + Math.round((1f - na) * 6f);
