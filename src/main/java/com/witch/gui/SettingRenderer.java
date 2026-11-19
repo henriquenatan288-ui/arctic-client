@@ -47,6 +47,55 @@ public final class SettingRenderer {
 		return s instanceof IntSetting is && is.min == 0 && is.max == 1;
 	}
 
+	/** Escolha entre poucas opcoes (ex.: estilo 1..7): vira botao com setas em vez de slider. */
+	private static boolean isStepper(Setting s) {
+		return s instanceof IntSetting is && !isToggle(is) && is.max > is.min && is.max - is.min < 8;
+	}
+
+	private static final java.util.Map<IntSetting, String[]> OPTS = new java.util.IdentityHashMap<>();
+
+	/** Nomes das opcoes tirados da legenda "(1 ciano 2 roxo ...)"; se a legenda nao der certo, usa os numeros. */
+	private static String[] options(IntSetting s) {
+		String[] cached = OPTS.get(s);
+		if (cached != null) return cached;
+		int n = s.max - s.min + 1;
+		String[] out = new String[n];
+		for (int i = 0; i < n; i++) out[i] = String.valueOf(s.min + i);
+		int o = s.name.indexOf('('), c = o < 0 ? -1 : s.name.indexOf(')', o + 1);
+		if (o >= 0 && c > o) {
+			String in = s.name.substring(o + 1, c);
+			int[] st = new int[n];
+			int from = 0;
+			boolean ok = true;
+			for (int i = 0; i < n && ok; i++) {
+				String num = String.valueOf(s.min + i);
+				int p = from, found = -1;
+				while ((p = in.indexOf(num, p)) >= 0) {
+					boolean before = p == 0 || in.charAt(p - 1) == ' ' || in.charAt(p - 1) == ',';
+					boolean after = p + num.length() < in.length() && in.charAt(p + num.length()) == ' ';
+					if (before && after) { found = p; break; }
+					p++;
+				}
+				if (found < 0) ok = false;
+				else { st[i] = found; from = found + num.length() + 1; }
+			}
+			if (ok) {
+				for (int i = 0; i < n; i++) {
+					int b = st[i] + String.valueOf(s.min + i).length() + 1;
+					int e = i + 1 < n ? st[i + 1] : in.length();
+					String lab = in.substring(b, e);
+					int semi = lab.indexOf(';');
+					if (semi >= 0) lab = lab.substring(0, semi);
+					lab = lab.trim();
+					while (lab.endsWith(",")) lab = lab.substring(0, lab.length() - 1).trim();
+					if (!lab.isEmpty()) out[i] = lab;
+				}
+			}
+		}
+		OPTS.put(s, out);
+		return out;
+	}
+
 	private static String toggleName(String n) {
 		return n.replace(" (0/1)", "");
 	}
@@ -66,6 +115,7 @@ public final class SettingRenderer {
 
 	public static int height(Setting s, int w) {
 		if (isToggle(s)) return ORE_H;
+		if (isStepper(s)) return FontUtil.height() + 23;
 		if (s instanceof IntSetting) return INT_H;
 		if (s instanceof ColorSetting) {
 			int per = Math.max(1, (w - 16) / (SW + SW_GAP));
@@ -86,6 +136,22 @@ public final class SettingRenderer {
 			RenderUtil.roundRect(g, sx, sy, 20, 10, 5, RenderUtil.alpha(on ? accentColor : 0xFF2A2A2D, a));
 			int kx = on ? sx + 11 : sx + 1;
 			RenderUtil.roundRect(g, kx, sy + 1, 8, 8, 4, RenderUtil.alpha(on ? 0xFF0A0C0F : 0xFF8A8F97, a));
+		} else if (isStepper(s)) {
+			IntSetting is = (IntSetting) s;
+			String[] op = options(is);
+			int n = op.length;
+			int idx = is.get() - is.min;
+			FontUtil.draw(g, label(is.name, w - 14), x + 7, ry + 3, RenderUtil.alpha(TXT_DIM, a));
+			int px = x + 7, pw = w - 14, py = ry + fh + 7, ph = 13;
+			int arrow = RenderUtil.mix(accentColor, 0xFFFFFFFF, 0.35f);
+			RenderUtil.roundRect(g, px - 1, py - 1, pw + 2, ph + 2, 4, RenderUtil.alpha(RenderUtil.mix(0xFF2A2A2D, accentColor, 0.5f), a));
+			RenderUtil.roundRect(g, px, py, pw, ph, 3, RenderUtil.alpha(0xFF0F0F11, a));
+			FontUtil.draw(g, "<", px + 5, py + (ph - fh) / 2, RenderUtil.alpha(arrow, a));
+			FontUtil.draw(g, ">", px + pw - 5 - FontUtil.width(">"), py + (ph - fh) / 2, RenderUtil.alpha(arrow, a));
+			String lab = ModuleRow.fit(op[idx], pw - 30);
+			FontUtil.draw(g, lab, px + (pw - FontUtil.width(lab)) / 2, py + (ph - fh) / 2, RenderUtil.alpha(TXT, a));
+			int bw = Math.round((pw - 8) * (idx + 1) / (float) n);
+			g.fill(px + 4, py + ph - 2, px + 4 + bw, py + ph - 1, RenderUtil.alpha(accentColor, a));
 		} else if (s instanceof IntSetting is) {
 			String val = is.get() + is.suffix;
 			FontUtil.draw(g, label(is.name, w - 20 - FontUtil.width(val)), x + 7, ry + 3, RenderUtil.alpha(TXT_DIM, a));
@@ -157,6 +223,16 @@ public final class SettingRenderer {
 		if (isToggle(s)) {
 			IntSetting t = (IntSetting) s;
 			pendingOut[0] = () -> { t.set(t.get() == 1 ? 0 : 1); Config.save(); };
+			return null;
+		}
+		if (isStepper(s)) {
+			IntSetting is = (IntSetting) s;
+			final boolean back = mx < x + w / 2.0;
+			pendingOut[0] = () -> {
+				int n = is.max - is.min + 1;
+				is.set(is.min + ((is.get() - is.min + (back ? -1 : 1)) % n + n) % n);
+				Config.save();
+			};
 			return null;
 		}
 		if (s instanceof IntSetting is) {
