@@ -63,6 +63,15 @@ public class WitchGametest implements FabricClientGameTest {
 			});
 			context.waitTicks(40);
 			context.takeScreenshot("16-armorstands-galaxy");
+			context.runOnClient(mc -> {
+				for (String n : new String[] {"Players Galaxy", "Galaxy"}) { var m = com.witch.module.ModuleManager.byName(n); if (m != null && m.isEnabled()) m.toggle(); }
+				var em = com.witch.module.ModuleManager.byName("Elytra Shader");
+				if (em != null && !em.isEnabled()) em.toggle();
+				com.witch.module.ElytraShaderModule.instance.style.set(3);
+			});
+			context.waitTicks(40);
+			context.takeScreenshot("22-elytra-only");
+			context.runOnClient(mc -> { var em = com.witch.module.ModuleManager.byName("Elytra Shader"); if (em != null && em.isEnabled()) em.toggle(); });
 			context.runOnClient(mc -> { mc.options.setCameraType(net.minecraft.client.CameraType.FIRST_PERSON); mc.player.getInventory().setSelectedSlot(4); });
 			context.waitTicks(30);
 			context.takeScreenshot("18-trident-hand");
