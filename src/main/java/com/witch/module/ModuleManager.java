@@ -74,6 +74,7 @@ public final class ModuleManager {
 		MODULES.add(new PlayersGalaxyModule());
 		MODULES.add(new ElytraShaderModule());
 		MODULES.add(new ChinaHatModule());
+		MODULES.add(new OptimizationModule());
 		MODULES.add(new GlowItemsModule());
 		MODULES.add(new NoLegsModule());
 		MODULES.add(new FireHeadModule());
@@ -204,7 +205,7 @@ public final class ModuleManager {
 				// combate
 				{"COMBAT", "Auto Anchor", "Auto Crystal", "Auto Mace", "Auto Totem", "Auto Armor", "Surround", "Trigger Bot", "Velocity"},
 				// utilidade
-				{"UTILITY", "Auto Mine", "Auto Torch"},
+				{"UTILITY", "Optimization", "Auto Mine", "Auto Torch"},
 		};
 		for (String[] row : map) {
 			Category c = Category.valueOf(row[0]);
