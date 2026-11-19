@@ -10,14 +10,19 @@ import net.minecraft.world.entity.player.Player;
 public class FireHeadModule extends Module {
 	public final IntSetting target = add(new IntSetting("Alvo (1 eu, 2 outros, 3 todos)", 1, 3, 1, ""));
 	public final IntSetting color = add(new IntSetting("Fogo (1 normal, 2 azul/alma, 3 os dois)", 1, 3, 1, ""));
-	public final IntSetting amount = add(new IntSetting("Quantidade", 1, 10, 4, ""));
-	public final IntSetting embers = add(new IntSetting("Brasas e fumaca (1 nao, 2 sim)", 1, 2, 2, ""));
+	public final IntSetting amount = add(new IntSetting("Quantidade", 1, 10, 6, ""));
+	public final IntSetting embers = add(new IntSetting("Brasas (1 nao, 2 sim)", 1, 2, 2, ""));
 	public final IntSetting firstPerson = add(new IntSetting("Em primeira pessoa (1 esconder, 2 mostrar)", 1, 2, 1, ""));
 
 	private int dbg;
 
 	public FireHeadModule() {
 		super("Fire Head", Category.AVATAR);
+	}
+
+	/** overrideLimiter: ignora a opcao "Particulas: reduzidas/minimas" do jogo (no celular ela costuma estar assim e sumia com o fogo). */
+	private static void emit(net.minecraft.client.multiplayer.ClientLevel level, ParticleOptions pt, double x, double y, double z, double vx, double vy, double vz) {
+		level.addParticle(pt, true, false, x, y, z, vx, vy, vz);
 	}
 
 	@Override
@@ -48,11 +53,10 @@ public class FireHeadModule extends Module {
 					case 3 -> Math.random() < 0.5 ? ParticleTypes.SOUL_FIRE_FLAME : ParticleTypes.FLAME;
 					default -> ParticleTypes.FLAME;
 				};
-				level.addParticle(pt, x, y, z, (Math.random() - 0.5) * 0.01, 0.025 + Math.random() * 0.045, (Math.random() - 0.5) * 0.01);
+				emit(level, pt, x, y, z, (Math.random() - 0.5) * 0.01, 0.025 + Math.random() * 0.045, (Math.random() - 0.5) * 0.01);
 			}
 			if (embers.get() == 2) {
-				if (Math.random() < 0.35) level.addParticle(ParticleTypes.LAVA, p.getX() + (Math.random() - 0.5) * 0.4, top + 0.1, p.getZ() + (Math.random() - 0.5) * 0.4, 0, 0, 0);
-				if (Math.random() < 0.25) level.addParticle(ParticleTypes.SMOKE, p.getX() + (Math.random() - 0.5) * 0.3, top + 0.35, p.getZ() + (Math.random() - 0.5) * 0.3, 0, 0.04, 0);
+				if (Math.random() < 0.35) emit(level, ParticleTypes.LAVA, p.getX() + (Math.random() - 0.5) * 0.4, top + 0.1, p.getZ() + (Math.random() - 0.5) * 0.4, 0, 0, 0);
 			}
 		}
 	}
