@@ -53,6 +53,8 @@ public final class SettingRenderer {
 
 	/** Janelas estreitas (ClickGUI em janelas): mostra so o nome, sem a legenda das opcoes (ela vai no tooltip). */
 	public static boolean shortLabels;
+	/** Cor dos controles ligados (interruptor, barra do slider). */
+	public static int accentColor = 0xFFFFFFFF;
 
 	private static String label(String n, int maxW) {
 		if (shortLabels) {
@@ -81,7 +83,7 @@ public final class SettingRenderer {
 			FontUtil.draw(g, label(toggleName(t.name), w - 40), x + 7, ry + (sh - fh) / 2, RenderUtil.alpha(on ? TXT : TXT_DIM, a));
 			int sx = x + w - 6 - 20;
 			int sy = ry + (sh - 10) / 2;
-			RenderUtil.roundRect(g, sx, sy, 20, 10, 5, RenderUtil.alpha(on ? 0xFFFFFFFF : 0xFF3A3E45, a));
+			RenderUtil.roundRect(g, sx, sy, 20, 10, 5, RenderUtil.alpha(on ? accentColor : 0xFF2A2A2D, a));
 			int kx = on ? sx + 11 : sx + 1;
 			RenderUtil.roundRect(g, kx, sy + 1, 8, 8, 4, RenderUtil.alpha(on ? 0xFF0A0C0F : 0xFF8A8F97, a));
 		} else if (s instanceof IntSetting is) {
@@ -93,7 +95,7 @@ public final class SettingRenderer {
 			int ty = ry + fh + 8;
 			RenderUtil.roundRect(g, tx, ty, tw, 3, 1, RenderUtil.alpha(0xFF2A2E35, a));
 			int fw = Math.round(tw * is.fraction());
-			if (fw > 0) RenderUtil.roundRect(g, tx, ty, fw, 3, 1, RenderUtil.alpha(0xFFFFFFFF, a));
+			if (fw > 0) RenderUtil.roundRect(g, tx, ty, fw, 3, 1, RenderUtil.alpha(accentColor, a));
 			RenderUtil.roundRect(g, tx + fw - 4, ty - 3, 9, 9, 4, RenderUtil.alpha(0xFF3A3F47, a));
 			RenderUtil.roundRect(g, tx + fw - 3, ty - 2, 7, 7, 3, RenderUtil.alpha(0xFFFFFFFF, a));
 		} else if (s instanceof ColorSetting cs) {

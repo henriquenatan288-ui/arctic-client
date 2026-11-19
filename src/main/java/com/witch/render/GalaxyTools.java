@@ -69,6 +69,11 @@ public final class GalaxyTools {
 	 * Ferramentas no modo 1 ficam com 0: la o efeito vem da troca de modelo (swap).
 	 */
 	public static int kind(ItemStack stack) {
+		return kind(stack, false);
+	}
+
+	/** gui = hotbar/inventario: ali "todos os itens" nao vale (ficava tudo igual); so ferramentas e extras. */
+	public static int kind(ItemStack stack, boolean gui) {
 		var g = com.witch.module.GalaxyModule.instance;
 		if (g == null || !com.witch.module.GalaxyModule.on || stack == null || stack.isEmpty()) return 0;
 		if (galaxyItem(stack)) {
@@ -76,6 +81,7 @@ public final class GalaxyTools {
 			return g.whole.get() == 2 ? 2 : 1;
 		}
 		int sc = g.scope.get();
+		if (gui && sc >= 3) sc = 2;
 		if (sc >= 3) return 2;
 		return sc == 2 && extraItem(stack) ? 2 : 0;
 	}
