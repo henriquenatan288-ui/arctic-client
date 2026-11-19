@@ -25,7 +25,7 @@ public class ItemModelResolverMixin {
 	private void witch$head(ItemStackRenderState s, ItemStack stack, ItemDisplayContext c, Level l, ItemOwner o, int seed, CallbackInfo ci) {
 		// hotbar/inventario: galaxia com coordenadas do proprio item (opcao do modulo); Glow Items nao entra la
 		int k = GalaxyTools.kind(stack, c == ItemDisplayContext.GUI);
-		GalaxyTools.pendingKind = c != ItemDisplayContext.GUI ? k : (k != 0 && GalaxyTools.gui() ? k | 4 : 0);
+		GalaxyTools.pendingKind = c != ItemDisplayContext.GUI ? k : (k != 0 && (GalaxyTools.gui() || (k >> 3) != 0) ? k | 4 : 0);
 		GalaxyTools.pendingGlow = GalaxyTools.pendingKind == 0 && c != ItemDisplayContext.GUI && com.witch.render.GlowItems.wants(stack);
 	}
 

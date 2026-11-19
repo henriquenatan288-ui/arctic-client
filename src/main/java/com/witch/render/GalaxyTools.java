@@ -74,6 +74,10 @@ public final class GalaxyTools {
 
 	/** gui = hotbar/inventario: ali "todos os itens" nao vale (ficava tudo igual); so ferramentas e extras. */
 	public static int kind(ItemStack stack, boolean gui) {
+		var el = com.witch.module.ElytraShaderModule.instance;
+		if (el != null && com.witch.module.ElytraShaderModule.on && el.item.get() == 2 && stack != null && stack.is(Items.ELYTRA)) {
+			return 2 | (el.style.get() << 3); // estilo proprio do modulo Elytra Shader (bits 3+)
+		}
 		var g = com.witch.module.GalaxyModule.instance;
 		if (g == null || !com.witch.module.GalaxyModule.on || stack == null || stack.isEmpty()) return 0;
 		if (galaxyItem(stack)) {
@@ -161,7 +165,9 @@ public final class GalaxyTools {
 	 * (itens ou blocos), no estilo escolhido. null se o shader falhar (vale o render normal).
 	 */
 	public static net.minecraft.client.renderer.rendertype.RenderType type(int kind, net.minecraft.resources.Identifier atlas) {
-		int style = style();
+		int ov = kind >> 3; // estilo imposto por um modulo (Elytra Shader); 0 = o do Galaxy
+		int style = ov != 0 ? ov : style();
+		kind &= 7;
 		long key = ((long) (kind * 16 + style) << 32) | (atlas.hashCode() & 0xffffffffL);
 		var c = types.get(key);
 		if (c != null) return c;

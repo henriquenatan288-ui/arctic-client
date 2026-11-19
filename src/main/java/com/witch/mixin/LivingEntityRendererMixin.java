@@ -19,15 +19,20 @@ public abstract class LivingEntityRendererMixin {
 			CallbackInfoReturnable<RenderType> cir) {
 		// getRenderType roda antes das camadas (armadura/elytra) deste mesmo corpo: guarda se ele e um jogador com galaxia
 		PlayersGalaxy.curBody = 0;
-		if (!com.witch.module.PlayersGalaxyModule.on) return;
+		PlayersGalaxy.curWings = 0;
+		boolean pg = com.witch.module.PlayersGalaxyModule.on;
+		if (!pg && !com.witch.module.ElytraShaderModule.on) return;
 		if (!(state instanceof AvatarRenderState)) {
-			PlayersGalaxy.curBody = 2; // armor stand, zumbi etc.: so a armadura/elytra (se a opcao for "todos")
+			// armor stand, zumbi etc.: so a armadura/elytra (se a opcao for "todos")
+			if (pg) PlayersGalaxy.curBody = 2;
+			if (com.witch.module.ElytraShaderModule.wantsOther()) PlayersGalaxy.curWings = 2;
 			return;
 		}
 		try {
 			var mc = net.minecraft.client.Minecraft.getInstance();
 			boolean self = mc.player != null && ((AvatarRenderState) state).id == mc.player.getId();
-			if (!PlayersGalaxy.wants(self)) return;
+			if (com.witch.module.ElytraShaderModule.wantsPlayer(self)) PlayersGalaxy.curWings = 1;
+			if (!pg || !PlayersGalaxy.wants(self)) return;
 			PlayersGalaxy.curBody = 1;
 			if (!visible || ghost || cir.getReturnValue() == null) return;
 			RenderType t = PlayersGalaxy.type(((LivingEntityRenderer) (Object) this).getTextureLocation(state));

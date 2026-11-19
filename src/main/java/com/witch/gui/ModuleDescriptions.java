@@ -20,6 +20,7 @@ public final class ModuleDescriptions {
 			case "Freecam" -> "Camera livre fora do corpo, sem limite de distancia.";
 			case "Fullbright" -> "Clareia o mundo (visao noturna no seu cliente).";
 			case "Galaxy" -> "Galaxia nas ferramentas e, se quiser, em totem, maca dourada, elytra, armadura ou todos os itens. 7 estilos.";
+			case "Elytra Shader" -> "Galaxia so na elytra: nas costas (voce, outros, armor stand) e o item. Funciona sozinho, com estilo proprio.";
 			case "Players Galaxy" -> "Jogadores cobertos pela galaxia, com armadura e elytra no corpo. 7 estilos e relevo ajustavel.";
 			case "Glow Items" -> "Linha brilhante na borda dos itens (mao, chao, quadros). Escolha a cor.";
 			case "Hide Name" -> "Esconde a scoreboard da direita inteira (limpo pra print/video).";

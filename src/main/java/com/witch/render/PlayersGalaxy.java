@@ -18,6 +18,8 @@ public final class PlayersGalaxy {
 	private static boolean reportedOk;
 	/** O corpo que esta sendo desenhado agora (e suas camadas de armadura/elytra) e um jogador que recebe galaxia? */
 	public static int curBody; // 0 nenhum, 1 jogador com galaxia, 2 outro ser (armor stand, mob...)
+	/** Idem para o modulo Elytra Shader (independente do Players Galaxy). */
+	public static int curWings;
 
 	private static int variant() {
 		var m = com.witch.module.PlayersGalaxyModule.instance;
@@ -66,8 +68,12 @@ public final class PlayersGalaxy {
 
 	/** RenderType da textura (skin, armadura ou elytra) com galaxia, ou null se o shader nao funcionar (ai vale o render normal). */
 	public static RenderType type(Identifier tex, boolean noCull) {
+		return type(tex, noCull, variant());
+	}
+
+	/** Mesma coisa com variante explicita (estilo << 2 | relevo). */
+	public static RenderType type(Identifier tex, boolean noCull, int v) {
 		if (tex == null) return null;
-		int v = variant();
 		int key = v * 2 + (noCull ? 1 : 0);
 		Map<Identifier, RenderType> cache = CACHES[key];
 		if (cache == null) cache = CACHES[key] = new HashMap<>();
@@ -101,6 +107,14 @@ public final class PlayersGalaxy {
 
 	/** Armadura ou elytra/asas do corpo atual com galaxia, conforme as opcoes do modulo (1 normal, 2 so jogadores, 3 todos os seres). */
 	public static RenderType equipment(Identifier tex) {
+		if (tex != null && curWings != 0 && com.witch.module.ElytraShaderModule.on) {
+			String p = tex.getPath();
+			if (p.contains("wings") || p.contains("elytra")) {
+				var e = com.witch.module.ElytraShaderModule.instance;
+				RenderType t = type(tex, true, e.style.get() << 2 | e.relief.get());
+				if (t != null) return t;
+			}
+		}
 		var m = com.witch.module.PlayersGalaxyModule.instance;
 		int body = curBody;
 		if (m == null || body == 0 || tex == null || !com.witch.module.PlayersGalaxyModule.on) return null;
