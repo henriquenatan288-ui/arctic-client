@@ -71,7 +71,10 @@ public class WitchGametest implements FabricClientGameTest {
 			});
 			context.waitTicks(40);
 			context.takeScreenshot("22-elytra-only");
-			context.runOnClient(mc -> { var em = com.witch.module.ModuleManager.byName("Elytra Shader"); if (em != null && em.isEnabled()) em.toggle(); });
+			context.runOnClient(mc -> { mc.options.setCameraType(net.minecraft.client.CameraType.FIRST_PERSON); mc.player.getInventory().setSelectedSlot(3); });
+			context.waitTicks(30);
+			context.takeScreenshot("23-elytra-hand");
+			context.runOnClient(mc -> { var em = com.witch.module.ModuleManager.byName("Elytra Shader"); if (em != null && em.isEnabled()) em.toggle(); mc.options.setCameraType(net.minecraft.client.CameraType.THIRD_PERSON_FRONT); });
 			context.runOnClient(mc -> { mc.options.setCameraType(net.minecraft.client.CameraType.FIRST_PERSON); mc.player.getInventory().setSelectedSlot(4); });
 			context.waitTicks(30);
 			context.takeScreenshot("18-trident-hand");
