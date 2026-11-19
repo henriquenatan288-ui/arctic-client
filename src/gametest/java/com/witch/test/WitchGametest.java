@@ -85,6 +85,17 @@ public class WitchGametest implements FabricClientGameTest {
 			context.runOnClient(mc -> mc.options.setCameraType(net.minecraft.client.CameraType.THIRD_PERSON_BACK));
 			context.waitTicks(30);
 			context.takeScreenshot("17-firehead-third");
+			context.runOnClient(mc -> {
+				var hm = com.witch.module.ModuleManager.byName("China Hat");
+				if (hm != null && !hm.isEnabled()) hm.toggle();
+				mc.options.setCameraType(net.minecraft.client.CameraType.THIRD_PERSON_FRONT);
+			});
+			context.waitTicks(30);
+			context.takeScreenshot("24-chinahat-galaxy");
+			context.runOnClient(mc -> com.witch.module.ChinaHatModule.instance.look.set(2));
+			context.waitTicks(20);
+			context.takeScreenshot("25-chinahat-spectral");
+			context.runOnClient(mc -> { var hm = com.witch.module.ModuleManager.byName("China Hat"); if (hm != null && hm.isEnabled()) hm.toggle(); });
 			context.runOnClient(mc -> { for (String n : new String[] {"Players Galaxy", "No Legs", "Particles 3D", "Fire Head"}) { var m = com.witch.module.ModuleManager.byName(n); if (m != null && m.isEnabled()) m.toggle(); } mc.options.setCameraType(net.minecraft.client.CameraType.FIRST_PERSON); });
 			context.runOnClient(mc -> mc.gui.setScreen(new net.minecraft.client.gui.screens.inventory.InventoryScreen(mc.player)));
 			context.waitTicks(30);
