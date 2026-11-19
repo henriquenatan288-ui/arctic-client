@@ -14,6 +14,8 @@ public class FireHeadModule extends Module {
 	public final IntSetting embers = add(new IntSetting("Brasas e fumaca (1 nao, 2 sim)", 1, 2, 2, ""));
 	public final IntSetting firstPerson = add(new IntSetting("Em primeira pessoa (1 esconder, 2 mostrar)", 1, 2, 1, ""));
 
+	private int dbg;
+
 	public FireHeadModule() {
 		super("Fire Head", Category.AVATAR);
 	}
@@ -24,6 +26,9 @@ public class FireHeadModule extends Module {
 		var level = mc.level;
 		if (level == null || mc.player == null) return;
 		boolean fp = mc.options.getCameraType().isFirstPerson();
+		if (System.getProperty("witch.debug") != null && dbg++ < 3) {
+			System.out.println("[WDBG] firehead tick players=" + level.players().size() + " fp=" + fp + " target=" + target.get() + " first=" + firstPerson.get());
+		}
 		int t = target.get();
 		for (Player p : level.players()) {
 			boolean self = p == mc.player;
