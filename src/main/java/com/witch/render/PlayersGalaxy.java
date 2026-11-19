@@ -118,8 +118,8 @@ public final class PlayersGalaxy {
 		var m = com.witch.module.PlayersGalaxyModule.instance;
 		int body = curBody;
 		if (m == null || body == 0 || tex == null || !com.witch.module.PlayersGalaxyModule.on) return null;
-		boolean armor = tex.getPath().contains("humanoid");
-		int opt = armor ? m.armor.get() : m.wings.get();
+		if (!tex.getPath().contains("humanoid")) return null; // elytra e do modulo Elytra Shader
+		int opt = m.armor.get();
 		if (opt == 1 || (opt == 2 && body != 1)) return null;
 		return type(tex, true);
 	}
