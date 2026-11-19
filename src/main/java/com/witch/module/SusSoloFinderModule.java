@@ -28,12 +28,10 @@ import java.util.Set;
  * A chance e uma heuristica (peso dos blocos), nao uma probabilidade real.
  */
 public class SusSoloFinderModule extends Module implements EspSource {
-	private static final long SCAN_BUDGET_NS = 3_000_000L;
-	private static final int MAX_SCANS_PER_TICK = 8;
+	private static final long SCAN_BUDGET_NS = 4_000_000L;
+	private static final int MAX_SCANS_PER_TICK = 16;
 	private static final long RESCAN_TICKS = 900L;
 	private final java.util.Map<Long, Long> lastScan = new java.util.HashMap<>();
-	private static final int BELOW = 24;
-	private static final int ABOVE = 40;
 	private static final long ALERT_DISPLAY_MS = 2800L;
 	/** score/(score+K): K=40 -> 25% ~ 13 pts, 50% = 40, 75% = 120, 81% ~ 170. */
 	private static final double K = 40.0;
@@ -45,7 +43,9 @@ public class SusSoloFinderModule extends Module implements EspSource {
 
 	private static SusSoloFinderModule instance;
 
-	private final IntSetting radius = add(new IntSetting("Chunk radius", 1, 40, 8, ""));
+	private final IntSetting radius = add(new IntSetting("Chunk radius (so ate onde o servidor manda chunks)", 1, 64, 16, ""));
+	private final IntSetting minY = add(new IntSetting("Y minimo (bases ate esta camada)", -64, 200, -53, ""));
+	private final IntSetting above = add(new IntSetting("Acima da superficie", 0, 200, 60, ""));
 	private final IntSetting minChance = add(new IntSetting("Min chance", 25, 81, 25, "%"));
 	private final IntSetting maxAlerts = add(new IntSetting("Max alerts", 1, 20, 6, ""));
 	private final IntSetting fill = add(new IntSetting("Fill opacity", 5, 60, 25, "%"));
@@ -57,6 +57,8 @@ public class SusSoloFinderModule extends Module implements EspSource {
 	/** cx, cz, groundY, chance */
 	private final Map<Long, int[]> found = new HashMap<>();
 	private final Set<Long> seen = new HashSet<>();
+	/** Chunks de estrutura natural (cidade antiga, fortaleza, trial) e vizinhas: nao viram base. */
+	private final Set<Long> naturalZone = new HashSet<>();
 	private volatile List<int[]> view = List.of();
 
 	private int[][] offsets = null;
@@ -114,6 +116,7 @@ public class SusSoloFinderModule extends Module implements EspSource {
 		lastScan.clear();
 		found.clear();
 		seen.clear();
+		naturalZone.clear();
 		view = List.of();
 		alertText = null;
 		alertUntil = 0L;
@@ -182,7 +185,7 @@ public class SusSoloFinderModule extends Module implements EspSource {
 			if (scanned >= MAX_SCANS_PER_TICK || System.nanoTime() - t0 > SCAN_BUDGET_NS) break;
 		}
 
-		if (lastScan.size() > 12000) lastScan.clear();
+		if (lastScan.size() > 40000) lastScan.clear();
 		found.values().removeIf(v -> Math.abs(v[0] - pcx) > r + 1 || Math.abs(v[1] - pcz) > r + 1);
 		view = new ArrayList<>(found.values());
 	}
@@ -190,51 +193,64 @@ public class SusSoloFinderModule extends Module implements EspSource {
 	private void scanChunk(net.minecraft.client.multiplayer.ClientLevel level, int cx, int cz,
 			net.minecraft.client.player.LocalPlayer player) {
 		int ground = level.getHeight(Heightmap.Types.WORLD_SURFACE, cx * 16 + 8, cz * 16 + 8);
-		int minY = Math.max(level.getMinY(), ground - BELOW);
-		int maxY = Math.min(level.getMaxY(), ground + ABOVE);
-		int score = 0;
-		int markers = 0;
-
-		BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
-		for (int x = 0; x < 16; x++) {
-			for (int z = 0; z < 16; z++) {
-				for (int y = minY; y <= maxY; y++) {
-					pos.set(cx * 16 + x, y, cz * 16 + z);
-					Block block = level.getBlockState(pos).getBlock();
-					if (trialBlocks.contains(block)) markers++;
+		int y0 = Math.max(level.getMinY(), minY.get());
+		int y1 = Math.min(level.getMaxY(), Math.max(y0, ground + above.get()));
+		// acc: 0 score, 1 marcadores naturais, 2 lo, 3 hi
+		int[] acc = {0, 0, Integer.MAX_VALUE, Integer.MIN_VALUE};
+		SectionScan.chunk(level, cx, cz, y0, y1,
+				st -> weights.containsKey(st.getBlock()) || trialBlocks.contains(st.getBlock()),
+				(x, y, z, st) -> {
+					Block block = st.getBlock();
+					if (trialBlocks.contains(block)) acc[1]++;
 					Integer w = weights.get(block);
-					if (w != null) score += w;
-				}
-			}
-		}
+					if (w != null) {
+						acc[0] += w;
+						if (y < acc[2]) acc[2] = y;
+						if (y > acc[3]) acc[3] = y;
+					}
+				});
+		int score = acc[0];
+		int markers = acc[1];
 
 		long key = ((long) cx << 32) ^ (cz & 0xFFFFFFFFL);
-		// trial chamber: nao e base
+		// estrutura natural (trial chamber, cidade antiga, fortaleza): nao e base, e as vizinhas ficam silenciosas
 		if (markers >= 6) {
+			for (int dx = -1; dx <= 1; dx++) {
+				for (int dz = -1; dz <= 1; dz++) {
+					long nk = ((long) (cx + dx) << 32) ^ ((cz + dz) & 0xFFFFFFFFL);
+					naturalZone.add(nk);
+					found.remove(nk);
+					seen.add(nk);
+				}
+			}
+			return;
+		}
+		if (naturalZone.contains(key)) {
 			found.remove(key);
-			seen.add(key);
 			return;
 		}
 
 		int chance = (int) Math.round(score * 100.0 / (score + K));
 		if (score > 0 && chance >= minChance.get()) {
 			boolean isNew = !found.containsKey(key);
-			found.put(key, new int[]{cx, cz, ground, Math.min(chance, 99)});
+			int lo = acc[2] == Integer.MAX_VALUE ? ground : acc[2];
+			int hi = acc[3] == Integer.MIN_VALUE ? ground : acc[3];
+			found.put(key, new int[]{cx, cz, ground, Math.min(chance, 99), lo, hi});
 			if (isNew) {
-				tryAlert(key, player, chance);
-				if (autoWp.get() == 1) Waypoints.addAuto("Solo " + Math.min(chance, 99) + "%", cx * 16 + 8, ground, cz * 16 + 8);
+				tryAlert(key, player, chance, (lo + hi) / 2);
+				if (autoWp.get() == 1) Waypoints.addAuto("Solo " + Math.min(chance, 99) + "%", cx * 16 + 8, (lo + hi) / 2, cz * 16 + 8);
 			}
 		} else {
 			found.remove(key);
 		}
 	}
 
-	private void tryAlert(long key, net.minecraft.client.player.LocalPlayer player, int chance) {
+	private void tryAlert(long key, net.minecraft.client.player.LocalPlayer player, int chance, int midY) {
 		if (seen.contains(key)) return;
 		seen.add(key);
 		if (alertCount >= maxAlerts.get()) return;
 		alertCount++;
-		alertText = "Solo suspeito: " + Math.min(chance, 99) + "%";
+		alertText = "Solo suspeito: " + Math.min(chance, 99) + "%  (Y " + midY + ")";
 		alertUntil = System.currentTimeMillis() + ALERT_DISPLAY_MS;
 		player.playSound(SoundEvents.NOTE_BLOCK_PLING.value(), 0.8f, chance >= 75 ? 2.0f : 1.4f);
 	}

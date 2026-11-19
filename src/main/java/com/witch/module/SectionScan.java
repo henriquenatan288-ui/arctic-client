@@ -17,6 +17,29 @@ final class SectionScan {
 		void at(int x, int y, int z, BlockState state);
 	}
 
+	/** Uma chunk inteira entre y0 e y1 (inclusive); coordenadas absolutas no callback. Pula secoes sem nenhum bloco desejado. */
+	static void chunk(ClientLevel level, int cx, int cz, int y0, int y1, Predicate<BlockState> wants, Hit hit) {
+		LevelChunk chunk = level.getChunkSource().getChunk(cx, cz, ChunkStatus.FULL, false);
+		if (chunk == null) return;
+		var sections = chunk.getSections();
+		int minSec = chunk.getMinSectionY();
+		for (int i = 0; i < sections.length; i++) {
+			int baseY = (minSec + i) * 16;
+			if (baseY + 15 < y0 || baseY > y1) continue;
+			var sec = sections[i];
+			if (sec == null || sec.hasOnlyAir() || !sec.maybeHas(wants)) continue;
+			int ya = Math.max(y0, baseY), yb = Math.min(y1, baseY + 15);
+			for (int x = 0; x < 16; x++) {
+				for (int y = ya; y <= yb; y++) {
+					for (int z = 0; z < 16; z++) {
+						BlockState st = sec.getBlockState(x, y & 15, z);
+						if (wants.test(st)) hit.at(cx * 16 + x, y, cz * 16 + z, st);
+					}
+				}
+			}
+		}
+	}
+
 	static void scan(ClientLevel level, int cx, int cy, int cz, int r, int vr, Predicate<BlockState> wants, Hit hit) {
 		int x0 = cx - r, x1 = cx + r, z0 = cz - r, z1 = cz + r, y0 = cy - vr, y1 = cy + vr;
 		for (int chx = x0 >> 4; chx <= x1 >> 4; chx++) {
