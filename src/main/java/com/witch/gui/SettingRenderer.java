@@ -51,6 +51,17 @@ public final class SettingRenderer {
 		return n.replace(" (0/1)", "");
 	}
 
+	/** Janelas estreitas (ClickGUI em janelas): mostra so o nome, sem a legenda das opcoes (ela vai no tooltip). */
+	public static boolean shortLabels;
+
+	private static String label(String n, int maxW) {
+		if (shortLabels) {
+			int i = n.indexOf(" (");
+			if (i > 0) n = n.substring(0, i);
+		}
+		return ModuleRow.fit(n, maxW);
+	}
+
 	public static int height(Setting s, int w) {
 		if (isToggle(s)) return ORE_H;
 		if (s instanceof IntSetting) return INT_H;
@@ -67,15 +78,15 @@ public final class SettingRenderer {
 		if (isToggle(s)) {
 			IntSetting t = (IntSetting) s;
 			boolean on = t.get() == 1;
-			FontUtil.draw(g, toggleName(t.name), x + 7, ry + (sh - fh) / 2, RenderUtil.alpha(on ? TXT : TXT_DIM, a));
+			FontUtil.draw(g, label(toggleName(t.name), w - 40), x + 7, ry + (sh - fh) / 2, RenderUtil.alpha(on ? TXT : TXT_DIM, a));
 			int sx = x + w - 6 - 20;
 			int sy = ry + (sh - 10) / 2;
 			RenderUtil.roundRect(g, sx, sy, 20, 10, 5, RenderUtil.alpha(on ? 0xFFFFFFFF : 0xFF3A3E45, a));
 			int kx = on ? sx + 11 : sx + 1;
 			RenderUtil.roundRect(g, kx, sy + 1, 8, 8, 4, RenderUtil.alpha(on ? 0xFF0A0C0F : 0xFF8A8F97, a));
 		} else if (s instanceof IntSetting is) {
-			FontUtil.draw(g, is.name, x + 7, ry + 3, RenderUtil.alpha(TXT_DIM, a));
 			String val = is.get() + is.suffix;
+			FontUtil.draw(g, label(is.name, w - 20 - FontUtil.width(val)), x + 7, ry + 3, RenderUtil.alpha(TXT_DIM, a));
 			FontUtil.draw(g, val, x + w - 6 - FontUtil.width(val), ry + 3, RenderUtil.alpha(TXT, a));
 			int tx = x + 7;
 			int tw = w - 14;
@@ -86,7 +97,7 @@ public final class SettingRenderer {
 			RenderUtil.roundRect(g, tx + fw - 4, ty - 3, 9, 9, 4, RenderUtil.alpha(0xFF3A3F47, a));
 			RenderUtil.roundRect(g, tx + fw - 3, ty - 2, 7, 7, 3, RenderUtil.alpha(0xFFFFFFFF, a));
 		} else if (s instanceof ColorSetting cs) {
-			FontUtil.draw(g, cs.name, x + 7, ry + 3, RenderUtil.alpha(TXT_DIM, a));
+			FontUtil.draw(g, label(cs.name, w - 14), x + 7, ry + 3, RenderUtil.alpha(TXT_DIM, a));
 			int per = Math.max(1, (w - 16) / (SW + SW_GAP));
 			for (int i = 0; i < ColorSetting.PALETTE.length; i++) {
 				int sx = x + 7 + (i % per) * (SW + SW_GAP);
@@ -115,7 +126,7 @@ public final class SettingRenderer {
 			int hx = px + Math.round(cs.hue * (pw - 1));
 			RenderUtil.roundRect(g, hx - 2, hy - 2, 5, HUE_H + 4, 2, RenderUtil.alpha(0xFFFFFFFF, a));
 		} else if (s instanceof KeybindSetting ks) {
-			FontUtil.draw(g, ks.name, x + 7, ry + (sh - fh) / 2, RenderUtil.alpha(TXT_DIM, a));
+			FontUtil.draw(g, label(ks.name, w - 60), x + 7, ry + (sh - fh) / 2, RenderUtil.alpha(TXT_DIM, a));
 			String lab = ks.listening ? "..." : ks.label();
 			int cw = Math.max(26, FontUtil.width(lab) + 10);
 			int cx = x + w - 6 - cw;
@@ -128,7 +139,7 @@ public final class SettingRenderer {
 			RenderUtil.roundRect(g, bx, bY, 9, 9, 3, RenderUtil.alpha(0xFF3A3F47, a));
 			RenderUtil.roundRect(g, bx + 1, bY + 1, 7, 7, 2, RenderUtil.alpha(0xFF0F1114, a));
 			if (os.enabled()) RenderUtil.roundRect(g, bx + 2, bY + 2, 5, 5, 1, RenderUtil.alpha(TXT, a));
-			FontUtil.draw(g, os.name, bx + 14, ry + (sh - fh) / 2, RenderUtil.alpha(os.enabled() ? TXT : TXT_DIM, a));
+			FontUtil.draw(g, label(os.name, w - 50), bx + 14, ry + (sh - fh) / 2, RenderUtil.alpha(os.enabled() ? TXT : TXT_DIM, a));
 			int cx = x + w - 6 - 12;
 			RenderUtil.roundRect(g, cx - 1, bY - 1, 14, 11, 3, RenderUtil.alpha(0xFF3A3F47, a));
 			RenderUtil.roundRect(g, cx, bY, 12, 9, 2, RenderUtil.alpha(os.color(), a));

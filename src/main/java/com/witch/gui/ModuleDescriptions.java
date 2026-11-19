@@ -34,7 +34,7 @@ public final class ModuleDescriptions {
 			case "Slow Hit Visual" -> "Visual de golpe lento.";
 			case "Speed" -> "Aumenta a velocidade de movimento (0 = normal).";
 			case "Storage ESP" -> "Destaca baus e containers proximos.";
-			case "Sus Solo Finder" -> "Escaneia chunks de cima (bom voando), apita e marca o solo. Cor = chance de base (heuristica).";
+			case "Sus Solo Finder" -> "Acha bases (ate o Y minimo, padrao -53), apita e marca o solo da chunk. Cor = chance de base (heuristica). So enxerga chunks que o servidor enviou.";
 			case "Waypoints" -> "Salva pontos (tecla Add waypoint), coluna visivel de longe e distancia na tela.";
 			case "Coords HUD" -> "Coordenadas, direcao e velocidade na tela.";
 			case "Armor HUD" -> "Durabilidade da armadura e do item na mao.";
@@ -56,7 +56,7 @@ public final class ModuleDescriptions {
 			case "Particles 2D" -> "Particulas ao acertar, pular ou flutuando. Shape: 1 cartas 2 dinheiro 3 chapeu de bruxa 4 pato de cartola.";
 			case "Filter" -> "Filtro de cor: 1 quente 2 frio 3 neon 4 escuro 5 por do sol 6 menta.";
 			case "Witch Theme" -> "Liga de uma vez o filtro de humor e a poeira ambiente.";
-			case "Sus Chunk Finder" -> "Procura chunks suspeitas num raio proprio (1 a 40).";
+			case "Sus Chunk Finder" -> "Procura chunks suspeitas na coluna inteira (ou +/- blocos). Raio ate 64, limitado pelo alcance de chunks do servidor.";
 			case "Sus Hole Finder" -> "Procura buracos suspeitos.";
 			case "Tracers" -> "Linhas da mira ate Player/Farm/Storage ESP (estilo Meteor, bem slim).";
 			case "Trigger Bot" -> "Ataca sozinho quando a mira esta num alvo.";

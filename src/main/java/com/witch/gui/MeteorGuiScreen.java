@@ -55,7 +55,9 @@ public class MeteorGuiScreen extends Screen {
 
 	private float openAnim = 0f;
 	private long lastNanos = 0L;
-	private Module tipNow, tipLast;
+	private Module tipNow;
+	private Setting tipSet;
+	private Object tipLast;
 	private long tipSince;
 
 	// interacao: o clique so vale ao soltar se nao arrastou (assim da para rolar/mover sem ligar nada sem querer)
@@ -166,6 +168,7 @@ public class MeteorGuiScreen extends Screen {
 		my = Math.round(my / UI);
 		place();
 		tipNow = null;
+		tipSet = null;
 		int fh = FontUtil.height();
 
 		for (Map.Entry<Module, Float> e : EXP.entrySet()) {
@@ -211,9 +214,10 @@ public class MeteorGuiScreen extends Screen {
 		String hint = "Toque: liga/desliga   Direito ou seta: ajustes   Arraste o titulo: mover   RSHIFT fecha";
 		FontUtil.draw(g, hint, 10, vh() - 10, RenderUtil.alpha(0xFF6F686B, a));
 
-		if (tipNow != tipLast) { tipLast = tipNow; tipSince = System.currentTimeMillis(); }
-		if (tipNow != null && com.witch.module.GuiSettingsModule.tooltips() && System.currentTimeMillis() - tipSince > 450) {
-			String d = ModuleDescriptions.of(tipNow.name);
+		Object tipKey = tipSet != null ? tipSet : tipNow;
+		if (tipKey != tipLast) { tipLast = tipKey; tipSince = System.currentTimeMillis(); }
+		if (tipKey != null && com.witch.module.GuiSettingsModule.tooltips() && System.currentTimeMillis() - tipSince > 450) {
+			String d = tipSet != null ? tipSet.name : ModuleDescriptions.of(tipNow.name);
 			if (d != null && !d.isEmpty()) {
 				int tw = Math.min(vw() - 16, FontUtil.width(d) + 12);
 				int th = fh + 8;
@@ -253,7 +257,13 @@ public class MeteorGuiScreen extends Screen {
 			int sy = sy0 + 2;
 			for (Setting s : m.settings()) {
 				int sh = SettingRenderer.height(s, W);
-				SettingRenderer.draw(g, s, x, sy, W, sh, a, 0f);
+				SettingRenderer.shortLabels = true;
+				try {
+					SettingRenderer.draw(g, s, x, sy, W, sh, a, 0f);
+				} finally {
+					SettingRenderer.shortLabels = false;
+				}
+				if (RenderUtil.inside(mx, my, x, sy, W, sh) && my >= clipY && my < clipY + clipH && dragWin < 0 && moveWin < 0) tipSet = s;
 				sy += sh;
 			}
 			g.disableScissor();

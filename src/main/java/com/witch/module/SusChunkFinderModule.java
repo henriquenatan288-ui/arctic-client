@@ -32,19 +32,19 @@ import java.util.Set;
  */
 public class SusChunkFinderModule extends Module implements EspSource {
 	/** Orcamento de tempo por tick para escanear chunks (varias por tick, em vez de 1 a cada 3 ticks). */
-	private static final long SCAN_BUDGET_NS = 3_000_000L;
-	private static final int MAX_SCANS_PER_TICK = 8;
+	private static final long SCAN_BUDGET_NS = 4_000_000L;
+	private static final int MAX_SCANS_PER_TICK = 16;
 	private static final long RESCAN_TICKS = 900L;
 	private final java.util.Map<Long, Long> lastScan = new java.util.HashMap<>();
-	private static final int HALF_HEIGHT = 48;
 	private static final long ALERT_DISPLAY_MS = 2800L;
 	/** Vermelho fixo pra trial (mesmo tom da palette). */
 	private static final int TRIAL_COLOR = 0xFFEF4444;
 
 	private static SusChunkFinderModule instance;
 
-	private final IntSetting radius = add(new IntSetting("Chunk radius", 1, 40, 4, ""));
+	private final IntSetting radius = add(new IntSetting("Chunk radius (so ate onde o servidor manda chunks)", 1, 64, 16, ""));
 	private final IntSetting threshold = add(new IntSetting("Min score", 5, 200, 30, ""));
+	private final IntSetting vrange = add(new IntSetting("Vertical +/- blocos (400 = coluna toda)", 16, 400, 400, ""));
 	private final IntSetting maxAlerts = add(new IntSetting("Max alerts", 1, 10, 3, ""));
 	private final ColorSetting color = add(new ColorSetting("Color", 4));
 	private final IntSetting autoWp = add(new IntSetting("Auto waypoint (0/1)", 0, 1, 0, ""));
@@ -92,6 +92,15 @@ public class SusChunkFinderModule extends Module implements EspSource {
 				|| n.equals("smithing_table")) {
 			return 4;
 		}
+		// sinais fortes de jogador: cobre encerado, blocos de metal, tnt, ancora, lodestone, conduit
+		if (n.startsWith("waxed_") || n.equals("tnt") || n.equals("respawn_anchor") || n.equals("lodestone")
+				|| n.equals("conduit") || n.equals("crafter") || n.equals("jukebox")) {
+			return 3;
+		}
+		if (n.equals("iron_block") || n.equals("gold_block") || n.equals("diamond_block") || n.equals("emerald_block")
+				|| n.equals("netherite_block") || n.equals("redstone_block") || n.equals("lapis_block")) {
+			return 2;
+		}
 		// decoracao que nao nasce natural
 		if (n.equals("crafting_table") || n.endsWith("_wool") || n.contains("concrete")
 				|| n.endsWith("stained_glass") || n.endsWith("stained_glass_pane")
@@ -117,7 +126,10 @@ public class SusChunkFinderModule extends Module implements EspSource {
 			String n = BuiltInRegistries.BLOCK.getKey(b).getPath();
 			if (n.equals("trial_spawner") || n.equals("vault") || n.contains("copper_bulb")
 					|| n.contains("chiseled_copper") || n.contains("copper_grate")
-					|| n.equals("tuff_bricks") || n.equals("chiseled_tuff_bricks")) {
+					|| n.equals("tuff_bricks") || n.equals("chiseled_tuff_bricks")
+					// cidade antiga e fortaleza: muitos baus, mas nao e base
+					|| n.equals("reinforced_deepslate") || n.equals("sculk_shrieker") || n.equals("sculk_catalyst")
+					|| n.equals("end_portal_frame")) {
 				set.add(b);
 			}
 		}
@@ -244,46 +256,38 @@ public class SusChunkFinderModule extends Module implements EspSource {
 			if (scanned >= MAX_SCANS_PER_TICK || System.nanoTime() - t0 > SCAN_BUDGET_NS) break;
 		}
 
-		if (lastScan.size() > 12000) lastScan.clear();
+		if (lastScan.size() > 40000) lastScan.clear();
 		found.values().removeIf(v -> Math.abs(v[0] - pcx) > r + 1 || Math.abs(v[1] - pcz) > r + 1);
 		view = new ArrayList<>(found.values());
 	}
 
 	private void scanChunk(net.minecraft.client.multiplayer.ClientLevel level, int cx, int cz, int py,
 			net.minecraft.client.player.LocalPlayer player) {
-		int minY = Math.max(level.getMinY(), py - HALF_HEIGHT);
-		int maxY = py + HALF_HEIGHT;
-		int score = 0;
-		int lo = Integer.MAX_VALUE;
-		int hi = Integer.MIN_VALUE;
-		boolean hasTrial = false;
-		int markers = 0;
-
-		BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
-		for (int x = 0; x < 16; x++) {
-			for (int z = 0; z < 16; z++) {
-				for (int y = minY; y <= maxY; y++) {
-					pos.set(cx * 16 + x, y, cz * 16 + z);
-					Block block = level.getBlockState(pos).getBlock();
-					if (isTrialSpawner(block)) {
-						hasTrial = true;
-						if (y < lo) lo = y;
-						if (y > hi) hi = y;
-					}
-					if (trialBlocks.contains(block)) {
-						markers++;
-						if (y < lo) lo = y;
-						if (y > hi) hi = y;
-					}
+		int vr = vrange.get();
+		int minY = Math.max(level.getMinY(), py - vr);
+		int maxY = Math.min(level.getMaxY(), py + vr);
+		// acc: 0 score, 1 lo, 2 hi, 3 marcadores de estrutura natural
+		int[] acc = {0, Integer.MAX_VALUE, Integer.MIN_VALUE, 0};
+		boolean[] trial = {false};
+		SectionScan.chunk(level, cx, cz, minY, maxY,
+				st -> weights.containsKey(st.getBlock()) || trialBlocks.contains(st.getBlock()),
+				(x, y, z, st) -> {
+					Block block = st.getBlock();
+					boolean any = false;
+					if (isTrialSpawner(block)) { trial[0] = true; any = true; }
+					if (trialBlocks.contains(block)) { acc[3]++; any = true; }
 					Integer w = weights.get(block);
-					if (w != null) {
-						score += w;
-						if (y < lo) lo = y;
-						if (y > hi) hi = y;
+					if (w != null) { acc[0] += w; any = true; }
+					if (any) {
+						if (y < acc[1]) acc[1] = y;
+						if (y > acc[2]) acc[2] = y;
 					}
-				}
-			}
-		}
+				});
+		int score = acc[0];
+		int lo = acc[1];
+		int hi = acc[2];
+		boolean hasTrial = trial[0];
+		int markers = acc[3];
 
 		long key = ((long) cx << 32) ^ (cz & 0xFFFFFFFFL);
 
