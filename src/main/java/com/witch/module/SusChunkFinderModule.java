@@ -178,6 +178,8 @@ public class SusChunkFinderModule extends Module implements EspSource {
 	}
 
 	/** Limpa chunks expostas, seen e contador de alertas — força rescan. */
+	private long lastReloadNs;
+
 	private void reloadExposed() {
 		lastScan.clear();
 		found.clear();
@@ -212,7 +214,8 @@ public class SusChunkFinderModule extends Module implements EspSource {
 		int rk = reloadKey.key();
 		if (rk != 0) {
 			boolean down = InputConstants.isKeyDown(mc.getWindow(), rk);
-			if (down && !reloadKey.wasDown && mc.gui.screen() == null) {
+			if (down && !reloadKey.wasDown && mc.gui.screen() == null && System.nanoTime() - lastReloadNs > 3_000_000_000L) {
+				lastReloadNs = System.nanoTime(); // no maximo 1 reload a cada 3s (tecla de andar, como o A, travava)
 				reloadExposed();
 			}
 			reloadKey.wasDown = down;

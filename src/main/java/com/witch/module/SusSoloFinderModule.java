@@ -136,6 +136,8 @@ public class SusSoloFinderModule extends Module implements EspSource {
 		cursor = 0;
 	}
 
+	private long lastReloadNs;
+
 	@Override
 	public void onTick() {
 		Minecraft mc = Minecraft.getInstance();
@@ -143,7 +145,10 @@ public class SusSoloFinderModule extends Module implements EspSource {
 		int rk = reloadKey.key();
 		if (rk != 0) {
 			boolean down = InputConstants.isKeyDown(mc.getWindow(), rk);
-			if (down && !reloadKey.wasDown && mc.gui.screen() == null) reset();
+			if (down && !reloadKey.wasDown && mc.gui.screen() == null && System.nanoTime() - lastReloadNs > 3_000_000_000L) {
+				lastReloadNs = System.nanoTime(); // no maximo 1 reload a cada 3s
+				reset();
+			}
 			reloadKey.wasDown = down;
 		} else {
 			reloadKey.wasDown = false;
