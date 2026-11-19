@@ -51,8 +51,25 @@ public class WitchGametest implements FabricClientGameTest {
 			sp.getServer().runCommand("summon minecraft:armor_stand ~ ~ ~3 {ShowArms:1b,equipment:{head:{id:\"minecraft:diamond_helmet\",count:1},chest:{id:\"minecraft:diamond_chestplate\",count:1},legs:{id:\"minecraft:diamond_leggings\",count:1},feet:{id:\"minecraft:diamond_boots\",count:1}}}");
 			sp.getServer().runCommand("summon minecraft:armor_stand ~2 ~ ~3 {ShowArms:1b,equipment:{chest:{id:\"minecraft:elytra\",count:1},mainhand:{id:\"minecraft:trident\",count:1},offhand:{id:\"minecraft:golden_apple\",count:1}}}");
 			context.runOnClient(mc -> { for (String n : new String[] {"Fire Head"}) { var m = com.witch.module.ModuleManager.byName(n); if (m != null && !m.isEnabled()) m.toggle(); } });
+			context.runOnClient(mc -> {
+				var gm = com.witch.module.ModuleManager.byName("Galaxy");
+				if (gm != null && !gm.isEnabled()) gm.toggle();
+				com.witch.module.GalaxyModule.instance.mode.set(2);
+				var inv = mc.player.getInventory();
+				inv.setItem(1, new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.GOLDEN_APPLE));
+				inv.setItem(2, new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.TOTEM_OF_UNDYING));
+				inv.setItem(3, new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.ELYTRA));
+				inv.setItem(4, new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.TRIDENT));
+			});
 			context.waitTicks(40);
 			context.takeScreenshot("16-armorstands-galaxy");
+			context.runOnClient(mc -> { mc.options.setCameraType(net.minecraft.client.CameraType.FIRST_PERSON); mc.player.getInventory().setSelectedSlot(4); });
+			context.waitTicks(30);
+			context.takeScreenshot("18-trident-hand");
+			context.runOnClient(mc -> mc.player.getInventory().setSelectedSlot(1));
+			context.waitTicks(30);
+			context.takeScreenshot("19-apple-hand");
+			context.runOnClient(mc -> mc.options.setCameraType(net.minecraft.client.CameraType.THIRD_PERSON_BACK));
 			context.runOnClient(mc -> mc.options.setCameraType(net.minecraft.client.CameraType.THIRD_PERSON_BACK));
 			context.waitTicks(30);
 			context.takeScreenshot("17-firehead-third");
