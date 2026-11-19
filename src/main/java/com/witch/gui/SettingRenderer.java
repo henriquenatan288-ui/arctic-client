@@ -104,6 +104,8 @@ public final class SettingRenderer {
 	public static boolean shortLabels;
 	/** Cor dos controles ligados (interruptor, barra do slider). */
 	public static int accentColor = 0xFFFFFFFF;
+	/** Sem contorno nos botoes (stepper, keybind): usado pelo ClickGUI de janelas. */
+	public static boolean flat;
 
 	private static String label(String n, int maxW) {
 		if (shortLabels) {
@@ -144,8 +146,8 @@ public final class SettingRenderer {
 			FontUtil.draw(g, label(is.name, w - 14), x + 7, ry + 3, RenderUtil.alpha(TXT_DIM, a));
 			int px = x + 7, pw = w - 14, py = ry + fh + 7, ph = 13;
 			int arrow = RenderUtil.mix(accentColor, 0xFFFFFFFF, 0.35f);
-			RenderUtil.roundRect(g, px - 1, py - 1, pw + 2, ph + 2, 4, RenderUtil.alpha(RenderUtil.mix(0xFF2A2A2D, accentColor, 0.5f), a));
-			RenderUtil.roundRect(g, px, py, pw, ph, 3, RenderUtil.alpha(0xFF0F0F11, a));
+			if (!flat) RenderUtil.roundRect(g, px - 1, py - 1, pw + 2, ph + 2, 4, RenderUtil.alpha(RenderUtil.mix(0xFF2A2A2D, accentColor, 0.5f), a));
+			RenderUtil.roundRect(g, px, py, pw, ph, 3, RenderUtil.alpha(flat ? 0xFF161416 : 0xFF0F0F11, a));
 			FontUtil.draw(g, "<", px + 5, py + (ph - fh) / 2, RenderUtil.alpha(arrow, a));
 			FontUtil.draw(g, ">", px + pw - 5 - FontUtil.width(">"), py + (ph - fh) / 2, RenderUtil.alpha(arrow, a));
 			String lab = ModuleRow.fit(op[idx], pw - 30);
@@ -198,8 +200,8 @@ public final class SettingRenderer {
 			String lab = ks.listening ? "..." : ks.label();
 			int cw = Math.max(26, FontUtil.width(lab) + 10);
 			int cx = x + w - 6 - cw;
-			RenderUtil.roundRect(g, cx, ry + 2, cw, sh - 4, 3, RenderUtil.alpha(ks.listening ? 0xFFE2E4E8 : 0xFF3A3F47, a));
-			RenderUtil.roundRect(g, cx + 1, ry + 3, cw - 2, sh - 6, 2, RenderUtil.alpha(0xFF0F1114, a));
+			if (!flat || ks.listening) RenderUtil.roundRect(g, cx, ry + 2, cw, sh - 4, 3, RenderUtil.alpha(ks.listening ? 0xFFE2E4E8 : 0xFF3A3F47, a));
+			RenderUtil.roundRect(g, cx + 1, ry + 3, cw - 2, sh - 6, 2, RenderUtil.alpha(flat ? 0xFF161416 : 0xFF0F1114, a));
 			FontUtil.draw(g, lab, cx + (cw - FontUtil.width(lab)) / 2, ry + (sh - fh) / 2, RenderUtil.alpha(0xFFB5B9C0, a));
 		} else if (s instanceof OreSetting os) {
 			int bx = x + 7;

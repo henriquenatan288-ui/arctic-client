@@ -181,7 +181,6 @@ public class MeteorGuiScreen extends Screen {
 			int x = Math.round(w.x);
 			int y = Math.round(w.y + (1f - a) * 8f);
 			int bh = bodyH(ci);
-			RenderUtil.roundRect(g, x - 1, y - 1, W + 2, HEAD + bh + 2, 6, RenderUtil.alpha(RED_DK, a));
 			RenderUtil.roundRect(g, x, y, W, HEAD + bh, 5, RenderUtil.alpha(BODY, a));
 			RenderUtil.roundRect(g, x, y, W, HEAD, 5, RenderUtil.alpha(HEADER, a));
 			if (bh > 0) g.fill(x, y + HEAD / 2, x + W, y + HEAD, RenderUtil.alpha(HEADER, a));
@@ -257,11 +256,13 @@ public class MeteorGuiScreen extends Screen {
 				int sh = SettingRenderer.height(s, W);
 				SettingRenderer.shortLabels = true;
 				SettingRenderer.accentColor = RED;
+				SettingRenderer.flat = true;
 				try {
 					SettingRenderer.draw(g, s, x, sy, W, sh, a, 0f);
 				} finally {
 					SettingRenderer.shortLabels = false;
 					SettingRenderer.accentColor = 0xFFFFFFFF;
+					SettingRenderer.flat = false;
 				}
 				if (RenderUtil.inside(mx, my, x, sy, W, sh) && my >= clipY && my < clipY + clipH && dragWin < 0 && moveWin < 0) tipSet = s;
 				sy += sh;
