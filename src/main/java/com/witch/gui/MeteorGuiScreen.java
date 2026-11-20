@@ -415,10 +415,15 @@ public class MeteorGuiScreen extends Screen {
 	public boolean keyPressed(KeyEvent input) {
 		int key = input.key();
 		for (Module m : ModuleManager.all()) {
-			if (m.keybind.listening) {
-				m.keybind.listening = false;
-				if (key == GLFW.GLFW_KEY_BACKSPACE || key == GLFW.GLFW_KEY_DELETE) m.keybind.setKey(0);
-				else if (key != GLFW.GLFW_KEY_ESCAPE) m.keybind.setKey(key);
+			// tecla do modulo e teclas extras do modulo (Reload chunks, Add waypoint...): qualquer uma esperando tecla
+			java.util.List<com.witch.setting.KeybindSetting> ks = new java.util.ArrayList<>();
+			ks.add(m.keybind);
+			for (var st : m.settings()) if (st instanceof com.witch.setting.KeybindSetting k && k != m.keybind) ks.add(k);
+			for (var k : ks) {
+				if (!k.listening) continue;
+				k.listening = false;
+				if (key == GLFW.GLFW_KEY_BACKSPACE || key == GLFW.GLFW_KEY_DELETE) k.setKey(0);
+				else if (key != GLFW.GLFW_KEY_ESCAPE) k.setKey(key);
 				Config.save();
 				return true;
 			}
