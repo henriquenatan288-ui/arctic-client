@@ -307,6 +307,20 @@ public final class EspRenderer {
 			fillBox(filled(), m, (float) x0, (float) y0, (float) z0, (float) x1, (float) y1, (float) z1, rgba(argb, alpha));
 		}
 
+		/** Quadrilatero preenchido com alpha por vertice (degrade/brilho). As duas faces sao desenhadas. */
+		public void gradQuad(double ax, double ay, double az, double bx, double by, double bz,
+							 double cx, double cy, double cz, double dx, double dy, double dz,
+							 int argb, float a0, float a1, float a2, float a3) {
+			VertexConsumer vb = filled();
+			float[] c = rgba(argb, 1f);
+			float[][] p = {{(float) ax, (float) ay, (float) az, a0}, {(float) bx, (float) by, (float) bz, a1},
+					{(float) cx, (float) cy, (float) cz, a2}, {(float) dx, (float) dy, (float) dz, a3}};
+			int[] order = {0, 1, 2, 3, 3, 2, 1, 0};
+			for (int i : order) {
+				vb.addVertex(m, p[i][0], p[i][1], p[i][2]).setColor(c[0], c[1], c[2], p[i][3]);
+			}
+		}
+
 		public void line(double sx, double sy, double sz, double tx, double ty, double tz, int argb, float alpha) {
 			ribbon(sx, sy, sz, tx, ty, tz, argb, alpha, K, 0.003f, false);
 		}

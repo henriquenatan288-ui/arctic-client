@@ -2,6 +2,7 @@ package com.witch.module;
 
 import com.witch.render.EspRenderer.Esp;
 import com.witch.render.EspSource;
+import com.witch.render.FxShapes;
 import com.witch.setting.ColorSetting;
 import com.witch.setting.IntSetting;
 import net.minecraft.client.Minecraft;
@@ -9,7 +10,7 @@ import net.minecraft.client.Minecraft;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Um anel de luz que se abre no chao quando voce pula. */
+/** Onda de luz que se abre no chao quando voce pula: anel com brilho, halo, tracos de runa girando e eco interno. */
 public class JumpCirclesModule extends Module implements EspSource {
 	private static final long LIFE_MS = 1100L;
 	private final ColorSetting color = add(new ColorSetting("Color", 0));
@@ -51,20 +52,21 @@ public class JumpCirclesModule extends Module implements EspSource {
 		int c = color.get();
 		for (double[] r : rings) {
 			double k = (now - (long) r[3]) / (double) LIFE_MS;
-			float a = (float) Math.pow(1.0 - k, 1.5);
-			double rad = 0.4 + k * size.get() * 1.6;
-			circle(esp, r[0], r[1] + 0.05, r[2], rad, c, a, 2.0f);
-			circle(esp, r[0], r[1] + 0.05, r[2], rad * 0.6, c, a * 0.5f, 1.5f);
-		}
-	}
-
-	private static void circle(Esp esp, double cx, double y, double cz, double rad, int c, float a, float width) {
-		int n = 28;
-		for (int i = 0; i < n; i++) {
-			double a0 = i * Math.PI * 2 / n;
-			double a1 = (i + 1) * Math.PI * 2 / n;
-			esp.thinLine(cx + Math.cos(a0) * rad, y, cz + Math.sin(a0) * rad,
-					cx + Math.cos(a1) * rad, y, cz + Math.sin(a1) * rad, c, a, width);
+			double e = 1.0 - Math.pow(1.0 - k, 3.0);
+			float a = (float) Math.pow(1.0 - k, 1.3);
+			double rad = 0.35 + e * size.get() * 1.6;
+			double x = r[0], y = r[1] + 0.04, z = r[2];
+			float flash = (float) Math.max(0.0, 1.0 - k * 4.0); // clarao no inicio
+			FxShapes.disk(esp, x, y, z, rad, c, 0f, 0.28f * a + 0.35f * flash);
+			FxShapes.glowRing(esp, x, y + 0.01, z, rad, 0.18 + 0.05 * size.get(), c, a);
+			// eco interno, atrasado
+			double ke = Math.max(0.0, k - 0.12) / 0.88;
+			if (ke > 0.0) {
+				double e2 = 1.0 - Math.pow(1.0 - ke, 3.0);
+				FxShapes.glowRing(esp, x, y + 0.02, z, 0.25 + e2 * size.get() * 0.95, 0.12, c, (float) Math.pow(1.0 - ke, 1.5) * 0.7f);
+			}
+			// tracos de runa girando um pouco alem do anel
+			FxShapes.dashes(esp, x, y + 0.03, z, rad + 0.22 + 0.04 * size.get(), 0.035, 12, k * 2.4, 0.42, FxShapes.mix(c, 0xFFFFFFFF, 0.35f), a * 0.85f);
 		}
 	}
 }
