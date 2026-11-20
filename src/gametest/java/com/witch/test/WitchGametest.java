@@ -129,6 +129,30 @@ public class WitchGametest implements FabricClientGameTest {
 			context.waitTicks(8);
 			context.takeScreenshot("27b-breakwave-late");
 			context.runOnClient(mc -> { for (String n : new String[] {"Jump Circles", "Break Wave"}) { var m = com.witch.module.ModuleManager.byName(n); if (m != null && m.isEnabled()) m.toggle(); } });
+			// tracers: fonte de teste com alvos em volta (alguns atras da camera)
+			context.runOnClient(mc -> {
+				mc.options.setCameraType(net.minecraft.client.CameraType.FIRST_PERSON);
+				mc.player.setXRot(10f);
+				mc.player.setYRot(0f);
+				com.witch.render.EspRenderer.register(new com.witch.render.EspSource() {
+					public boolean active() { return true; }
+					public void collect(com.witch.render.EspRenderer.Esp esp) {
+						double px = mc.player.getX(), py = mc.player.getY(), pz = mc.player.getZ();
+						for (int i = 0; i < 12; i++) {
+							double a = i * Math.PI * 2 / 12;
+							esp.tracer(px + Math.cos(a) * 12, py + 1.0, pz + Math.sin(a) * 12, i % 2 == 0 ? 0xFFFF3030 : 0xFF30FF60, 0.6f, 2.5f);
+						}
+					}
+				});
+			});
+			context.waitTicks(10);
+			context.takeScreenshot("28-tracers");
+			context.runOnClient(mc -> mc.player.setYRot(135f));
+			context.waitTicks(5);
+			context.takeScreenshot("28b-tracers");
+			context.runOnClient(mc -> { mc.player.setYRot(90f); mc.player.setXRot(-20f); });
+			context.waitTicks(5);
+			context.takeScreenshot("28c-tracers");
 			context.runOnClient(mc -> { for (String n : new String[] {"Players Galaxy", "No Legs", "Particles 3D", "Fire Head"}) { var m = com.witch.module.ModuleManager.byName(n); if (m != null && m.isEnabled()) m.toggle(); } mc.options.setCameraType(net.minecraft.client.CameraType.FIRST_PERSON); });
 			context.runOnClient(mc -> mc.gui.setScreen(new net.minecraft.client.gui.screens.inventory.InventoryScreen(mc.player)));
 			context.waitTicks(30);
