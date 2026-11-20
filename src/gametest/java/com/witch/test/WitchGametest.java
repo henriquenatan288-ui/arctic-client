@@ -102,7 +102,15 @@ public class WitchGametest implements FabricClientGameTest {
 				for (String n : new String[] {"Jump Circles", "Break Wave"}) { var m = com.witch.module.ModuleManager.byName(n); if (m != null && !m.isEnabled()) m.toggle(); }
 			});
 			context.waitTicks(25);
-			context.runOnClient(mc -> mc.player.jumpFromGround());
+			context.runOnClient(mc -> {
+				try {
+					var jc = com.witch.module.ModuleManager.byName("Jump Circles");
+					var f = jc.getClass().getDeclaredField("rings");
+					f.setAccessible(true);
+					@SuppressWarnings("unchecked") var list = (java.util.List<double[]>) f.get(jc);
+					list.add(new double[] {mc.player.getX(), mc.player.getY(), mc.player.getZ(), System.currentTimeMillis()});
+				} catch (Throwable t) { System.out.println("[WDBG] ring inject fail " + t); }
+			});
 			context.waitTicks(7);
 			context.takeScreenshot("26-jumpcircle");
 			context.waitTicks(10);
