@@ -23,12 +23,13 @@ jobs:
       - name: Install software GL
         run: |
           sudo apt-get update
-          sudo apt-get install -y xvfb libgl1-mesa-dri libglx-mesa0 libegl1 mesa-vulkan-drivers libxrandr2 libxinerama1 libxcursor1 libxi6
+          sudo apt-get install -y ffmpeg xvfb libgl1-mesa-dri libglx-mesa0 libegl1 mesa-vulkan-drivers libxrandr2 libxinerama1 libxcursor1 libxi6
       - name: Run client gametest
         shell: bash
         env:
           LIBGL_ALWAYS_SOFTWARE: "1"
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ALSOFT_DRIVERS: "null"
           MESA_GL_VERSION_OVERRIDE: "4.6"
           MESA_GLSL_VERSION_OVERRIDE: "460"
         run: |
@@ -38,7 +39,18 @@ jobs:
           find . -path ./out -prune -o -type d -name screenshots -print | head
           find . -name "*.png" -path "*screenshots*" -exec cp {} out/ \; || true
           cp visual.log out/ || true
-          grep -n -E "What went wrong|FAILURE|Exception|Caused by|error:|Error|gametest|screenshot|Screenshot" visual.log | head -40 | while IFS= read -r l; do echo "::notice::$l"; done
+          J=$(find ~/.gradle ~/.cache -name "minecraft-*.jar" -path "*loom*" 2>/dev/null | grep -v sources | head -3)
+          echo "JARS: $J" > out/javap.txt
+          for j in $J; do for c in 'net.minecraft.client.renderer.item.ItemStackRenderState$LayerRenderState' 'net.minecraft.client.renderer.SubmitNodeCollector' 'net.minecraft.client.renderer.item.ItemStackRenderState' 'net.minecraft.client.renderer.item.ItemModelResolver'; do javap -p -cp "$j" "$c" >> out/javap.txt 2>&1 || true; done; done
+          grep -n -E "MUSICTEST|GUARDTEST|CONFIGTEST|What went wrong|FAILURE|Exception|Caused by|error:|Error|gametest|screenshot|Screenshot" visual.log | head -40 | while IFS= read -r l; do echo "::notice::$l"; done
+          set +e +o pipefail
+          for j in $(find ~/.gradle ~/.cache -name "*.jar" -path "*minecraft*" 2>/dev/null | grep -v sources | head -20); do unzip -l "$j" 2>/dev/null | grep -E "end_portal|rendertype_item|core/entity\.(f|v)sh|core/position" | sed "s#^#$j #" >> out/shaders-list.txt; done
+          for j in $(find ~/.gradle ~/.cache -name "*.jar" -path "*minecraft*" 2>/dev/null | grep -v sources | head -20); do unzip -o -q "$j" 'assets/minecraft/shaders/core/rendertype_end_portal*' 'assets/minecraft/shaders/core/item*' 'assets/minecraft/shaders/core/entity*' 'assets/minecraft/shaders/core/position*' 'assets/minecraft/shaders/include/*' -d out/sh 2>/dev/null || true; done
+          M=$(find ~/.gradle ~/.cache -name "minecraft-merged-deobf-26.2.jar" 2>/dev/null | head -1)
+          javap -p -c -constants -cp "$M" net.minecraft.client.renderer.RenderPipelines > out/rp.txt 2>&1 || true
+          javap -p -c -cp "$M" net.minecraft.client.renderer.rendertype.RenderTypes > out/rt.txt 2>&1 || true
+          javap -p -c -constants -cp "$M" net.minecraft.client.renderer.texture.TextureAtlas net.minecraft.client.renderer.texture.AtlasIds > out/atlas.txt 2>&1 || true
+          javap -p -cp "$M" 'com.mojang.blaze3d.pipeline.RenderPipeline$Builder' 'com.mojang.blaze3d.pipeline.RenderPipeline$Snippet' com.mojang.blaze3d.pipeline.RenderPipeline net.minecraft.client.renderer.rendertype.RenderSetup 'net.minecraft.client.renderer.rendertype.RenderSetup$RenderSetupBuilder' net.minecraft.client.renderer.rendertype.RenderType > out/api.txt 2>&1 || true
           tail -2000 visual.log > out/visual-tail.log; rm -f out/visual.log
           rm -rf /tmp/shots-repo; mkdir -p /tmp/shots-repo; cp -r out/* /tmp/shots-repo/ || true
           cd /tmp/shots-repo
