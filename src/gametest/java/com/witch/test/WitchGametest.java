@@ -96,6 +96,31 @@ public class WitchGametest implements FabricClientGameTest {
 			context.waitTicks(20);
 			context.takeScreenshot("25-chinahat-spectral");
 			context.runOnClient(mc -> { var hm = com.witch.module.ModuleManager.byName("China Hat"); if (hm != null && hm.isEnabled()) hm.toggle(); });
+			context.runOnClient(mc -> {
+				mc.options.setCameraType(net.minecraft.client.CameraType.THIRD_PERSON_BACK);
+				mc.player.setXRot(55f);
+				for (String n : new String[] {"Jump Circles", "Break Wave"}) { var m = com.witch.module.ModuleManager.byName(n); if (m != null && !m.isEnabled()) m.toggle(); }
+			});
+			context.waitTicks(25);
+			context.runOnClient(mc -> mc.player.jumpFromGround());
+			context.waitTicks(7);
+			context.takeScreenshot("26-jumpcircle");
+			context.waitTicks(10);
+			context.takeScreenshot("26b-jumpcircle-late");
+			context.runOnClient(mc -> {
+				try {
+					var bw = com.witch.module.ModuleManager.byName("Break Wave");
+					var f = bw.getClass().getDeclaredField("waves");
+					f.setAccessible(true);
+					@SuppressWarnings("unchecked") var list = (java.util.List<double[]>) f.get(bw);
+					list.add(new double[] {mc.player.getX() + 1.5, mc.player.getY() + 0.02, mc.player.getZ() + 1.5, System.nanoTime() / 1.0e9});
+				} catch (Throwable t) { System.out.println("[WDBG] wave inject fail " + t); }
+			});
+			context.waitTicks(9);
+			context.takeScreenshot("27-breakwave");
+			context.waitTicks(8);
+			context.takeScreenshot("27b-breakwave-late");
+			context.runOnClient(mc -> { for (String n : new String[] {"Jump Circles", "Break Wave"}) { var m = com.witch.module.ModuleManager.byName(n); if (m != null && m.isEnabled()) m.toggle(); } });
 			context.runOnClient(mc -> { for (String n : new String[] {"Players Galaxy", "No Legs", "Particles 3D", "Fire Head"}) { var m = com.witch.module.ModuleManager.byName(n); if (m != null && m.isEnabled()) m.toggle(); } mc.options.setCameraType(net.minecraft.client.CameraType.FIRST_PERSON); });
 			context.runOnClient(mc -> mc.gui.setScreen(new net.minecraft.client.gui.screens.inventory.InventoryScreen(mc.player)));
 			context.waitTicks(30);
