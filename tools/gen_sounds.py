@@ -143,3 +143,18 @@ buf = silence(0.8)
 place(buf, fm_bell(A5, 0.5, 0.12, ratio=2.76, index=1.6), 0.0)
 place(buf, fm_bell(E6b, 0.6, 0.15, ratio=2.76, index=1.6), 0.13)
 save('alert', finish(reverb(buf, 0.35)))
+
+# ---------- alarme da Elytra ESP: sirene subindo (2x) + acorde de 3 notas. Unico, nao parecido com os outros ----------
+def siren(f0, f1, dur):
+    t = t_of(dur)
+    f = np.linspace(f0, f1, len(t))
+    ph = 2 * np.pi * np.cumsum(f) / SR
+    s = np.sin(ph) + 0.35 * np.sin(2 * ph) + 0.15 * np.sin(3 * ph)
+    return s * np.minimum(1.0, t / 0.01) * np.minimum(1.0, (dur - t) / 0.04)
+
+buf = silence(1.7)
+place(buf, siren(520, 1180, 0.32), 0.0)
+place(buf, siren(520, 1180, 0.32), 0.36)
+for f, at in ((E6, 0.78), (G6, 0.86), (C7, 0.94)):
+    place(buf, fm_bell(f, 0.9, 0.3, ratio=2.0, index=2.4), at)
+save('elytra_alarm', finish(reverb(buf, 0.3)))

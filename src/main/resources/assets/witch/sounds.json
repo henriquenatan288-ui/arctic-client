@@ -43,5 +43,10 @@
     "sounds": [
       "witch:alert"
     ]
+  },
+  "elytra_alarm": {
+    "sounds": [
+      "witch:elytra_alarm"
+    ]
   }
 }
