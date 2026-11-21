@@ -99,6 +99,7 @@ public final class ModuleManager {
 		MODULES.add(new HideNameModule());
 		MODULES.add(new WaypointsModule());
 		MODULES.add(new CoordsHudModule());
+		MODULES.add(new SpotifyModule());
 		MODULES.add(new ArmorHudModule());
 		MODULES.add(new ChunkBordersModule());
 		MODULES.add(new LightLevelModule());

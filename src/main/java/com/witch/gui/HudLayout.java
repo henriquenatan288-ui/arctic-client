@@ -12,7 +12,7 @@ import java.util.Map;
 public final class HudLayout {
 	private HudLayout() {}
 
-	public static final String[] IDS = {"modules", "coords", "armor", "waypoints", "info", "keys"};
+	public static final String[] IDS = {"modules", "coords", "armor", "waypoints", "info", "keys", "spotify"};
 	public static final String[] LABELS = {"Logo + modulos", "Coordenadas", "Armadura", "Waypoints", "Info HUD", "Keystrokes"};
 
 	private static final Map<String, int[]> OFF = new HashMap<>();
@@ -90,6 +90,7 @@ public final class HudLayout {
 		int lh = FontUtil.height() + 3;
 		int x, y, w, h;
 		switch (id) {
+			case "spotify" -> { w = 150; h = FontUtil.height() * 2 + 10; x = (sw - w) / 2; y = 4; }
 			case "coords" -> { w = 100; h = lh * 2 + 2; x = 5; y = sh - 4 - lh * 2 - 2; }
 			case "armor" -> { w = 80; h = (lh + 1) * 4; x = sw - 85; y = sh / 2 - 20; }
 			case "waypoints" -> { w = 95; h = (lh + 1) * 3; x = sw - 100; y = sh / 2 - 26 - h; }
