@@ -16,6 +16,7 @@ public final class HudRenderer {
 		com.witch.module.SusChunkFinderModule.drawHud(g);
 		com.witch.module.SusSoloFinderModule.drawHud(g);
 		com.witch.module.CoordsHudModule.drawHud(g);
+		com.witch.module.SpotifyModule.drawHud(g);
 		com.witch.module.ArmorHudModule.drawHud(g);
 		com.witch.module.WaypointsModule.drawHud(g);
 		com.witch.module.InfoModules.drawAll(g);
