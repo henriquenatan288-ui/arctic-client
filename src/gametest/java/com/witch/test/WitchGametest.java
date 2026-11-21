@@ -21,10 +21,14 @@ public class WitchGametest implements FabricClientGameTest {
 					for (int y = 0; y < 200; y++) for (int x = 0; x < 200; x++) img.setRGB(x, y, ((x * 255 / 200) << 16) | ((y * 255 / 200) << 8) | 160);
 					javax.imageio.ImageIO.write(img, "png", dir.resolve("Test Artist - Minha Musica Teste.png").toFile());
 					setStatic(com.witch.module.SpotifyModule.class, "stop", true);
-					setStatic(com.witch.music.MusicPlayer.class, "tracks", java.util.List.of(dir.resolve("Test Artist - Minha Musica Teste.mp3")));
-					com.witch.music.MusicPlayer.current = 0;
-					setStatic(com.witch.music.MusicPlayer.class, "active", true);
-					setStatic(com.witch.music.MusicPlayer.class, "duration", 215f);
+					net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.END_CLIENT_TICK.register(c -> {
+						try {
+							setStatic(com.witch.music.MusicPlayer.class, "tracks", java.util.List.of(dir.resolve("Test Artist - Minha Musica Teste.mp3")));
+							com.witch.music.MusicPlayer.current = 0;
+							setStatic(com.witch.music.MusicPlayer.class, "active", true);
+							setStatic(com.witch.music.MusicPlayer.class, "duration", 215f);
+						} catch (Throwable t) { }
+					});
 				} catch (Throwable t) { System.out.println("[WDBG] fail " + t); }
 			});
 			context.waitTicks(40);
