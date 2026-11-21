@@ -84,7 +84,7 @@ public class WitchGametest implements FabricClientGameTest {
 			});
 			srv.runCommand("kill @e[type=minecraft:zombie]");
 			srv.runCommand("kill @e[type=minecraft:villager]");
-			for (int t : new int[] {3, 5, 6}) {
+			for (int t : new int[] {1, 1, 1, 2, 2}) {
 				context.waitTicks(t);
 				context.takeScreenshot("kill-" + t + "-" + System.nanoTime() % 1000);
 			}
