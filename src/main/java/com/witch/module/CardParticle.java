@@ -12,9 +12,16 @@ public class CardParticle extends SingleQuadParticle {
 	private final float spin;
 	private final float phase;
 	private final float baseSize;
+	private final boolean twinkle;
 
 	public CardParticle(ClientLevel level, double x, double y, double z, double vx, double vy, double vz,
 			TextureAtlasSprite sprite, float size, float gravity, int life) {
+		this(level, x, y, z, vx, vy, vz, sprite, size, gravity, life, 0xFFFFFFFF, false);
+	}
+
+	/** tint = cor (ARGB) que multiplica o sprite; twinkle = pulsa o tamanho (brilhos). */
+	public CardParticle(ClientLevel level, double x, double y, double z, double vx, double vy, double vz,
+			TextureAtlasSprite sprite, float size, float gravity, int life, int tint, boolean twinkle) {
 		super(level, x, y, z, sprite);
 		this.xd = vx;
 		this.yd = vy;
@@ -25,6 +32,10 @@ public class CardParticle extends SingleQuadParticle {
 		this.lifetime = life;
 		this.quadSize = size;
 		this.baseSize = size;
+		this.twinkle = twinkle;
+		this.rCol = ((tint >> 16) & 255) / 255f;
+		this.gCol = ((tint >> 8) & 255) / 255f;
+		this.bCol = (tint & 255) / 255f;
 		this.spin = (this.random.nextFloat() * 0.35f + 0.18f) * (this.random.nextBoolean() ? 1f : -1f);
 		this.phase = this.random.nextFloat() * 6.28f;
 		this.roll = this.random.nextFloat() * 0.6f - 0.3f;
@@ -36,7 +47,9 @@ public class CardParticle extends SingleQuadParticle {
 		super.tick();
 		float k = this.age / (float) this.lifetime;
 		this.alpha = k < 0.65f ? 1f : Math.max(0f, 1f - (k - 0.65f) / 0.35f);
-		this.quadSize = this.baseSize * (k < 0.1f ? 0.6f + 4f * k : 1f);
+		float grow = k < 0.1f ? 0.6f + 4f * k : 1f;
+		if (twinkle) grow *= 0.8f + 0.25f * (float) Math.sin(this.age * 0.9f + this.phase);
+		this.quadSize = this.baseSize * grow;
 	}
 
 	@Override
