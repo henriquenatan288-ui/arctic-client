@@ -10,7 +10,7 @@ import net.minecraft.world.entity.vehicle.boat.AbstractBoat;
  * Servidores com anticheat costumam rejeitar movimento de veiculo fora do normal.
  */
 public class BoatFlyModule extends Module {
-	private final IntSetting speed = add(new IntSetting("Speed", 1, 20, 6, ""));
+	private final IntSetting speed = add(new IntSetting("Speed", 1, 50, 6, ""));
 	private final IntSetting vSpeed = add(new IntSetting("Vertical speed", 1, 10, 3, ""));
 	private final IntSetting noClip = add(new IntSetting("No clip (0/1)", 0, 1, 0, ""));
 
