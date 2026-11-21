@@ -16,20 +16,19 @@ public class WitchGametest implements FabricClientGameTest {
 				var m = com.witch.module.ModuleManager.byName("Spotify");
 				if (m != null && !m.isEnabled()) m.toggle();
 				try {
+					var dir = java.nio.file.Path.of("musicas"); java.nio.file.Files.createDirectories(dir);
+					var img = new java.awt.image.BufferedImage(200, 200, java.awt.image.BufferedImage.TYPE_INT_RGB);
+					for (int y = 0; y < 200; y++) for (int x = 0; x < 200; x++) img.setRGB(x, y, ((x * 255 / 200) << 16) | ((y * 255 / 200) << 8) | 160);
+					javax.imageio.ImageIO.write(img, "png", dir.resolve("Test Artist - Minha Musica Teste.png").toFile());
 					setStatic(com.witch.module.SpotifyModule.class, "stop", true);
-					setStatic(com.witch.module.SpotifyModule.class, "track", "Daft Punk - Harder, Better, Faster, Stronger");
-					setStatic(com.witch.module.SpotifyModule.class, "running", true);
-					setStatic(com.witch.module.SpotifyModule.class, "playing", true);
-				} catch (Throwable t) { System.out.println("[WDBG] spotify fail " + t); }
+					setStatic(com.witch.music.MusicPlayer.class, "tracks", java.util.List.of(dir.resolve("Test Artist - Minha Musica Teste.mp3")));
+					com.witch.music.MusicPlayer.current = 0;
+					setStatic(com.witch.music.MusicPlayer.class, "active", true);
+					setStatic(com.witch.music.MusicPlayer.class, "duration", 215f);
+				} catch (Throwable t) { System.out.println("[WDBG] fail " + t); }
 			});
-			context.waitTicks(10);
-			context.takeScreenshot("spotify-playing");
-			context.runOnClient(mc -> { try { setStatic(com.witch.module.SpotifyModule.class, "track", "Um Artista Com Nome Bem Muito Longo Mesmo - Uma Musica Com Titulo Gigante Para Testar Corte"); } catch (Throwable t) {} });
-			context.waitTicks(4);
-			context.takeScreenshot("spotify-long");
-			context.runOnClient(mc -> { try { setStatic(com.witch.module.SpotifyModule.class, "playing", false); setStatic(com.witch.module.SpotifyModule.class, "track", null); } catch (Throwable t) {} });
-			context.waitTicks(4);
-			context.takeScreenshot("spotify-paused");
+			context.waitTicks(40);
+			context.takeScreenshot("local-with-cover");
 		}
 	}
 }
