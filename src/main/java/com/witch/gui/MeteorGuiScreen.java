@@ -159,7 +159,16 @@ public class MeteorGuiScreen extends Screen {
 		lastNanos = now;
 		openAnim = Mth.lerp(Math.min(1f, speed * com.witch.module.GuiAnimationModule.rate()), openAnim, 1f);
 		float a = openAnim;
-		g.fill(0, 0, this.width, this.height, RenderUtil.alpha(0xFF000000, 0.62f * a));
+		boolean glass = com.witch.module.GuiSettingsModule.glass();
+		if (glass) {
+			try {
+				this.extractBlurredBackground(g); // desfoque nativo do jogo atras das janelas
+			} catch (Throwable ignored) {
+			}
+			g.fill(0, 0, this.width, this.height, RenderUtil.alpha(0xFF0A0F1A, 0.22f * a));
+		} else {
+			g.fill(0, 0, this.width, this.height, RenderUtil.alpha(0xFF000000, 0.62f * a));
+		}
 		g.pose().pushMatrix();
 		g.pose().scale(UI, UI);
 		mx = Math.round(mx / UI);
@@ -181,10 +190,14 @@ public class MeteorGuiScreen extends Screen {
 			int x = Math.round(w.x);
 			int y = Math.round(w.y + (1f - a) * 8f);
 			int bh = bodyH(ci);
-			RenderUtil.roundRect(g, x, y, W, HEAD + bh, 5, RenderUtil.alpha(BODY, a));
-			RenderUtil.roundRect(g, x, y, W, HEAD, 5, RenderUtil.alpha(HEADER, a));
-			if (bh > 0) g.fill(x, y + HEAD / 2, x + W, y + HEAD, RenderUtil.alpha(HEADER, a));
-			g.fill(x + 6, y + HEAD - 1, x + W - 6, y + HEAD, RenderUtil.alpha(RED, a));
+			if (glass) {
+				glassWindow(g, x, y, W, HEAD + bh, a);
+			} else {
+				RenderUtil.roundRect(g, x, y, W, HEAD + bh, 5, RenderUtil.alpha(BODY, a));
+				RenderUtil.roundRect(g, x, y, W, HEAD, 5, RenderUtil.alpha(HEADER, a));
+				if (bh > 0) g.fill(x, y + HEAD / 2, x + W, y + HEAD, RenderUtil.alpha(HEADER, a));
+				g.fill(x + 6, y + HEAD - 1, x + W - 6, y + HEAD, RenderUtil.alpha(RED, a));
+			}
 			FontUtil.draw(g, CATS[ci].label, x + 8, y + (HEAD - fh) / 2, RenderUtil.alpha(0xFFFFFFFF, a));
 			String tog = w.open ? "-" : "+";
 			FontUtil.draw(g, tog, x + W - 8 - FontUtil.width(tog) / 2, y + (HEAD - fh) / 2, RenderUtil.alpha(0xFF8A7B7E, a));
@@ -227,6 +240,35 @@ public class MeteorGuiScreen extends Screen {
 		g.pose().popMatrix();
 	}
 
+	/** Janela em vidro liquido, sem borda: base translucida, degrade, gloss, cabecalho mais claro e um reflexo que passa. */
+	private static void glassWindow(GuiGraphicsExtractor g, int x, int y, int w, int h, float a) {
+		int r = 8;
+		RenderUtil.softShadow(g, x, y, w, h, 5, RenderUtil.alpha(0xFF000000, 0.35f * a));
+		RenderUtil.roundRect(g, x, y, w, h, r, RenderUtil.alpha(0xFF0B1220, 0.50f * a)); // base: escurece o fundo borrado
+		for (int yy = y + 1; yy < y + h - 1; yy++) { // degrade vertical sem escapar dos cantos
+			float k = (yy - y) / (float) h;
+			int c = RenderUtil.alpha(RenderUtil.mix(0xFFBFD6FF, 0xFF6C7BFF, k), (0.20f - 0.10f * k) * a);
+			int dy = Math.min(yy - y, y + h - 1 - yy);
+			int inset = 0;
+			if (dy < r) {
+				double d = r - dy - 0.5;
+				inset = (int) Math.ceil(r - Math.sqrt(Math.max(0, r * (double) r - d * d)));
+			}
+			g.fill(x + inset, yy, x + w - inset, yy + 1, c);
+		}
+		RenderUtil.roundRect(g, x, y, w, HEAD, r, RenderUtil.alpha(0xFFFFFFFF, 0.10f * a)); // cabecalho mais claro
+		RenderUtil.roundRect(g, x + 3, y + 3, w - 6, Math.max(8, h / 6), r - 2, RenderUtil.alpha(0xFFFFFFFF, 0.07f * a)); // gloss
+		// reflexo diagonal que atravessa devagar
+		float cyc = (System.nanoTime() / 1_000_000L % 8000L) / 8000f;
+		int cx = Math.round(x + (cyc * 1.6f - 0.3f) * w);
+		for (int d = -16; d <= 16; d++) {
+			int xx = cx + d;
+			if (xx <= x + r || xx >= x + w - r) continue;
+			float al = (1f - Math.abs(d) / 16f) * 0.07f * a;
+			g.fill(xx, y + 4, xx + 1, y + h - 4, ((int) (al * 255) << 24) | 0xFFFFFF);
+		}
+	}
+
 	private void row(GuiGraphicsExtractor g, Module m, int x, int ry, int mx, int my, float a, float speed, int clipY, int clipH, int ci) {
 		int fh = FontUtil.height();
 		boolean hover = RenderUtil.inside(mx, my, x, ry, W, ROWH) && my >= clipY && my < clipY + clipH && dragWin < 0 && moveWin < 0;
@@ -234,8 +276,13 @@ public class MeteorGuiScreen extends Screen {
 		m.hoverAnim = Mth.lerp(Math.min(1f, speed * 0.3f), m.hoverAnim, hover ? 1f : 0f);
 		float t = m.toggleAnim;
 		if (t > 0.01f) {
-			g.fill(x + 1, ry, x + W - 1, ry + ROWH, RenderUtil.alpha(RED_DK, 0.85f * t * a));
-			g.fill(x + 1, ry + 2, x + 3, ry + ROWH - 2, RenderUtil.alpha(RED, t * a));
+			if (com.witch.module.GuiSettingsModule.glass()) {
+				g.fill(x + 3, ry + 1, x + W - 3, ry + ROWH - 1, RenderUtil.alpha(0xFFE0304A, 0.30f * t * a));
+				RenderUtil.roundRect(g, x + 3, ry + 3, 2, ROWH - 6, 1, RenderUtil.alpha(0xFFFF6B7F, t * a));
+			} else {
+				g.fill(x + 1, ry, x + W - 1, ry + ROWH, RenderUtil.alpha(RED_DK, 0.85f * t * a));
+				g.fill(x + 1, ry + 2, x + 3, ry + ROWH - 2, RenderUtil.alpha(RED, t * a));
+			}
 		}
 		if (m.hoverAnim > 0.01f) g.fill(x + 1, ry, x + W - 1, ry + ROWH, RenderUtil.alpha(0xFFFFFFFF, 0.07f * m.hoverAnim * a));
 		int col = RenderUtil.mix(0xFF8E939B, 0xFFFFFFFF, Math.max(t, m.hoverAnim * 0.6f));
@@ -250,7 +297,7 @@ public class MeteorGuiScreen extends Screen {
 			int hh = Math.round(settingsH(m) * e);
 			int sy0 = ry + ROWH;
 			g.enableScissor(x, Math.max(sy0, clipY), x + W, Math.min(sy0 + hh, clipY + clipH));
-			g.fill(x, sy0, x + W, sy0 + hh, RenderUtil.alpha(SETTINGS, a));
+			g.fill(x, sy0, x + W, sy0 + hh, com.witch.module.GuiSettingsModule.glass() ? RenderUtil.alpha(0xFF000000, 0.32f * a) : RenderUtil.alpha(SETTINGS, a));
 			int sy = sy0 + 2;
 			for (Setting s : m.settings()) {
 				int sh = SettingRenderer.height(s, W);
