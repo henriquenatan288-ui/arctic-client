@@ -85,6 +85,7 @@ final class CombatUtil {
 	private static final Item[] SHIELD_PREF = {Items.OBSIDIAN, Items.CRYING_OBSIDIAN, Items.COBBLESTONE, Items.STONE,
 			Items.COBBLED_DEEPSLATE, Items.DEEPSLATE, Items.NETHERRACK, Items.BLACKSTONE, Items.DIRT};
 	private static int shieldWait;
+	private static int shieldTries;
 
 	private static boolean shieldable(ItemStack st) {
 		if (!(st.getItem() instanceof BlockItem bi)) return false;
@@ -105,7 +106,7 @@ final class CombatUtil {
 
 	/**
 	 * Garante 2 blocos (pe e cabeca) ao seu lado, do lado da explosao, para segurar o dano.
-	 * true = protecao pronta (pode explodir); false = ainda colocando, sem bloco na hotbar, ou nao deu para colocar.
+	 * true = protecao pronta OU nao ha como colocar (sem bloco na hotbar ou 8 tentativas falhas): pode explodir; false = ainda colocando.
 	 */
 	static boolean ensureShield(Minecraft mc, LocalPlayer p, Vec3 blast) {
 		double dx = blast.x - p.getX(), dz = blast.z - p.getZ();
@@ -118,7 +119,7 @@ final class CombatUtil {
 			if (!mc.level.getBlockState(c).canBeReplaced()) continue; // ja tem bloco
 			if (shieldWait > 0) { shieldWait--; return false; }
 			int slot = shieldSlot(p);
-			if (slot < 0) return false;
+			if (slot < 0 || ++shieldTries > 8) { shieldTries = 0; return true; } // sem bloco ou nao deu: nao trava o modulo
 			p.getInventory().setSelectedSlot(slot);
 			// apoio: bloco embaixo (chao) ou ao lado
 			for (Direction f : new Direction[] {Direction.UP, Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST}) {
@@ -130,6 +131,7 @@ final class CombatUtil {
 			shieldWait = 2;
 			return false;
 		}
+		shieldTries = 0;
 		return true;
 	}
 }
