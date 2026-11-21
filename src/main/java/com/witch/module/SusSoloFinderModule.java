@@ -257,7 +257,7 @@ public class SusSoloFinderModule extends Module implements EspSource {
 		alertCount++;
 		alertText = "Solo suspeito: " + Math.min(chance, 99) + "%  (Y " + midY + ")";
 		alertUntil = System.currentTimeMillis() + ALERT_DISPLAY_MS;
-		player.playSound(SoundEvents.NOTE_BLOCK_PLING.value(), 0.8f, chance >= 75 ? 2.0f : 1.4f);
+		if (GuiSettingsModule.sounds()) Sfx.alert(chance >= 75 ? 1.3f : 1.0f); else player.playSound(SoundEvents.NOTE_BLOCK_PLING.value(), 0.8f, chance >= 75 ? 2.0f : 1.4f);
 	}
 
 	public static void drawHud(GuiGraphicsExtractor g) {

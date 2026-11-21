@@ -13,6 +13,9 @@ public class GuiSettingsModule extends Module {
 	private final IntSetting menuTheme = add(new IntSetting("Tema do menu (1 escuro, 2 claro)", 1, 2, 1, ""));
 	private final IntSetting style = add(new IntSetting("Estilo do ClickGUI (1 abas e barras, 2 janelas)", 1, 2, 2, ""));
 	private final IntSetting tooltips = add(new IntSetting("Tooltips (0/1)", 0, 1, 1, ""));
+	private final IntSetting sounds = add(new IntSetting("Module sounds (0/1)", 0, 1, 1, ""));
+	private final IntSetting soundStyle = add(new IntSetting("Sound style (1 soft, 2 digital, 3 crystal)", 1, 3, 1, ""));
+	private final IntSetting soundVolume = add(new IntSetting("Sound volume", 1, 100, 60, "%"));
 
 	public GuiSettingsModule() {
 		super("GUI Settings", Category.UTILITY);
@@ -50,5 +53,17 @@ public class GuiSettingsModule extends Module {
 
 	public static boolean tooltips() {
 		return instance == null || instance.tooltips.get() == 1;
+	}
+
+	public static boolean sounds() {
+		return instance == null || instance.sounds.get() == 1;
+	}
+
+	public static int soundStyle() {
+		return instance == null ? 1 : instance.soundStyle.get();
+	}
+
+	public static float soundVolume() {
+		return instance == null ? 0.6f : instance.soundVolume.get() / 100f;
 	}
 }

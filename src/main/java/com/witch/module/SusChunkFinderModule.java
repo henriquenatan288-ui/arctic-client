@@ -344,7 +344,7 @@ public class SusChunkFinderModule extends Module implements EspSource {
 		alertText = "Chunk suspeita encontrada";
 		alertUntil = System.currentTimeMillis() + ALERT_DISPLAY_MS;
 
-		player.playSound(SoundEvents.PLAYER_LEVELUP, 0.7f, 1.0f);
+		if (GuiSettingsModule.sounds()) Sfx.alert(1.0f); else player.playSound(SoundEvents.PLAYER_LEVELUP, 0.7f, 1.0f);
 	}
 
 	/** Mensagem pequena no centro da tela (chamado pelo HudRenderer). */

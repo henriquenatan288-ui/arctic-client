@@ -14,7 +14,7 @@ public class KillEffectModule extends Module {
 	private final IntSetting players = add(new IntSetting("Players (0/1)", 0, 1, 1, ""));
 	private final IntSetting mobs = add(new IntSetting("Mobs (0/1)", 0, 1, 1, ""));
 	private final IntSetting sound = add(new IntSetting("Sound (0/1)", 0, 1, 1, ""));
-	private final IntSetting soundType = add(new IntSetting("Sound type", 1, 3, 1, ""));
+	private final IntSetting soundType = add(new IntSetting("Sound type (1-3 vanilla, 4 witch, 5 impact)", 1, 5, 4, ""));
 	private final IntSetting volume = add(new IntSetting("Volume", 1, 100, 70, "%"));
 	private final IntSetting effect = add(new IntSetting("Effect", 0, 4, 1, ""));
 
@@ -51,7 +51,8 @@ public class KillEffectModule extends Module {
 			InfoModules.lastTarget = null;
 			boolean isPlayer = v instanceof Player;
 			if ((isPlayer && players.get() == 0) || (!isPlayer && mobs.get() == 0)) return;
-			if (sound.get() == 1) mc.getSoundManager().play(SimpleSoundInstance.forUI(snd(), 1.0f + (soundType.get() == 1 ? 0.2f : 0f), volume.get() / 100f));
+			if (sound.get() == 1 && soundType.get() >= 4) Sfx.play(soundType.get() == 4 ? "kill_1" : "kill_2", 1.0f, volume.get() / 100f);
+			else if (sound.get() == 1) mc.getSoundManager().play(SimpleSoundInstance.forUI(snd(), 1.0f + (soundType.get() == 1 ? 0.2f : 0f), volume.get() / 100f));
 			double x = v.getX(), y = v.getY() + v.getBbHeight() * 0.5, z = v.getZ();
 			switch (effect.get()) {
 				case 1 -> CardParticlesModule.burst(x, y, z, 12);
