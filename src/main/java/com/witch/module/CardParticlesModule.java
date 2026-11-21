@@ -92,7 +92,7 @@ public class CardParticlesModule extends Module {
 	public static void burst(double x, double y, double z, int n) {
 		var mc = Minecraft.getInstance();
 		if (mc.level == null || instance == null) return;
-		float sz = 0.07f * instance.size.get() * (instance.shape.get() >= 5 ? 1.5f : 1f); // brilhos/coracoes/bolhas ficam pequenos de longe
+		float sz = 0.07f * instance.size.get() * (instance.shape.get() >= 5 ? 1.25f : 1f); // brilhos/coracoes/bolhas ficam pequenos de longe
 		int pat = instance.pattern.get();
 		for (int i = 0; i < n; i++) {
 			double a = RNG.nextDouble() * Math.PI * 2;

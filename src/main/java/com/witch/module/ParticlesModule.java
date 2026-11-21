@@ -92,6 +92,9 @@ public class ParticlesModule extends Module implements EspSource {
 					float a = 0.9f * (1f - (k - 1f) / tr);
 					float w = 1.0f + 2.4f * (1f - k / (tr + 1f));
 					esp.thinLine(cx + prev[0], cy + prev[1], cz + prev[2], cx + q[0], cy + q[1], cz + q[2], argb, a, w);
+					// pontinhos de luz que diminuem: cauda de cometa
+					double ds = 0.04 * size.get() * 0.38 * (1.0 - k / (tr + 1.0));
+					esp.solid(cx + q[0] - ds, cy + q[1] - ds, cz + q[2] - ds, cx + q[0] + ds, cy + q[1] + ds, cz + q[2] + ds, argb, 0.55f * (1f - (k - 1f) / tr));
 					prev = q;
 				}
 			}
