@@ -24,6 +24,8 @@
     "LayerRenderStateMixin",
     "ItemFeatureRendererMixin",
     "LivingEntityRendererMixin",
+    "LivingEntityRenderStateMixin",
+    "DissolveRendererMixin",
     "AvatarRendererMixin",
     "PlayerModelMixin",
     "RenderTypesMixin",

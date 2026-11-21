@@ -49,6 +49,12 @@ public class CardParticlesModule extends Module {
 		});
 	}
 
+	/** Sprite do atlas de particulas do Witch pelo nome (ex.: shape_glow). */
+	static TextureAtlasSprite named(String name) {
+		return Minecraft.getInstance().getAtlasManager().getAtlasOrThrow(AtlasIds.PARTICLES)
+				.getSprite(Identifier.fromNamespaceAndPath("witch", name));
+	}
+
 	private static TextureAtlasSprite sprite(String suit) {
 		String name = switch (instance == null ? 1 : instance.shape.get()) {
 			case 2 -> "shape_money";

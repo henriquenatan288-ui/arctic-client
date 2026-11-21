@@ -56,7 +56,7 @@ public class CardParticle extends SingleQuadParticle {
 	public void extract(QuadParticleRenderState state, Camera camera, float partial) {
 		Quaternionf q = new Quaternionf(camera.rotation());
 		q.rotateZ(this.roll);
-		q.rotateY((this.age + partial) * this.spin + this.phase);
+		if (!this.twinkle) q.rotateY((this.age + partial) * this.spin + this.phase);
 		this.extractRotatedQuad(state, camera, q, partial);
 	}
 
