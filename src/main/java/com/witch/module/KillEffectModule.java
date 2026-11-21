@@ -60,16 +60,16 @@ public class KillEffectModule extends Module {
 			int left = (Integer) d[1];
 			if (mc.level != null) {
 				int base = dustColor.get();
-				for (int i = 0; i < 7; i++) {
+				for (int i = 0; i < 12; i++) {
 					double x = b.minX + Math.random() * (b.maxX - b.minX);
 					double y = b.minY + Math.random() * (b.maxY - b.minY);
 					double z = b.minZ + Math.random() * (b.maxZ - b.minZ);
-					boolean spark = Math.random() < 0.3;
+					boolean spark = Math.random() < 0.35;
 					int col = i % 3 == 0 ? com.witch.render.FxShapes.mix(base, 0xFFFFFFFF, 0.65f) : base;
 					mc.particleEngine.add(new CardParticle(mc.level, x, y, z,
 							(Math.random() - 0.5) * 0.03, 0.02 + Math.random() * 0.05, (Math.random() - 0.5) * 0.03,
-							CardParticlesModule.named(spark ? "shape_sparkle" : "shape_glow"),
-							spark ? 0.09f : 0.13f, -0.06f, 28 + (int) (Math.random() * 22), col, true));
+							CardParticlesModule.named(spark ? "shape_sparkle" : "shape_dust"),
+							spark ? 0.13f : 0.15f, -0.06f, 34 + (int) (Math.random() * 26), col, true));
 				}
 			}
 			if (--left <= 0) it.remove(); else d[1] = left;
