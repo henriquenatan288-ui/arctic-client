@@ -244,17 +244,17 @@ public class MeteorGuiScreen extends Screen {
 	private static void glassWindow(GuiGraphicsExtractor g, int x, int y, int w, int h, float a) {
 		int r = 8;
 		RenderUtil.softShadow(g, x, y, w, h, 5, RenderUtil.alpha(0xFF000000, 0.35f * a));
-		RenderUtil.roundRect(g, x, y, w, h, r, RenderUtil.alpha(0xFF0B1220, 0.50f * a)); // base: escurece o fundo borrado
+		RenderUtil.roundRect(g, x, y, w, h, r, RenderUtil.alpha(0xFF070B16, 0.66f * a)); // base: escurece o fundo borrado
 		for (int yy = y + 1; yy < y + h - 1; yy++) { // degrade vertical sem escapar dos cantos
 			float k = (yy - y) / (float) h;
-			int c = RenderUtil.alpha(RenderUtil.mix(0xFFBFD6FF, 0xFF6C7BFF, k), (0.20f - 0.10f * k) * a);
+			int c = RenderUtil.alpha(RenderUtil.mix(0xFFBFD6FF, 0xFF6C7BFF, k), (0.13f - 0.07f * k) * a);
 			int dy = Math.min(yy - y, y + h - 1 - yy);
 			int inset = 0;
 			if (dy < r) {
 				double d = r - dy - 0.5;
 				inset = (int) Math.ceil(r - Math.sqrt(Math.max(0, r * (double) r - d * d)));
 			}
-			g.fill(x + inset, yy, x + w - inset, yy + 1, c);
+			g.fill(x + 1 + inset, yy, x + w - 1 - inset, yy + 1, c);
 		}
 		RenderUtil.roundRect(g, x, y, w, HEAD, r, RenderUtil.alpha(0xFFFFFFFF, 0.10f * a)); // cabecalho mais claro
 		RenderUtil.roundRect(g, x + 3, y + 3, w - 6, Math.max(8, h / 6), r - 2, RenderUtil.alpha(0xFFFFFFFF, 0.07f * a)); // gloss
@@ -285,7 +285,7 @@ public class MeteorGuiScreen extends Screen {
 			}
 		}
 		if (m.hoverAnim > 0.01f) g.fill(x + 1, ry, x + W - 1, ry + ROWH, RenderUtil.alpha(0xFFFFFFFF, 0.07f * m.hoverAnim * a));
-		int col = RenderUtil.mix(0xFF8E939B, 0xFFFFFFFF, Math.max(t, m.hoverAnim * 0.6f));
+		int col = RenderUtil.mix(com.witch.module.GuiSettingsModule.glass() ? 0xFFC4CAD6 : 0xFF8E939B, 0xFFFFFFFF, Math.max(t, m.hoverAnim * 0.6f));
 		FontUtil.draw(g, ModuleRow.fit(m.name, W - 26), x + 7, ry + (ROWH - fh) / 2, RenderUtil.alpha(col, a));
 		boolean open = EXPANDED.contains(m);
 		String arrow = open ? "v" : ">";
