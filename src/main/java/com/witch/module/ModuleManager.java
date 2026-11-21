@@ -17,6 +17,7 @@ public final class ModuleManager {
 
 		MODULES.add(new XRayModule());
 		MODULES.add(new PlayerEspModule());
+		MODULES.add(new ElytraEspModule());
 		MODULES.add(new StorageEspModule());
 		MODULES.add(new FarmEspModule());
 		MODULES.add(new TracersModule());
@@ -192,7 +193,7 @@ public final class ModuleManager {
 	private static void regroup() {
 		String[][] map = {
 				// mundo: ESP, buscadores e camera
-				{"WORLD", "X-Ray Hologram", "Player ESP", "Storage ESP", "Farm ESP", "Tracers", "Ancient Finder", "Sus Chunk Finder",
+				{"WORLD", "X-Ray Hologram", "Player ESP", "Elytra ESP", "Storage ESP", "Farm ESP", "Tracers", "Ancient Finder", "Sus Chunk Finder",
 						"Sus Hole Finder", "Sus Solo Finder", "Chunk Borders", "Waypoints", "Light Level", "Freecam", "FreeLook", "Zoom",
 						"FOV Changer", "Render Distance"},
 				// efeitos

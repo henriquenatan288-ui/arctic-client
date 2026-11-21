@@ -36,6 +36,7 @@ public final class ModuleDescriptions {
 			case "Player ESP" -> "Destaca jogadores atraves das paredes.";
 			case "Slow Hit Visual" -> "Visual de golpe lento.";
 			case "Speed" -> "Aumenta a velocidade de movimento (0 = normal).";
+			case "Elytra ESP" -> "Acha item frames com elytra dentro e marca com caixa e linha vermelha, atraves das paredes. So funciona em frames ja carregados (distancia de renderizacao).";
 			case "Storage ESP" -> "Destaca baus e containers proximos.";
 			case "Sus Solo Finder" -> "Acha bases (ate o Y minimo, padrao -53), apita e marca o solo da chunk. Cor = chance de base (heuristica). So enxerga chunks que o servidor enviou.";
 			case "Waypoints" -> "Salva pontos (tecla Add waypoint), coluna visivel de longe e distancia na tela.";
