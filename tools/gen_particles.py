@@ -63,3 +63,15 @@ for k in range(6):
         d.line([pt(a, 0), pt(a + 13, -13)], fill=(255, 255, 255, 255), width=P(4))
 d.ellipse([P(56), P(56), P(72), P(72)], fill=(255, 255, 255, 255))
 finish(im, 'shape_flake.png', 0.5, 3)
+
+# po: ponto de luz macio, sem anel (usado no Kill Effect)
+im = Image.new("RGBA", (N, N), (255, 255, 255, 0))
+px = im.load()
+for y in range(N):
+    for x in range(N):
+        r = math.hypot(x - N / 2, y - N / 2) / (N / 2)
+        if r >= 1: continue
+        a = (1 - r) ** 1.7
+        if r < 0.22: a = 1.0
+        px[x, y] = (255, 255, 255, int(min(1, a) * 255))
+im.resize((128, 128), Image.LANCZOS).save(os.path.join(OUT, 'shape_dust.png')); print('shape_dust.png')

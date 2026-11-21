@@ -19,7 +19,7 @@ public class ParticlesModule extends Module implements EspSource {
 	private final IntSetting speed = add(new IntSetting("Speed", 1, 10, 4, ""));
 	private final IntSetting distance = add(new IntSetting("Distance", 1, 8, 3, ""));
 	private final IntSetting amount = add(new IntSetting("Amount", 1, 5, 3, ""));
-	private final IntSetting trail = add(new IntSetting("Trail", 0, 8, 4, ""));
+	private final IntSetting trail = add(new IntSetting("Trail", 0, 8, 6, ""));
 	private final IntSetting glow = add(new IntSetting("Fill and glow (0/1)", 0, 1, 1, ""));
 	private final IntSetting rainbow = add(new IntSetting("Rainbow (0/1)", 0, 1, 0, ""));
 	private final ColorSetting color = add(new ColorSetting("Color", 0));
@@ -88,9 +88,9 @@ public class ParticlesModule extends Module implements EspSource {
 			if (tr > 0) {
 				double[] prev = p;
 				for (int k = 1; k <= tr; k++) {
-					double[] q = pos(i, n, t - k * 0.05, radius, h);
-					float a = 0.6f * (1f - (k - 1f) / tr);
-					float w = 0.6f + 1.8f * (1f - k / (tr + 1f));
+					double[] q = pos(i, n, t - k * 0.07, radius, h);
+					float a = 0.9f * (1f - (k - 1f) / tr);
+					float w = 1.0f + 2.4f * (1f - k / (tr + 1f));
 					esp.thinLine(cx + prev[0], cy + prev[1], cz + prev[2], cx + q[0], cy + q[1], cz + q[2], argb, a, w);
 					prev = q;
 				}

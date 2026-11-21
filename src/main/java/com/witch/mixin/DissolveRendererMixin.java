@@ -43,6 +43,15 @@ public abstract class DissolveRendererMixin {
 		}
 	}
 
+	/** Camadas (armadura, roupa, olhos) nao ficam translucidas: somem quando o corpo ja esta bem transparente. */
+	@Inject(method = "shouldRenderLayers", at = @At("RETURN"), cancellable = true, require = 0)
+	private void witch$dissolveLayers(LivingEntityRenderState state, CallbackInfoReturnable<Boolean> cir) {
+		try {
+			if (((DissolveHolder) state).witch$getDissolve() < 0.3f) cir.setReturnValue(false);
+		} catch (Throwable ignored) {
+		}
+	}
+
 	@Inject(method = "getModelTint", at = @At("RETURN"), cancellable = true, require = 0)
 	private void witch$dissolveTint(LivingEntityRenderState state, CallbackInfoReturnable<Integer> cir) {
 		try {
