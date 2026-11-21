@@ -167,7 +167,7 @@ public class SpotifyModule extends Module {
 		int tw = Math.max(FontUtil.width(artist), FontUtil.width(title));
 		if (local) tw = Math.max(tw, FontUtil.width("00:00 / 00:00") + 4);
 		int w = 8 + icon + 8 + tw + 8;
-		int h = lh * 2 + 10 + (local ? lh + 2 : 0);
+		int h = lh * 2 + 10 + (local ? lh + 5 : 0);
 		int sw = mc.getWindow().getGuiScaledWidth();
 		int x = (sw - w) / 2 + HudLayout.dx("spotify");
 		int y = 4 + HudLayout.dy("spotify");
@@ -198,7 +198,7 @@ public class SpotifyModule extends Module {
 		if (local) { // linha do tempo
 			int bw = w - (tx - x) - 8;
 			float f = dur > 0 ? Math.min(1f, pos / dur) : 0f;
-			FontUtil.draw(g, mmss(pos) + " / " + mmss(dur), tx, y + h - lh - 8, 0xFF8FBFA0);
+			FontUtil.draw(g, mmss(pos) + " / " + mmss(dur), tx, y + h - lh - 10, 0xFF8FBFA0);
 			int ly = y + h - 6;
 			RenderUtil.roundRect(g, tx, ly, bw, 3, 1, 0x55FFFFFF);
 			RenderUtil.roundRect(g, tx, ly, Math.max(3, Math.round(bw * f)), 3, 1, GREEN);
