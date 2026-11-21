@@ -25,7 +25,7 @@ public class WitchGametest implements FabricClientGameTest {
 					f.setAccessible(true);
 					((java.util.Set<Object>) f.get(null)).add(com.witch.module.ModuleManager.byName("Particles 3D"));
 				} catch (Throwable t) { System.out.println("[WDBG] expand fail " + t); }
-				mc.setScreen(com.witch.gui.ClickGui.create());
+				mc.gui.setScreen(com.witch.gui.ClickGui.create());
 			});
 			context.waitTicks(40);
 			context.takeScreenshot("gui-padrao");
