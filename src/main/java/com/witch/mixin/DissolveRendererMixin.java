@@ -21,7 +21,12 @@ public abstract class DissolveRendererMixin {
 			at = @At("RETURN"), require = 0)
 	private void witch$dissolveExtract(LivingEntity entity, LivingEntityRenderState state, float pt, CallbackInfo ci) {
 		try {
-			((DissolveHolder) state).witch$setDissolve(KillEffectModule.dissolveAlpha(entity.getId()));
+			float a = KillEffectModule.dissolveAlpha(entity.getId());
+			((DissolveHolder) state).witch$setDissolve(a);
+			if (a < 1f) { // o corpo fica de pe, sem cair e sem o vermelho da morte
+				state.deathTime = 0f;
+				state.hasRedOverlay = false;
+			}
 		} catch (Throwable ignored) {
 		}
 	}
