@@ -6,7 +6,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.boss.enderdragon.EndCrystal;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
 
@@ -16,6 +16,8 @@ public class AutoCrystalModule extends Module {
 	private final IntSetting delay = add(new IntSetting("Delay", 0, 10, 2, " ticks"));
 	private final IntSetting minHp = add(new IntSetting("Min HP", 0, 20, 8, ""));
 	private final IntSetting selfDist = add(new IntSetting("Min dist self", 1, 5, 3, " blocks"));
+	private final IntSetting targets = add(new IntSetting("Target (1 players, 2 mobs, 3 both)", 1, 3, 1, ""));
+	private final IntSetting safe = add(new IntSetting("Safe: block in front (0/1)", 0, 1, 1, ""));
 
 	private int wait;
 
@@ -32,7 +34,7 @@ public class AutoCrystalModule extends Module {
 		if (wait > 0) { wait--; return; }
 		if (p.getHealth() + p.getAbsorptionAmount() < minHp.get()) return;
 		double r = range.get();
-		Player t = CombatUtil.target(mc, r + 4);
+		LivingEntity t = CombatUtil.target(mc, r + 4, targets.get());
 		if (t == null) return;
 
 		// 1) quebrar cristal perto do alvo
@@ -44,6 +46,7 @@ public class AutoCrystalModule extends Module {
 			if (d < bd) { bd = d; best = c; }
 		}
 		if (best != null) {
+			if (safe.get() == 1 && !CombatUtil.ensureShield(mc, p, best.position())) { wait = 1; return; }
 			mc.gameMode.attack(p, best);
 			p.swing(InteractionHand.MAIN_HAND);
 			wait = delay.get();
@@ -69,6 +72,7 @@ public class AutoCrystalModule extends Module {
 			double d = net.minecraft.world.phys.Vec3.atCenterOf(b.above()).distanceToSqr(t.position());
 			if (d < bs) { bs = d; bestPos = b; }
 		}
+		if (bestPos != null && safe.get() == 1 && !CombatUtil.ensureShield(mc, p, net.minecraft.world.phys.Vec3.atCenterOf(bestPos.above()))) { wait = 1; return; }
 		if (bestPos != null && CombatUtil.useOn(mc, bestPos, Direction.UP)) wait = delay.get();
 	}
 }

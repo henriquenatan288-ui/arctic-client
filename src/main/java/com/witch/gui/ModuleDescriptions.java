@@ -29,13 +29,14 @@ public final class ModuleDescriptions {
 			case "Jesus" -> "Andar sobre a agua.";
 			case "No Ghost Blocks" -> "Evita blocos fantasma ao quebrar/colocar.";
 			case "No Hurt Cam" -> "Tira o tranco da camera ao tomar dano.";
-			case "Particles 3D" -> "Formas 3D girando em volta de voce (cubos, diamantes, aneis ou infinito). Shape escolhe a forma.";
+			case "Particles 3D" -> "Formas 3D girando em volta de voce, com rastro e brilho. Shape: forma; Path: caminho (anel, giro, espiral, coroa na cabeca); Trail: tamanho do rastro.";
 			case "Fire Head" -> "Cabeca em chamas (particulas de fogo). So quem usa o Witch Client ve.";
 			case "No Legs" -> "Tira as pernas do seu personagem (as duas, so a esquerda ou so a direita). So voce ve.";
 			case "Mirror Floor" -> "Reflexo no chao parecendo espelho.";
 			case "Player ESP" -> "Destaca jogadores atraves das paredes.";
 			case "Slow Hit Visual" -> "Visual de golpe lento.";
 			case "Speed" -> "Aumenta a velocidade de movimento (0 = normal).";
+			case "Elytra ESP" -> "Acha item frames com elytra: caixa pulsante, linha, feixe vertical e alarme proprio (+ aviso no chat com as coordenadas). So molduras ja carregadas (distancia de renderizacao).";
 			case "Storage ESP" -> "Destaca baus e containers proximos.";
 			case "Sus Solo Finder" -> "Acha bases (ate o Y minimo, padrao -53), apita e marca o solo da chunk. Cor = chance de base (heuristica). So enxerga chunks que o servidor enviou.";
 			case "Waypoints" -> "Salva pontos (tecla Add waypoint), coluna visivel de longe e distancia na tela.";
@@ -56,7 +57,7 @@ public final class ModuleDescriptions {
 			case "Glow Players" -> "Contorno brilhante nos outros jogadores.";
 			case "Jump Circles" -> "Anel de luz no chao ao pular.";
 			case "Kill Effect" -> "Som e efeito ao matar. Effect: 0 nenhum 1 cartas 2 faiscas 3 coracoes 4 totem. Sound type: 1 xp 2 level up 3 ding.";
-			case "Particles 2D" -> "Particulas ao acertar, pular ou flutuando. Shape: 1 cartas 2 dinheiro 3 chapeu de bruxa 4 pato de cartola.";
+			case "Particles 2D" -> "Particulas ao acertar, pular ou flutuando. Shape: cartas, dinheiro, chapeu, pato, brilho, coracao, bolha, floco (as 4 ultimas aceitam cor/Rainbow). Pattern: explosao, fonte, anel ou espiral.";
 			case "Filter" -> "Filtro de cor: 1 quente 2 frio 3 neon 4 escuro 5 por do sol 6 menta.";
 			case "Witch Theme" -> "Liga de uma vez o filtro de humor e a poeira ambiente.";
 			case "Sus Chunk Finder" -> "Procura chunks suspeitas na coluna inteira (ou +/- blocos). Raio ate 64, limitado pelo alcance de chunks do servidor.";

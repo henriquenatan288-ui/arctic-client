@@ -34,6 +34,17 @@ public abstract class LoadingOverlayMixin {
 		return com.witch.Edition.visuals() ? 0xFF0A0A0C : original.getAsInt();
 	}
 
+	/** Some a logo da Mojang (as duas metades): no lugar dela o Witch escreve o proprio nome. */
+	@Redirect(method = "extractRenderState",
+			at = @At(value = "INVOKE",
+					target = "Lnet/minecraft/client/gui/GuiGraphicsExtractor;blit(Lcom/mojang/blaze3d/pipeline/RenderPipeline;Lnet/minecraft/resources/Identifier;IIFFIIIIIII)V"),
+			require = 0)
+	private void witch$noMojang(GuiGraphicsExtractor g, com.mojang.blaze3d.pipeline.RenderPipeline pipe,
+			net.minecraft.resources.Identifier tex, int x, int y, float u, float v, int w, int h, int rw, int rh, int tw, int th) {
+		if (com.witch.Edition.visuals()) return;
+		g.blit(pipe, tex, x, y, u, v, w, h, rw, rh, tw, th);
+	}
+
 	@Inject(method = "extractProgressBar", at = @At("HEAD"), cancellable = true, require = 0)
 	private void witch$bar(GuiGraphicsExtractor g, int minX, int minY, int maxX, int maxY, float alpha, CallbackInfo ci) {
 		if (!com.witch.Edition.visuals()) return;
@@ -60,6 +71,11 @@ public abstract class LoadingOverlayMixin {
 		float t = Mth.clamp((now - witch$t0) / 900f, 0f, 1f);
 		float ease = 1f - (1f - t) * (1f - t) * (1f - t);
 		com.witch.gui.Minimal.petals(g, w, h, now / 1000.0, a * ease);
+		// nome do client no centro, letra por letra
+		String name = "WITCH";
+		float sc = Math.max(2f, Math.min(5f, h / 110f));
+		float ty = h * 0.46f - com.witch.gui.FontUtil.height() * sc / 2f;
+		com.witch.gui.Minimal.spaced(g, name, w / 2f, ty, sc, sc * 2.5f, 0xFFFFFFFF, a, true, (now - witch$t0) / 140f);
 		int lw = Math.round(38 + 6 * ease);
 		int lx = (w - lw) / 2;
 		int ly = (int) (h * 0.88f) - com.witch.gui.WitchLogo.height(lw) / 2 + Math.round((1f - ease) * 5f);

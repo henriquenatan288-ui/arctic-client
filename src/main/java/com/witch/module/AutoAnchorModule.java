@@ -4,7 +4,7 @@ import com.witch.setting.IntSetting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
@@ -18,6 +18,8 @@ public class AutoAnchorModule extends Module {
 	private final IntSetting minHp = add(new IntSetting("Min HP", 0, 20, 10, ""));
 	private final IntSetting charges = add(new IntSetting("Charges", 1, 4, 4, ""));
 	private final IntSetting selfDist = add(new IntSetting("Min dist self", 2, 6, 4, " blocks"));
+	private final IntSetting targets = add(new IntSetting("Target (1 players, 2 mobs, 3 both)", 1, 3, 1, ""));
+	private final IntSetting safe = add(new IntSetting("Safe: block in front (0/1)", 0, 1, 1, ""));
 
 	private int wait;
 
@@ -35,7 +37,7 @@ public class AutoAnchorModule extends Module {
 		if (wait > 0) { wait--; return; }
 		if (p.getHealth() + p.getAbsorptionAmount() < minHp.get()) return;
 		double r = range.get();
-		Player t = CombatUtil.target(mc, r + 3);
+		LivingEntity t = CombatUtil.target(mc, r + 3, targets.get());
 		if (t == null) return;
 
 		BlockPos tp = t.blockPosition();
@@ -56,6 +58,8 @@ public class AutoAnchorModule extends Module {
 			if (charge < charges.get()) {
 				// carrega com glowstone ate o alvo de cargas
 				if (CombatUtil.select(p, Items.GLOWSTONE) && CombatUtil.useOn(mc, anchor, Direction.UP)) wait = delay.get();
+			} else if (safe.get() == 1 && !CombatUtil.ensureShield(mc, p, Vec3.atCenterOf(anchor))) {
+				wait = 1; // coloca o bloco antes de detonar
 			} else if (charge >= 4 && CombatUtil.select(p, Items.GLOWSTONE)) {
 				// 5a glowstone: cheia (4), a ancora nao aceita mais e, fora do Nether, explode
 				if (CombatUtil.useOn(mc, anchor, Direction.UP)) wait = delay.get();

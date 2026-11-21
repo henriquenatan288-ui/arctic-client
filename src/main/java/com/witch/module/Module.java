@@ -43,7 +43,9 @@ public abstract class Module {
 	}
 
 	public void toggle() {
+		boolean was = enabled;
 		setEnabled(!enabled);
+		if (enabled != was) Sfx.toggle(enabled);
 	}
 
 	public void onTick() {}
