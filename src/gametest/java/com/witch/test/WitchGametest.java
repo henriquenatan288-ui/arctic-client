@@ -4,6 +4,7 @@ import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
 
 public class WitchGametest implements FabricClientGameTest {
+	public static volatile boolean APP = false;
 	private static void setStatic(Class<?> c, String f, Object v) throws Exception { var fl = c.getDeclaredField(f); fl.setAccessible(true); fl.set(null, v); }
 
 	@Override
@@ -25,7 +26,7 @@ public class WitchGametest implements FabricClientGameTest {
 						try {
 							setStatic(com.witch.music.MusicPlayer.class, "tracks", java.util.List.of(dir.resolve("Test Artist - Minha Musica Teste.mp3")));
 							com.witch.music.MusicPlayer.current = 0;
-							setStatic(com.witch.music.MusicPlayer.class, "active", true);
+							setStatic(com.witch.music.MusicPlayer.class, "active", !com.witch.test.WitchGametest.APP);
 							setStatic(com.witch.music.MusicPlayer.class, "duration", 215f);
 						} catch (Throwable t) { }
 					});
@@ -33,6 +34,10 @@ public class WitchGametest implements FabricClientGameTest {
 			});
 			context.waitTicks(40);
 			context.takeScreenshot("local-with-cover");
+			APP = true;
+			context.runOnClient(mc -> { try { setStatic(com.witch.module.SpotifyModule.class, "running", true); setStatic(com.witch.module.SpotifyModule.class, "playing", true); setStatic(com.witch.module.SpotifyModule.class, "track", "Daft Punk - Around the World"); } catch (Throwable t) {} });
+			context.waitTicks(2);
+			context.takeScreenshot("spotify-app");
 		}
 	}
 }
