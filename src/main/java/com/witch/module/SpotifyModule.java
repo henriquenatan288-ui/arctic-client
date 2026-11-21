@@ -217,12 +217,18 @@ public class SpotifyModule extends Module {
 		RenderUtil.softShadow(g, x, y, w, h, 4, 0x55000000);
 		RenderUtil.roundRect(g, x, y, w, h, r, 0x8A07140C);                 // base: escurece o fundo
 		// degrade vertical verde: mais claro em cima, mais saturado embaixo
-		for (int yy = y + r; yy < y + h - r; yy++) {
-			float k = (yy - y - r) / (float) Math.max(1, h - 2 * r);
+		for (int yy = y + 1; yy < y + h - 1; yy++) {
+			float k = (yy - y) / (float) h;
 			int c = RenderUtil.mix(0x3A9BFFC4, 0x4A1DB954, k);
-			g.fill(x + 1, yy, x + w - 1, yy + 1, c);
+			int dy = Math.min(yy - y, y + h - 1 - yy);
+			int inset = 0;
+			if (dy < r) {
+				double d = r - dy - 0.5;
+				inset = (int) Math.ceil(r - Math.sqrt(Math.max(0, r * (double) r - d * d)));
+			}
+			g.fill(x + 1 + inset, yy, x + w - 1 - inset, yy + 1, c);
 		}
-		RenderUtil.roundRect(g, x + 2, y + 2, w - 4, Math.max(6, h / 2 - 2), r - 2, 0x24FFFFFF); // brilho (gloss) de cima
+		RenderUtil.roundRect(g, x + 2, y + 2, w - 4, Math.max(6,h*2/5),r-2,0x1AFFFFFF); // brilho (gloss) de cima
 		RenderUtil.roundRing(g, x, y, w, h, r, 0xAAFFFFFF);                // borda de luz
 		RenderUtil.roundRing(g, x + 1, y + 1, w - 2, h - 2, r - 1, 0x2E3DDC84); // borda interna verde
 		g.fill(x + r, y + 1, x + w - r, y + 2, 0x55FFFFFF);                // fio de luz no topo
