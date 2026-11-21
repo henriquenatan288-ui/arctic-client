@@ -160,49 +160,80 @@ public class SpotifyModule extends Module {
 			}
 		}
 		int lh = FontUtil.height();
-		int icon = local ? lh * 2 + 8 : 22; // area da capa / equalizador
-		int maxText = 150;
+		int icon = lh * 2 + 4; // capa / equalizador: altura das duas linhas de texto
+		int maxText = 96;
 		artist = fit(artist, maxText);
 		title = fit(title, maxText);
 		int tw = Math.max(FontUtil.width(artist), FontUtil.width(title));
-		if (local) tw = Math.max(tw, FontUtil.width("00:00 / 00:00") + 4);
-		int w = 8 + icon + 8 + tw + 8;
-		int h = lh * 2 + 10 + (local ? lh + 5 : 0);
+		tw = Math.max(tw, local ? 64 : 40);
+		int w = 8 + icon + 7 + tw + 9;
+		int barRow = local ? lh + 2 : 0;
+		int h = 6 + icon + 5 + barRow;
 		int sw = mc.getWindow().getGuiScaledWidth();
 		int x = (sw - w) / 2 + HudLayout.dx("spotify");
 		int y = 4 + HudLayout.dy("spotify");
+		drawLiquidGlass(g, x, y, w, h);
 
-		RenderUtil.softShadow(g, x, y, w, h, 3, 0x66000000);
-		RenderUtil.roundRect(g, x, y, w, h, 5, 0xF00E3B1E);
-		RenderUtil.roundRing(g, x, y, w, h, 5, 0xCC1DB954);
-
-		int ix = x + 8, iy = y + 5;
+		int ix = x + 8, iy = y + 6;
 		if (cover != null) {
 			g.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, cover.id(), ix, iy, 0f, 0f, icon, icon,
 					cover.w(), cover.h(), cover.w(), cover.h(), 0xFFFFFFFF);
-			RenderUtil.roundRing(g, ix - 1, iy - 1, icon + 2, icon + 2, 2, 0x881DB954);
+			RenderUtil.roundRing(g, ix - 1, iy - 1, icon + 2, icon + 2, 3, 0x99FFFFFF);
 		} else {
 			// equalizador animado (parado quando pausado)
 			double t = System.nanoTime() / 1.0e9;
-			int base = iy + icon - 1;
-			int maxH = Math.min(icon - 2, lh * 2 - 2);
+			int base = iy + icon - 2;
+			int maxH = icon - 4;
 			for (int i = 0; i < 4; i++) {
 				double k = isPlaying ? 0.5 + 0.5 * Math.sin(t * (5.0 + i * 1.7) + i * 1.3) : 0.25;
 				int bh = 3 + (int) (k * (maxH - 3));
-				RenderUtil.roundRect(g, ix + i * 5 + 1, base - bh, 3, bh, 1, isPlaying ? GREEN : 0xFF6A8F78);
+				RenderUtil.roundRect(g, ix + i * 5 + 1, base - bh, 3, bh, 1, isPlaying ? 0xFF3DDC84 : 0xAAB5C9BC);
 			}
 		}
-		int tx = ix + icon + 8;
-		FontUtil.draw(g, artist, tx, y + 4, 0xFF9FE3B5);
-		FontUtil.draw(g, title, tx, y + 5 + lh, isPlaying ? 0xFFFFFFFF : 0xFFB5C9BC);
-		if (local) { // linha do tempo
-			int bw = w - (tx - x) - 8;
+		int tx = ix + icon + 7;
+		FontUtil.draw(g, artist, tx, iy, 0xFFBDF5D0);
+		FontUtil.draw(g, title, tx, iy + lh + 1, isPlaying ? 0xFFFFFFFF : 0xFFD0DDD5);
+		if (local) { // linha do tempo: 0:00 [=====-----] 3:35
+			int ry = y + h - lh - 3;
+			int tW = FontUtil.width("00:00");
+			int bx = x + 8 + tW + 5;
+			int bw = w - 16 - 2 * (tW + 5);
 			float f = dur > 0 ? Math.min(1f, pos / dur) : 0f;
-			FontUtil.draw(g, mmss(pos) + " / " + mmss(dur), tx, y + h - lh - 10, 0xFF8FBFA0);
-			int ly = y + h - 6;
-			RenderUtil.roundRect(g, tx, ly, bw, 3, 1, 0x55FFFFFF);
-			RenderUtil.roundRect(g, tx, ly, Math.max(3, Math.round(bw * f)), 3, 1, GREEN);
+			FontUtil.draw(g, mmss(pos), x + 8, ry, 0xFFBDF5D0);
+			String rt = mmss(dur);
+			FontUtil.draw(g, rt, x + w - 8 - FontUtil.width(rt), ry, 0xFFBDF5D0);
+			int by = ry + lh / 2 - 1;
+			RenderUtil.roundRect(g, bx, by, bw, 3, 1, 0x55FFFFFF);
+			int fw = Math.max(3, Math.round(bw * f));
+			RenderUtil.roundRect(g, bx, by, fw, 3, 1, 0xFF3DDC84);
+			RenderUtil.roundRect(g, bx + fw - 2, by - 1, 5, 5, 2, 0xFFFFFFFF); // bolinha
 		}
 		HudLayout.report("spotify", x, y, w, h);
+	}
+
+	/** Vidro liquido: base escura leve (legibilidade), tinta verde em degrade, brilho de cima, borda de luz e um reflexo que passa. */
+	private static void drawLiquidGlass(GuiGraphicsExtractor g, int x, int y, int w, int h) {
+		int r = Math.min(10, h / 2);
+		RenderUtil.softShadow(g, x, y, w, h, 4, 0x55000000);
+		RenderUtil.roundRect(g, x, y, w, h, r, 0x8A07140C);                 // base: escurece o fundo
+		// degrade vertical verde: mais claro em cima, mais saturado embaixo
+		for (int yy = y + r; yy < y + h - r; yy++) {
+			float k = (yy - y - r) / (float) Math.max(1, h - 2 * r);
+			int c = RenderUtil.mix(0x3A9BFFC4, 0x4A1DB954, k);
+			g.fill(x + 1, yy, x + w - 1, yy + 1, c);
+		}
+		RenderUtil.roundRect(g, x + 2, y + 2, w - 4, Math.max(6, h / 2 - 2), r - 2, 0x24FFFFFF); // brilho (gloss) de cima
+		RenderUtil.roundRing(g, x, y, w, h, r, 0xAAFFFFFF);                // borda de luz
+		RenderUtil.roundRing(g, x + 1, y + 1, w - 2, h - 2, r - 1, 0x2E3DDC84); // borda interna verde
+		g.fill(x + r, y + 1, x + w - r, y + 2, 0x55FFFFFF);                // fio de luz no topo
+		// reflexo diagonal que atravessa devagar
+		float cyc = (System.nanoTime() / 1_000_000L % 6500L) / 6500f;
+		int cx = Math.round(x + (cyc * 1.5f - 0.25f) * w);
+		for (int d = -10; d <= 10; d++) {
+			int xx = cx + d;
+			if (xx <= x + r || xx >= x + w - r) continue;
+			float a = (1f - Math.abs(d) / 10f) * 0.10f;
+			g.fill(xx, y + 3, xx + 1, y + h - 3, ((int) (a * 255) << 24) | 0xFFFFFF);
+		}
 	}
 }
