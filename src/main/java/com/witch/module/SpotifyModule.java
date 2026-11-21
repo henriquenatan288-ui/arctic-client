@@ -3,6 +3,8 @@ package com.witch.module;
 import com.witch.gui.FontUtil;
 import com.witch.gui.HudLayout;
 import com.witch.gui.RenderUtil;
+import com.witch.music.CoverArt;
+import com.witch.music.MusicPlayer;
 import com.witch.setting.IntSetting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -117,30 +119,55 @@ public class SpotifyModule extends Module {
 		return s + "...";
 	}
 
+	private static String mmss(float sec) {
+		int s = Math.max(0, Math.round(sec));
+		return (s / 60) + ":" + String.format("%02d", s % 60);
+	}
+
 	public static void drawHud(GuiGraphicsExtractor g) {
 		if (instance == null || !instance.isEnabled()) return;
-		boolean isPlaying = playing && track != null;
-		if (!isPlaying && (instance.showPaused.get() == 0 || !running)) return;
 		Minecraft mc = Minecraft.getInstance();
 		if (mc.player == null) return;
 
+		// musica do player proprio do Witch (pasta "musicas"): com linha do tempo e capa
+		var tracks = MusicPlayer.tracks();
+		boolean local = MusicPlayer.isActive() && MusicPlayer.current >= 0 && MusicPlayer.current < tracks.size();
+		boolean isPlaying;
 		String artist, title;
-		if (isPlaying) {
-			String t = track;
-			int i = t.indexOf(" - ");
-			artist = i > 0 ? t.substring(0, i) : "Spotify";
-			title = i > 0 ? t.substring(i + 3) : t;
+		float pos = 0f, dur = 0f;
+		CoverArt.Cover cover = null;
+		if (local) {
+			var path = tracks.get(MusicPlayer.current);
+			String n = MusicPlayer.nameOf(path);
+			int i = n.indexOf(" - ");
+			artist = i > 0 ? n.substring(0, i) : "Witch Player";
+			title = i > 0 ? n.substring(i + 3) : n;
+			isPlaying = MusicPlayer.isPlaying();
+			pos = MusicPlayer.position();
+			dur = MusicPlayer.duration();
+			cover = CoverArt.get(path);
 		} else {
-			artist = "Spotify";
-			title = "Pausado";
+			isPlaying = playing && track != null;
+			if (!isPlaying && (instance.showPaused.get() == 0 || !running)) return;
+			if (isPlaying) {
+				String t = track;
+				int i = t.indexOf(" - ");
+				artist = i > 0 ? t.substring(0, i) : "Spotify";
+				title = i > 0 ? t.substring(i + 3) : t;
+			} else {
+				artist = "Spotify";
+				title = "Pausado";
+			}
 		}
+		int lh = FontUtil.height();
+		int icon = local ? lh * 2 + 8 : 22; // area da capa / equalizador
 		int maxText = 150;
 		artist = fit(artist, maxText);
 		title = fit(title, maxText);
-		int lh = FontUtil.height();
 		int tw = Math.max(FontUtil.width(artist), FontUtil.width(title));
-		int w = 30 + tw + 12;
-		int h = lh * 2 + 10;
+		if (local) tw = Math.max(tw, FontUtil.width("00:00 / 00:00") + 4);
+		int w = 8 + icon + 8 + tw + 8;
+		int h = lh * 2 + 10 + (local ? lh + 2 : 0);
 		int sw = mc.getWindow().getGuiScaledWidth();
 		int x = (sw - w) / 2 + HudLayout.dx("spotify");
 		int y = 4 + HudLayout.dy("spotify");
@@ -149,18 +176,33 @@ public class SpotifyModule extends Module {
 		RenderUtil.roundRect(g, x, y, w, h, 5, 0xF00E3B1E);
 		RenderUtil.roundRing(g, x, y, w, h, 5, 0xCC1DB954);
 
-		// equalizador animado (parado quando pausado)
-		double t = System.nanoTime() / 1.0e9;
-		int bx = x + 9;
-		int base = y + h - 6;
-		for (int i = 0; i < 4; i++) {
-			double k = isPlaying ? 0.5 + 0.5 * Math.sin(t * (5.0 + i * 1.7) + i * 1.3) : 0.25;
-			int bh = 3 + (int) (k * (h - 14));
-			RenderUtil.roundRect(g, bx + i * 4, base - bh, 3, bh, 1, isPlaying ? GREEN : 0xFF6A8F78);
+		int ix = x + 8, iy = y + 5;
+		if (cover != null) {
+			g.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, cover.id(), ix, iy, 0f, 0f, icon, icon,
+					cover.w(), cover.h(), cover.w(), cover.h(), 0xFFFFFFFF);
+			RenderUtil.roundRing(g, ix - 1, iy - 1, icon + 2, icon + 2, 2, 0x881DB954);
+		} else {
+			// equalizador animado (parado quando pausado)
+			double t = System.nanoTime() / 1.0e9;
+			int base = iy + icon - 1;
+			int maxH = Math.min(icon - 2, lh * 2 - 2);
+			for (int i = 0; i < 4; i++) {
+				double k = isPlaying ? 0.5 + 0.5 * Math.sin(t * (5.0 + i * 1.7) + i * 1.3) : 0.25;
+				int bh = 3 + (int) (k * (maxH - 3));
+				RenderUtil.roundRect(g, ix + i * 5 + 1, base - bh, 3, bh, 1, isPlaying ? GREEN : 0xFF6A8F78);
+			}
 		}
-		int tx = x + 30;
+		int tx = ix + icon + 8;
 		FontUtil.draw(g, artist, tx, y + 4, 0xFF9FE3B5);
 		FontUtil.draw(g, title, tx, y + 5 + lh, isPlaying ? 0xFFFFFFFF : 0xFFB5C9BC);
+		if (local) { // linha do tempo
+			int bw = w - (tx - x) - 8;
+			float f = dur > 0 ? Math.min(1f, pos / dur) : 0f;
+			FontUtil.draw(g, mmss(pos) + " / " + mmss(dur), tx, y + h - lh - 8, 0xFF8FBFA0);
+			int ly = y + h - 6;
+			RenderUtil.roundRect(g, tx, ly, bw, 3, 1, 0x55FFFFFF);
+			RenderUtil.roundRect(g, tx, ly, Math.max(3, Math.round(bw * f)), 3, 1, GREEN);
+		}
 		HudLayout.report("spotify", x, y, w, h);
 	}
 }
