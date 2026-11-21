@@ -15,6 +15,7 @@ public class BoatFlyModule extends Module {
 	private final IntSetting noClip = add(new IntSetting("No clip (0/1)", 0, 1, 0, ""));
 
 	private AbstractBoat last;
+	private double lockY = Double.NaN;
 
 	public BoatFlyModule() {
 		super("Boat Fly", Category.MOVEMENT);
@@ -43,10 +44,19 @@ public class BoatFlyModule extends Module {
 		double vx = (-Math.sin(yr) * fwd + Math.cos(yr) * str) * sp;
 		double vz = (Math.cos(yr) * fwd + Math.sin(yr) * str) * sp;
 		double vy = ((o.keyJump.isDown() ? 1 : 0) - (o.keySprint.isDown() ? 1 : 0)) * vSpeed.get() * 0.1;
+		// so desce se andar para tras (ou com o Sprint); andando para frente/parado a altura fica travada
+		if (vy == 0 && fwd < 0) vy = -vSpeed.get() * 0.1;
+		if (vy == 0) {
+			if (Double.isNaN(lockY)) lockY = boat.getY();
+			else if (Math.abs(boat.getY() - lockY) > 1.0E-4) boat.setPos(boat.getX(), lockY, boat.getZ());
+		} else {
+			lockY = Double.NaN;
+		}
 		boat.setDeltaMovement(vx, vy, vz);
 	}
 
 	private void restore() {
+		lockY = Double.NaN;
 		if (last != null) {
 			last.setNoGravity(false);
 			last.noPhysics = false;
