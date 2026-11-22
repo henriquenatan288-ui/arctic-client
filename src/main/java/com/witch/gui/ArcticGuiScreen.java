@@ -211,8 +211,8 @@ public class ArcticGuiScreen extends Screen {
 			}
 			else if (hov) RenderUtil.roundRect(g, sbx + 3, iy, sbw - 6, 21, 10, RenderUtil.alpha(0xFFFFFFFF, 0.10f * a));
 			int col = sel ? 0xFFFFFFFF : (hov ? 0xFFEAF4FF : 0xFFB6CCEB);
-			CategoryIcons.draw(g, CATS[i], sbx + 11, iy + (21 - 7) / 2, RenderUtil.alpha(col, a));
-			FontUtil.draw(g, ModuleRow.fit(CATS[i].label, sbw - 36), sbx + 26, iy + (21 - fh) / 2, RenderUtil.alpha(col, a));
+			CategoryIcons.drawSized(g, CATS[i], sbx + 8, iy + 3, 15, RenderUtil.alpha(col, a));
+			FontUtil.draw(g, ModuleRow.fit(CATS[i].label, sbw - 38), sbx + 28, iy + (21 - fh) / 2, RenderUtil.alpha(col, a));
 		}
 
 		// modulos
