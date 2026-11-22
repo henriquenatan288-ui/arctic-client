@@ -1,6 +1,8 @@
 package com.witch.gui;
 
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 
 /**
@@ -41,6 +43,7 @@ public final class Minimal {
 		if (petals) petals(g, w, h, sec, 1f);
 	}
 
+	private static final Identifier PETAL = Identifier.fromNamespaceAndPath("witch", "textures/gui/petal.png");
 	private static final int PETALS = 20;
 	private static final float[] PX = new float[PETALS], PY = new float[PETALS], PS = new float[PETALS],
 			PW = new float[PETALS], PR = new float[PETALS], PZ = new float[PETALS], PF = new float[PETALS];
@@ -76,9 +79,9 @@ public final class Minimal {
 			g.pose().rotate((float) (PW[i] + sec * PR[i]));
 			g.pose().scale(1f, flutter);
 			float s = 1.3f + 2.0f * z;
-			int iw = Math.max(3, Math.round(s * 1.7f)), ih = Math.max(2, Math.round(s));
-			RenderUtil.roundRect(g, -iw / 2, -ih / 2, iw, ih, ih / 2, RenderUtil.alpha(col, al));
-			if (z > 0.55f) RenderUtil.glow(g, 0, 0, Math.round(s * 3.2f), RenderUtil.alpha(col, al * 0.35f)); // halo suave nas mais proximas
+			int iw = Math.max(5, Math.round(s * 3.6f)), ih = iw / 2;
+			g.blit(RenderPipelines.GUI_TEXTURED, PETAL, -iw / 2, -ih / 2, 0f, 0f, iw, ih, 32, 16, 32, 16, RenderUtil.alpha(col, al * 2.2f));
+			if (z > 0.55f) RenderUtil.glow(g, 0, 0, Math.round(s * 3.2f), RenderUtil.alpha(col, al * 0.35f));
 			g.pose().popMatrix();
 		}
 	}
