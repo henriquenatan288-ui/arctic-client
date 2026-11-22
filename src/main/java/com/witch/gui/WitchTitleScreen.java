@@ -13,14 +13,14 @@ import net.minecraft.network.chat.Component;
 /** Tela inicial minimalista do Witch Client: fundo suave, marca fina no topo, menu em texto e o personagem 3D. */
 public class WitchTitleScreen extends Screen {
 	private static final String[] LABELS = {"SINGLEPLAYER", "MULTIPLAYER", "OPTIONS", "CLIENT", "QUIT"};
-	private static final String[] SUBS = {"Your worlds, offline and private", "Servers and LAN games", "Video, audio and controls", "Witch modules and HUD", "Close the game"};
+	private static final String[] SUBS = {"Your worlds, offline and private", "Servers and LAN games", "Video, audio and controls", "Arctic modules and HUD", "Close the game"};
 	private long last = 0L;
 	private final long born = System.currentTimeMillis();
 	private int menuX, menuY, itemW = 170, itemH = 32;
 	private final float[] hoverAnim = new float[5];
 
 	public WitchTitleScreen() {
-		super(Component.literal("Witch Client"));
+		super(Component.literal("Arctic Client"));
 	}
 
 	@Override
@@ -82,7 +82,7 @@ public class WitchTitleScreen extends Screen {
 		}
 
 		float fa = Minimal.easeOut((age - 0.6f) / 0.8f);
-		Minimal.spaced(g, "WITCH CLIENT  /  MINECRAFT 26.2", 14, h - 16, 0.62f, 2f, Minimal.faint(), fa, false);
+		Minimal.spaced(g, "ARCTIC CLIENT  /  MINECRAFT 26.2", 14, h - 16, 0.62f, 2f, Minimal.faint(), fa, false);
 		String credit = "MADE BY BISTECK";
 		Minimal.spaced(g, credit, w - 14 - Minimal.spacedWidth(credit, 0.62f, 2f), h - 16, 0.62f, 2f, Minimal.faint(), fa, false);
 	}

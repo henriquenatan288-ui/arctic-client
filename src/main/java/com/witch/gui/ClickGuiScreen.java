@@ -58,7 +58,7 @@ public class ClickGuiScreen extends Screen {
 
 	/** Com modulo: abre direto o editor de ajustes dele. */
 	public ClickGuiScreen(Module openSettings) {
-		super(Component.literal("Witch Client"));
+		super(Component.literal("Arctic Client"));
 		if (openSettings != null) {
 			selected = openSettings.category;
 			autoEditor = openSettings;
@@ -265,7 +265,7 @@ public class ClickGuiScreen extends Screen {
 			// sem cabeca
 		}
 		FontUtil.draw(g, ModuleRow.fit(nick, uw - hs - 14), ux + hs + 9, uy + 4, RenderUtil.alpha(0xFFF2EEEF, a));
-		small(g, "Witch Client", ux + hs + 9, uy + uh - 7, RenderUtil.alpha(RED, a));
+		small(g, "Arctic Client", ux + hs + 9, uy + uh - 7, RenderUtil.alpha(RED, a));
 
 		// abas
 		Category[] cs = Category.values();

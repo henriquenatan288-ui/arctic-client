@@ -29,7 +29,7 @@ public class WitchEnterScreen extends Screen {
 	private boolean done = false;
 
 	public WitchEnterScreen() {
-		super(Component.literal("Witch Client"));
+		super(Component.literal("Arctic Client"));
 		shown = true;
 	}
 

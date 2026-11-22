@@ -21,7 +21,7 @@ public final class ModuleDescriptions {
 			case "Fullbright" -> "Clareia o mundo (visao noturna no seu cliente).";
 			case "Galaxy" -> "Galaxia nas ferramentas e, se quiser, em totem, maca dourada, elytra, armadura ou todos os itens. 7 estilos.";
 			case "Optimization" -> "Baixa opcoes de video pesadas (particulas, mistura de bioma, sombras, nuvens, entidades) para rodar melhor com muitas chunks. Devolve tudo ao desligar.";
-			case "China Hat" -> "Chapeu em cone na cabeca, em galaxia (shader) ou spectral (translucido e brilhante). So quem usa o Witch Client ve.";
+			case "China Hat" -> "Chapeu em cone na cabeca, em galaxia (shader) ou spectral (translucido e brilhante). So quem usa o Arctic Client ve.";
 			case "Elytra Shader" -> "Galaxia so na elytra: nas costas (voce, outros, armor stand) e o item. Funciona sozinho, com estilo proprio.";
 			case "Players Galaxy" -> "Jogadores cobertos pela galaxia, com armadura no corpo (a elytra e do modulo Elytra Shader). 7 estilos e relevo ajustavel.";
 			case "Glow Items" -> "Linha brilhante na borda dos itens (mao, chao, quadros). Escolha a cor.";
@@ -30,7 +30,7 @@ public final class ModuleDescriptions {
 			case "No Ghost Blocks" -> "Evita blocos fantasma ao quebrar/colocar.";
 			case "No Hurt Cam" -> "Tira o tranco da camera ao tomar dano.";
 			case "Particles 3D" -> "Formas 3D girando em volta de voce, com rastro e brilho. Shape: forma; Path: caminho (anel, giro, espiral, coroa na cabeca); Trail: tamanho do rastro.";
-			case "Fire Head" -> "Cabeca em chamas (particulas de fogo). So quem usa o Witch Client ve.";
+			case "Fire Head" -> "Cabeca em chamas (particulas de fogo). So quem usa o Arctic Client ve.";
 			case "No Legs" -> "Tira as pernas do seu personagem (as duas, so a esquerda ou so a direita). So voce ve.";
 			case "Mirror Floor" -> "Reflexo no chao parecendo espelho.";
 			case "Player ESP" -> "Destaca jogadores atraves das paredes.";
