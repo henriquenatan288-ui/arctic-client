@@ -62,9 +62,16 @@ public class WitchGametest implements FabricClientGameTest {
 			});
 			context.waitTicks(10);
 			context.takeScreenshot("arctic-rosa");
-			context.runOnClient(mc -> mc.gui.setScreen(new com.witch.gui.WitchTitleScreen()));
-			context.waitTicks(60);
+			context.runOnClient(mc -> {
+				com.witch.module.ModuleManager.byName("Particles 3D").setEnabled(true);
+				com.witch.module.ModuleManager.byName("Particles 2D").setEnabled(true);
+				mc.gui.setScreen(new com.witch.gui.WitchTitleScreen());
+			});
+			context.waitTicks(300);
 			context.takeScreenshot("titulo");
+			context.runOnClient(mc -> mc.gui.setScreen(new net.minecraft.client.gui.screens.PauseScreen(true)));
+			context.waitTicks(20);
+			context.takeScreenshot("pausa");
 			context.runOnClient(mc -> mc.gui.setScreen(new net.minecraft.client.gui.screens.Screen(net.minecraft.network.chat.Component.literal("m")) {
 				@Override
 				public void extractRenderState(net.minecraft.client.gui.GuiGraphicsExtractor g, int mx, int my, float d) {
