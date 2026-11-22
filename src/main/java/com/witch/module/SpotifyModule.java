@@ -140,7 +140,7 @@ public class SpotifyModule extends Module {
 			var path = tracks.get(MusicPlayer.current);
 			String n = MusicPlayer.nameOf(path);
 			int i = n.indexOf(" - ");
-			artist = i > 0 ? n.substring(0, i) : "Witch Player";
+			artist = i > 0 ? n.substring(0, i) : "Arctic Player";
 			title = i > 0 ? n.substring(i + 3) : n;
 			isPlaying = MusicPlayer.isPlaying();
 			pos = MusicPlayer.position();

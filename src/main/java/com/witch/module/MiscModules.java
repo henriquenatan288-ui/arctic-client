@@ -96,7 +96,7 @@ public final class MiscModules {
 			var m = mc(); var p = m.player;
 			if (p == null || m.getConnection() == null || p.isDeadOrDying() || p.getHealth() > hp.get()) return;
 			setEnabled(false);
-			m.getConnection().getConnection().disconnect(Component.literal("Witch Auto Log: vida baixa"));
+			m.getConnection().getConnection().disconnect(Component.literal("Arctic Auto Log: vida baixa"));
 		}
 	}
 

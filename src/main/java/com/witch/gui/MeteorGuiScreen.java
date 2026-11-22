@@ -90,7 +90,7 @@ public class MeteorGuiScreen extends Screen {
 	}
 
 	public MeteorGuiScreen(Module openSettings) {
-		super(Component.literal("Witch Client"));
+		super(Component.literal("Arctic Client"));
 		if (openSettings != null) {
 			EXPANDED.add(openSettings);
 			EXP.put(openSettings, 1f);

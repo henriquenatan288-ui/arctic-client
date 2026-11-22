@@ -72,7 +72,7 @@ public abstract class LoadingOverlayMixin {
 		float ease = 1f - (1f - t) * (1f - t) * (1f - t);
 		com.witch.gui.Minimal.petals(g, w, h, now / 1000.0, a * ease);
 		// nome do client no centro, letra por letra
-		String name = "WITCH";
+		String name = "ARCTIC";
 		float sc = Math.max(2f, Math.min(5f, h / 110f));
 		float ty = h * 0.46f - com.witch.gui.FontUtil.height() * sc / 2f;
 		com.witch.gui.Minimal.spaced(g, name, w / 2f, ty, sc, sc * 2.5f, 0xFFFFFFFF, a, true, (now - witch$t0) / 140f);

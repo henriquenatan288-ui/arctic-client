@@ -118,10 +118,10 @@ public final class Minimal {
 		spaced(g, s, cx, y, scale, spacing, color, alpha, center, 999f);
 	}
 
-	/** Marca "W I T C H" centrada em (cx, cy). */
+	/** Marca "A R C T I C" centrada em (cx, cy). */
 	public static void wordmark(GuiGraphicsExtractor g, float cx, float cy, float scale, float spacing, float alpha, float reveal) {
 		float y = cy - FontUtil.height() * scale / 2f;
-		spaced(g, "WITCH", cx, y, scale, spacing, fg(), alpha, true, reveal);
+		spaced(g, "ARCTIC", cx, y, scale, spacing, fg(), alpha, true, reveal);
 	}
 
 	/** Linha de 1px centrada, com as pontas esmaecendo. */
