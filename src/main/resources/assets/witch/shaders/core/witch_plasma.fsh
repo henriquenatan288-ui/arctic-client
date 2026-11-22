@@ -39,9 +39,11 @@ float fbm(vec3 p) {
 
 void main() {
     vec3 d = normalize(pos);
-    float up = smoothstep(0.02, 0.45, d.y);
+    vec3 tint = ColorModulator.rgb;
+    vec3 deep = tint * 0.07 + vec3(0.004, 0.012, 0.024);
+    float up = smoothstep(0.0, 0.14, d.y);
     if (up <= 0.0) {
-        fragColor = vec4(0.012, 0.03, 0.07, 1.0);
+        fragColor = vec4(deep, 1.0);
         return;
     }
     vec2 q = d.xz / (d.y + 0.30) * 1.5;
@@ -57,10 +59,9 @@ void main() {
     float l2 = 0.024 / (abs(n3 - 0.5) + 0.018);
     float glow = clamp(l1 * 0.85 + l2 * 0.55, 0.0, 1.6);
 
-    vec3 base = mix(vec3(0.008, 0.025, 0.07), vec3(0.03, 0.09, 0.2), n1);
-    vec3 tint = ColorModulator.rgb;
+    vec3 base = mix(tint * 0.05, tint * 0.20, n1) + vec3(0.004, 0.012, 0.024);
     vec3 core = mix(tint, vec3(1.0), clamp(glow - 0.8, 0.0, 1.0));
     vec3 col = base + core * glow * ColorModulator.a * 0.95 + tint * n2 * 0.10;
-    col = mix(vec3(0.012, 0.03, 0.07), col, up);
+    col = mix(deep, col, up);
     fragColor = vec4(col, 1.0);
 }
