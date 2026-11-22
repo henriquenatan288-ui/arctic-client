@@ -8,6 +8,7 @@ public class GuiSettingsModule extends Module {
 	private static GuiSettingsModule instance;
 
 	private final ColorSetting accent = add(new ColorSetting("Accent", 7));
+	private final ColorSetting guiColor = add(new ColorSetting("Cor do ClickGUI", 1));
 	private final IntSetting opacity = add(new IntSetting("Window opacity", 0, 100, 12, "%"));
 	private final IntSetting menuOpacity = add(new IntSetting("Menu opacity", 5, 100, 100, "%"));
 	private final IntSetting menuTheme = add(new IntSetting("Tema do menu (1 escuro, 2 claro)", 1, 2, 1, ""));
@@ -22,6 +23,12 @@ public class GuiSettingsModule extends Module {
 	public GuiSettingsModule() {
 		super("GUI Settings", Category.UTILITY);
 		instance = this;
+		guiColor.setHsv(0.60f, 0.62f, 1f);
+	}
+
+	/** Cor escolhida para o ClickGUI Arctic (padrao azul bebe). */
+	public static int guiColor() {
+		return instance == null ? 0xFF6FA8FF : instance.guiColor.get();
 	}
 
 	/** 0.1 a 1.0: opacidade do fundo das janelas. */

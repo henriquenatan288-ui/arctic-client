@@ -47,14 +47,15 @@ public final class GuiGlassShader {
 		return pipe;
 	}
 
-	/** phase 0..1 (loop), intensity 0..1. Retorna false se o shader nao esta disponivel. */
-	public static boolean draw(GuiGraphicsExtractor g, int x, int y, int w, int h, float phase, float intensity) {
+	/** phase 0..1 (loop), intensity 0..1, hue 0..1 (negativo = branco). Retorna false se o shader nao esta disponivel. */
+	public static boolean draw(GuiGraphicsExtractor g, int x, int y, int w, int h, float phase, float intensity, float hue) {
 		RenderPipeline p = pipeline();
 		if (p == null || w <= 0 || h <= 0) return false;
 		try {
-			int ph = Math.max(0, Math.min(65535, Math.round((phase - (float) Math.floor(phase)) * 65535f)));
-			int r = ph >> 8, gg = ph & 255;
-			int b = Math.max(0, Math.min(255, Math.round(intensity * 255f)));
+			int ph = Math.max(0, Math.min(4095, Math.round((phase - (float) Math.floor(phase)) * 4095f)));
+			int r = ph >> 4;
+			int gg = ((ph & 15) << 4) | Math.max(0, Math.min(15, Math.round(intensity * 15f)));
+			int b = hue < 0f ? 255 : Math.max(0, Math.min(254, Math.round((hue - (float) Math.floor(hue)) * 254f)));
 			int a = Math.max(1, Math.min(255, Math.round((w / (float) h) * 60f)));
 			int color = (a << 24) | (r << 16) | (gg << 8) | b;
 			g.blit(p, TEX, x, y, 0f, 0f, w, h, 96, 96, 96, 96, color);

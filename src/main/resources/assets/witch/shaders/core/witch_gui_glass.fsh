@@ -8,7 +8,7 @@ in vec4 vertexColor;
 out vec4 fragColor;
 
 // Shader do ClickGUI Arctic: plasma azul suave + reflexo de vidro + brilho na borda, mascarado em retangulo arredondado.
-// Parametros vem na cor do vertice: r,g = fase (16 bits, 0..1, loop); b = intensidade; a = proporcao largura/altura * 60.
+// Parametros vem na cor do vertice: r + nibble alto de g = fase (12 bits, loop); nibble baixo de g = intensidade (0..15); b = matiz (0..254; 255 = branco); a = proporcao largura/altura * 60.
 
 float hash(vec3 p) {
     p = fract(p * 0.3183099 + vec3(0.1, 0.2, 0.3));
@@ -37,10 +37,19 @@ float fbm(vec3 p) {
     return s;
 }
 
+vec3 hsv2rgb(float h, float s, float v) {
+    vec3 k = clamp(abs(fract(vec3(h) + vec3(0.0, 2.0 / 3.0, 1.0 / 3.0)) * 6.0 - 3.0) - 1.0, 0.0, 1.0);
+    return v * mix(vec3(1.0), k, s);
+}
+
 void main() {
     float keep = texture(Sampler0, texCoord0).a * 0.0; // mantem o sampler ligado
-    float phase = (vertexColor.r * 255.0 * 256.0 + vertexColor.g * 255.0) / 65535.0;
-    float inten = vertexColor.b;
+    float rb = floor(vertexColor.r * 255.0 + 0.5);
+    float gb = floor(vertexColor.g * 255.0 + 0.5);
+    float lowN = mod(gb, 16.0);
+    float phase = (rb * 16.0 + floor(gb / 16.0)) / 4095.0;
+    float inten = lowN / 15.0;
+    float hb = floor(vertexColor.b * 255.0 + 0.5);
     float aspect = vertexColor.a * 255.0 / 60.0;
 
     vec2 p = (texCoord0 - 0.5) * vec2(aspect, 1.0);
@@ -58,7 +67,7 @@ void main() {
     float n2 = fbm(vec3(q2 * 1.2 + n1 * 1.6, 2.0) + w2);
     float line = 0.030 / (abs(n2 - 0.5) + 0.030);
     float glow = clamp(line * 0.75, 0.0, 1.2);
-    vec3 ice = vec3(0.55, 0.80, 1.0);
+    vec3 ice = hb > 254.5 ? vec3(0.85, 0.90, 1.0) : hsv2rgb(hb / 255.0, 0.45, 1.0);
     vec3 plasma = mix(ice, vec3(1.0), clamp(glow - 0.7, 0.0, 1.0)) * glow * 0.75;
 
     // reflexo diagonal de vidro que atravessa a janela
