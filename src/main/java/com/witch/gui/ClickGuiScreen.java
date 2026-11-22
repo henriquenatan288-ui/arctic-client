@@ -323,7 +323,7 @@ public class ClickGuiScreen extends Screen {
 		int h = ROW_H;
 		// vidro preto quase transparente com borda fina
 		int border = RenderUtil.mix(RenderUtil.mix(0x5CFFFFFF, 0x8CFFFFFF, m.hoverAnim), RenderUtil.alpha(RED, 0.95f), t * 0.75f);
-		RenderUtil.roundRect(g, rx, ry, rw, h, 7, RenderUtil.alpha(RenderUtil.mix(0xFF050507, 0xFF1A070C, t), (0.20f + 0.16f * t) * a));
+		RenderUtil.roundRect(g, rx, ry, rw, h, 7, RenderUtil.alpha(RenderUtil.mix(0xFF050507, 0xFF0C1830, t), (0.20f + 0.16f * t) * a));
 		RenderUtil.roundRing(g, rx, ry, rw, h, 7, RenderUtil.alpha(border, a));
 		// cantos com luz vermelha (sempre sutil; mais forte ligado)
 		RenderUtil.glow(g, rx + 5, ry + 4, 18, RenderUtil.alpha(RED, (0.10f + 0.28f * t) * a));
@@ -332,7 +332,7 @@ public class ClickGuiScreen extends Screen {
 			RenderUtil.roundRect(g, rx + 1, ry + 1, Math.max(10, Math.round((rw - 2) * m.hoverAnim)), h - 2, 6, RenderUtil.alpha(0x0AFFFFFF, a));
 		}
 		// icone + divisoria
-		CategoryIcons.draw(g, m.category, rx + 9, ry + (h - 7) / 2, RenderUtil.alpha(RenderUtil.mix(0xFF9A9294, 0xFFFF6B78, t), a));
+		CategoryIcons.draw(g, m.category, rx + 9, ry + (h - 7) / 2, RenderUtil.alpha(RenderUtil.mix(0xFF9A9294, 0xFF9CCBFF, t), a));
 		g.fill(rx + 26, ry + 6, rx + 27, ry + h - 6, RenderUtil.alpha(0xFFFFFFFF, 0.12f * a));
 		boolean plus = hasPlus(m);
 		int px = plusX(rx);

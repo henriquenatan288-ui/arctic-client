@@ -6,8 +6,8 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 public final class GuiBackdrop {
 	private GuiBackdrop() {}
 
-	public static final int RED = 0xFFD3162B;
-	public static final int RED_DEEP = 0xFF7E0C18;
+	public static final int RED = 0xFF8EC5FF;
+	public static final int RED_DEEP = 0xFF3F6FB5;
 
 	private static void band(GuiGraphicsExtractor g, int w, int h, float off, float bw, int a1, int a2) {
 		float cx = w / 2f, cy = h / 2f, len = w + h;

@@ -34,7 +34,7 @@ public final class Minimal {
 		boolean lt = light();
 		int gx = Math.round(w * (0.22f + 0.06f * (float) Math.sin(sec * 0.11)));
 		int gy = Math.round(h * (0.30f + 0.05f * (float) Math.cos(sec * 0.09)));
-		RenderUtil.glow(g, gx, gy, Math.round(h * 0.95f), RenderUtil.alpha(lt ? 0xFFFFFFFF : 0xFF8C1C2A, lt ? 0.55f : 0.10f));
+		RenderUtil.glow(g, gx, gy, Math.round(h * 0.95f), RenderUtil.alpha(lt ? 0xFFFFFFFF : 0xFF2A4C8C, lt ? 0.55f : 0.10f));
 		int hx = Math.round(w * (0.80f + 0.05f * (float) Math.cos(sec * 0.08)));
 		int hy = Math.round(h * (0.78f + 0.04f * (float) Math.sin(sec * 0.10)));
 		RenderUtil.glow(g, hx, hy, Math.round(h * 0.8f), RenderUtil.alpha(lt ? 0xFFFFFFFF : 0xFF22283A, lt ? 0.45f : 0.16f));
@@ -61,7 +61,7 @@ public final class Minimal {
 	/** Petalas pequenas caindo devagar (as mais proximas maiores e mais claras, as mais longe sumindo). */
 	public static void petals(GuiGraphicsExtractor g, int w, int h, double sec, float alpha) {
 		boolean lt = light();
-		int col = lt ? 0xFF9A9AA0 : 0xFFF2D8DC;
+		int col = lt ? 0xFF9A9AA0 : 0xFFDCEBFF;
 		for (int i = 0; i < PETALS; i++) {
 			float z = PZ[i];
 			float fy = (float) (((PY[i] + sec * PS[i]) % 1.0 + 1.0) % 1.0);
