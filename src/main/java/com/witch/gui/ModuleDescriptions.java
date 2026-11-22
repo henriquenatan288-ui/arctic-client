@@ -20,6 +20,7 @@ public final class ModuleDescriptions {
 			case "Freecam" -> "Camera livre fora do corpo, sem limite de distancia.";
 			case "Fullbright" -> "Clareia o mundo (visao noturna no seu cliente).";
 			case "Galaxy" -> "Galaxia nas ferramentas e, se quiser, em totem, maca dourada, elytra, armadura ou todos os itens. 7 estilos.";
+			case "Frame Fix" -> "Para quando o FPS 'engasga' e parece cair para 20. Desliga o VSync e trava um limite de FPS estavel. Devolve tudo ao desligar. (Hipotese: nao confirmei a causa.)";
 			case "Optimization" -> "Baixa opcoes de video pesadas (particulas, mistura de bioma, sombras, nuvens, entidades) para rodar melhor com muitas chunks. Devolve tudo ao desligar.";
 			case "China Hat" -> "Chapeu em cone na cabeca, em galaxia (shader) ou spectral (translucido e brilhante). So quem usa o Arctic Client ve.";
 			case "Elytra Shader" -> "Galaxia so na elytra: nas costas (voce, outros, armor stand) e o item. Funciona sozinho, com estilo proprio.";
