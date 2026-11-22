@@ -53,6 +53,15 @@ public class WitchGametest implements FabricClientGameTest {
 			});
 			context.waitTicks(40);
 			context.takeScreenshot("arctic-ligados");
+			context.runOnClient(mc -> {
+				try {
+					var m = com.witch.module.ModuleManager.byName("GUI Settings");
+					var f = m.getClass().getDeclaredField("guiColor"); f.setAccessible(true);
+					((com.witch.setting.ColorSetting) f.get(m)).setHsv(0.92f, 0.6f, 1f);
+				} catch (Throwable t) { System.out.println("[WDBG] cor fail " + t); }
+			});
+			context.waitTicks(10);
+			context.takeScreenshot("arctic-rosa");
 			context.runOnClient(mc -> mc.gui.setScreen(new com.witch.gui.WitchTitleScreen()));
 			context.waitTicks(60);
 			context.takeScreenshot("titulo");
