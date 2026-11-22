@@ -34,6 +34,22 @@ public class WitchGametest implements FabricClientGameTest {
 			context.takeScreenshot("gui-liquid-glass");
 			context.waitTicks(20);
 			context.takeScreenshot("gui-liquid-glass-2");
+			context.runOnClient(mc -> mc.gui.setScreen(new com.witch.gui.WitchTitleScreen()));
+			context.waitTicks(60);
+			context.takeScreenshot("titulo");
+			context.runOnClient(mc -> mc.gui.setScreen(new net.minecraft.client.gui.screens.Screen(net.minecraft.network.chat.Component.literal("m")) {
+				@Override
+				public void extractRenderState(net.minecraft.client.gui.GuiGraphicsExtractor g, int mx, int my, float d) {
+					g.fill(0, 0, this.width, this.height, 0xFF0A0A0C);
+					int w = this.width, h = this.height;
+					com.witch.gui.WitchLogo.draw(g, w / 2 - 60, h / 2 - 70, 120, 1f);
+					com.witch.gui.Minimal.wordmark(g, w / 2f, h / 2f + 40, 3f, 8f, 1f, 999f);
+					com.witch.gui.WitchLogo.draw(g, 20, h - 40, 32, 1f);
+					com.witch.gui.WitchLogo.draw(g, 70, h - 32, 16, 1f);
+				}
+			}));
+			context.waitTicks(20);
+			context.takeScreenshot("marca");
 		}
 	}
 }
