@@ -8,14 +8,16 @@ public final class ClickGui {
 	private ClickGui() {}
 
 	public static Screen create() {
-		return com.witch.module.GuiSettingsModule.windowStyle() ? new MeteorGuiScreen() : new ClickGuiScreen();
+		int st = com.witch.module.GuiSettingsModule.style();
+		return st == 3 ? new ArcticGuiScreen() : st == 2 ? new MeteorGuiScreen() : new ClickGuiScreen();
 	}
 
 	public static Screen create(Module m) {
-		return com.witch.module.GuiSettingsModule.windowStyle() ? new MeteorGuiScreen(m) : new ClickGuiScreen(m);
+		int st = com.witch.module.GuiSettingsModule.style();
+		return st == 3 ? new ArcticGuiScreen(m) : st == 2 ? new MeteorGuiScreen(m) : new ClickGuiScreen(m);
 	}
 
 	public static boolean isClickGui(Screen s) {
-		return s instanceof ClickGuiScreen || s instanceof MeteorGuiScreen;
+		return s instanceof ClickGuiScreen || s instanceof MeteorGuiScreen || s instanceof ArcticGuiScreen;
 	}
 }

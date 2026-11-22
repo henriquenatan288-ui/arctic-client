@@ -43,9 +43,9 @@ public class MeteorGuiScreen extends Screen {
 		}
 	}
 	/** Vermelho escuro (destaques) e preto fosco (paineis), sem vidro nem desfoque. */
-	private static final int RED = 0xFF9E1626;
-	private static final int RED_DK = 0xFF5C0E18;
-	private static final int BODY = 0xFF0B0B0C, HEADER = 0xFF150A0C, SETTINGS = 0xFF070708;
+	private static final int RED = 0xFF5B9BF0;
+	private static final int RED_DK = 0xFF23406E;
+	private static final int BODY = 0xFF0B0B0C, HEADER = 0xFF0C1424, SETTINGS = 0xFF070708;
 
 	private static final class Win {
 		float x, y, scroll;
@@ -288,8 +288,8 @@ public class MeteorGuiScreen extends Screen {
 		float t = m.toggleAnim;
 		if (t > 0.01f) {
 			if (com.witch.module.GuiSettingsModule.glass()) {
-				g.fill(x + 3, ry + 1, x + W - 3, ry + ROWH - 1, RenderUtil.alpha(0xFFE0304A, 0.30f * t * a));
-				RenderUtil.roundRect(g, x + 3, ry + 3, 2, ROWH - 6, 1, RenderUtil.alpha(0xFFFF6B7F, t * a));
+				g.fill(x + 3, ry + 1, x + W - 3, ry + ROWH - 1, RenderUtil.alpha(0xFF5B9BF0, 0.30f * t * a));
+				RenderUtil.roundRect(g, x + 3, ry + 3, 2, ROWH - 6, 1, RenderUtil.alpha(0xFF8EC5FF, t * a));
 			} else {
 				g.fill(x + 1, ry, x + W - 1, ry + ROWH, RenderUtil.alpha(RED_DK, 0.85f * t * a));
 				g.fill(x + 1, ry + 2, x + 3, ry + ROWH - 2, RenderUtil.alpha(RED, t * a));
