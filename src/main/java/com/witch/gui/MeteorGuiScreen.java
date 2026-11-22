@@ -28,14 +28,14 @@ import java.util.Set;
  * (ou a roda do mouse) rola. Posicoes e janelas abertas ficam salvas enquanto o jogo estiver aberto.
  */
 public class MeteorGuiScreen extends Screen {
-	private static final float UI = 0.8f;
+	private static float UI = 0.8f;
 	private static int W = 118, HEAD = 18, ROWH = 16, GAP = 8, PADX = 10, PADY = 12;
 	private static boolean lastGlass;
 
 	/** Modo vidro: colunas mais estreitas, linhas baixas, cantos quase retos. */
 	private void syncMetrics() {
 		boolean g = com.witch.module.GuiSettingsModule.glass();
-		W = g ? 108 : 118; HEAD = g ? 14 : 18; ROWH = g ? 13 : 16; GAP = g ? 6 : 8;
+		UI = g ? 0.66f : 0.8f; W = g ? 108 : 118; HEAD = g ? 14 : 18; ROWH = g ? 13 : 16; GAP = g ? 6 : 8;
 		if (g != lastGlass) {
 			lastGlass = g;
 			for (Win w : WINS) w.placed = false;
@@ -257,7 +257,7 @@ public class MeteorGuiScreen extends Screen {
 	private static void glassWindow(GuiGraphicsExtractor g, int x, int y, int w, int h, float a) {
 		int r = 2;
 		RenderUtil.roundRect(g, x, y, w, h, r, RenderUtil.alpha(0xFF070B16, 0.66f * a)); // base: escurece o fundo borrado
-		for (int yy = y + 1; yy < y + h - 1; yy++) { // degrade vertical sem escapar dos cantos
+		for (int yy = y; yy < y + h; yy++) { // degrade vertical sem escapar dos cantos
 			float k = (yy - y) / (float) h;
 			int c = RenderUtil.alpha(RenderUtil.mix(0xFFBFD6FF, 0xFF6C7BFF, k), (0.13f - 0.07f * k) * a);
 			int dy = Math.min(yy - y, y + h - 1 - yy);
@@ -266,7 +266,7 @@ public class MeteorGuiScreen extends Screen {
 				double d = r - dy - 0.5;
 				inset = (int) Math.ceil(r - Math.sqrt(Math.max(0, r * (double) r - d * d)));
 			}
-			g.fill(x + 1 + inset, yy, x + w - 1 - inset, yy + 1, c);
+			g.fill(x + inset, yy, x + w - inset, yy + 1, c);
 		}
 		g.fill(x, y, x + w, y + HEAD, RenderUtil.alpha(0xFFFFFFFF, 0.08f * a)); // cabecalho mais claro
 				// reflexo diagonal que atravessa devagar
