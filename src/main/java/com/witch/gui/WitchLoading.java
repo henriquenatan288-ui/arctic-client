@@ -14,13 +14,14 @@ public final class WitchLoading {
 			"Em GUI Settings voce ajusta a transparencia do ClickGUI.",
 			"Tracers: a cor da linha acompanha a cor do ESP.",
 			"Sus Chunk Finder: ajuste o raio de 1 a 30 chunks.",
+			"Em GUI Settings voce escolhe a cor do ClickGUI.",
 	};
 	private static long startMs = 0L;
 	private static long lastMs = 0L;
 
 	/** Luz suave centrada em (cx, cy) (usada pelas telas de menu). */
 	public static void glow(GuiGraphicsExtractor g, int cx, int cy, int r, float alpha) {
-		RenderUtil.glow(g, cx, cy, r, RenderUtil.alpha(Minimal.light() ? 0xFFFFFFFF : 0xFF8C1C2A, Math.min(1f, alpha * 0.12f)));
+		RenderUtil.glow(g, cx, cy, r, RenderUtil.alpha(Minimal.light() ? 0xFFFFFFFF : 0xFF2A4C8C, Math.min(1f, alpha * 0.12f)));
 	}
 
 	/** Fundo das telas de menu (selecao de mundo, multiplayer, opcoes...). */
@@ -41,7 +42,9 @@ public final class WitchLoading {
 		float in = Minimal.easeOut(age / 0.6f);
 		int cx = w / 2, cy = h / 2;
 
-		Minimal.wordmark(g, cx, cy - 34, 1.0f, 9f, in, 999f);
+		int mw = Math.round(Math.max(36f, Math.min(72f, h * 0.2f)));
+		WitchLogo.draw(g, cx - mw / 2, cy - 46 - mw + Math.round((1f - in) * 5f), mw, in);
+		Minimal.wordmark(g, cx, cy - 30, 0.85f, 8f, in, 999f);
 
 		// linha de progresso de 1px
 		int bw = Math.min(190, w - 60);
