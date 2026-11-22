@@ -35,6 +35,13 @@ public class WitchGametest implements FabricClientGameTest {
 			context.waitTicks(20);
 			context.takeScreenshot("gui-liquid-glass-2");
 			context.runOnClient(mc -> {
+				mc.gui.setScreen(null);
+				com.witch.module.ModuleManager.byName("Sky").setEnabled(true);
+				if (mc.player != null) mc.player.setXRot(-35f);
+			});
+			context.waitTicks(60);
+			context.takeScreenshot("ceu-plasma");
+			context.runOnClient(mc -> {
 				try {
 					Class<?> c = Class.forName("com.witch.gui.ArcticGuiScreen");
 					var cur = c.getDeclaredField("current"); cur.setAccessible(true);
