@@ -74,11 +74,10 @@ public abstract class LoadingOverlayMixin {
 		// nome do client no centro, letra por letra
 		String name = "ARCTIC";
 		float sc = Math.max(2f, Math.min(5f, h / 110f));
-		float ty = h * 0.46f - com.witch.gui.FontUtil.height() * sc / 2f;
+		float ty = h * 0.56f - com.witch.gui.FontUtil.height() * sc / 2f;
+		int mw = Math.round(Math.max(48f, Math.min(160f, h * 0.30f)));
+		int my0 = Math.round(h * 0.30f - mw / 2f + (1f - ease) * 6f);
+		com.witch.gui.WitchLogo.draw(g, (w - mw) / 2, my0, mw, a * ease);
 		com.witch.gui.Minimal.spaced(g, name, w / 2f, ty, sc, sc * 2.5f, 0xFFFFFFFF, a, true, (now - witch$t0) / 140f);
-		int lw = Math.round(38 + 6 * ease);
-		int lx = (w - lw) / 2;
-		int ly = (int) (h * 0.88f) - com.witch.gui.WitchLogo.height(lw) / 2 + Math.round((1f - ease) * 5f);
-		com.witch.gui.WitchLogo.draw(g, lx, ly, lw, a * 0.9f * ease);
 	}
 }
