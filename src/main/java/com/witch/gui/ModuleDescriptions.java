@@ -54,7 +54,7 @@ public final class ModuleDescriptions {
 			case "Step" -> "Sobe blocos sem pular. Anticheat detecta.";
 			case "Spider" -> "Sobe paredes andando contra elas. Anticheat detecta.";
 			case "Crosshair" -> "Mira nova: 4 estilos, cor, tamanho e espaco.";
-			case "Sky" -> "Cor do ceu e mais estrelas.";
+			case "Sky" -> "Ceu de plasma azul gelo (shader proprio) ou so cor + mais estrelas. Mode 2 = plasma; a cor e a intensidade sao ajustaveis.";
 			case "Fog" -> "Neblina: visao mais curta e nevoa colorida.";
 			case "Glow Players" -> "Contorno brilhante nos outros jogadores.";
 			case "Jump Circles" -> "Anel de luz no chao ao pular.";
