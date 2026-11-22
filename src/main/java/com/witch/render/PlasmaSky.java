@@ -35,7 +35,7 @@ public final class PlasmaSky {
 	private static RenderPipeline pipeline() {
 		if (pipe != null || failed) return pipe;
 		try {
-			var b = RenderPipeline.builder(snippet("MATRICES_FOG_SNIPPET"), snippet("GLOBALS_SNIPPET"))
+			var b = RenderPipeline.builder(snippet("MATRICES_FOG_SNIPPET"))
 					.withLocation("pipeline/witch_plasma_sky")
 					.withVertexShader(Identifier.fromNamespaceAndPath("witch", "core/witch_plasma"))
 					.withFragmentShader(Identifier.fromNamespaceAndPath("witch", "core/witch_plasma"))
