@@ -9,6 +9,7 @@
     "ConnectScreenMixin",
     "LoadingOverlayMixin",
     "ScreenBackgroundMixin",
+    "PauseScreenMixin",
     "ChatComponentMixin",
     "LivingEntityMixin",
     "SkyRendererMixin",
