@@ -34,6 +34,18 @@ public class WitchGametest implements FabricClientGameTest {
 			context.takeScreenshot("gui-liquid-glass");
 			context.waitTicks(20);
 			context.takeScreenshot("gui-liquid-glass-2");
+			context.runOnClient(mc -> {
+				try {
+					Class<?> c = Class.forName("com.witch.gui.ArcticGuiScreen");
+					var cur = c.getDeclaredField("current"); cur.setAccessible(true);
+					cur.set(null, com.witch.module.ModuleManager.byName("Particles 3D").category);
+					var ex = c.getDeclaredField("EXPANDED"); ex.setAccessible(true);
+					((java.util.Set<Object>) ex.get(null)).add(com.witch.module.ModuleManager.byName("Particles 3D"));
+				} catch (Throwable t) { System.out.println("[WDBG] arctic fail " + t); }
+				mc.gui.setScreen(com.witch.gui.ClickGui.create());
+			});
+			context.waitTicks(40);
+			context.takeScreenshot("arctic-ligados");
 			context.runOnClient(mc -> mc.gui.setScreen(new com.witch.gui.WitchTitleScreen()));
 			context.waitTicks(60);
 			context.takeScreenshot("titulo");
