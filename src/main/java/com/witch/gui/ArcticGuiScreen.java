@@ -29,7 +29,8 @@ import java.util.Set;
  */
 public class ArcticGuiScreen extends Screen {
 	private static final float UI = 0.85f;
-	private static final int SIDE_W = 100, HEAD_H = 28, ROW_H = 20, GAP = 3, PAD = 8, R = 16;
+	private static final int SIDE_W = 100, HEAD_H = 28, ROW_H = 20, GAP = 3, PAD = 8, R = 18;
+	private static final net.minecraft.resources.Identifier FRAME = net.minecraft.resources.Identifier.fromNamespaceAndPath("witch", "textures/gui/arctic_frame.png");
 	private static final int BASE = 0xFF4670B8, SIDE = 0xFF21407A, HEADC = 0xFF34589A;
 	private static final int BLUE = 0xFF8EC5FF, BLUE_DK = 0xFF5B9BF0, ICE = 0xFFE3F1FF;
 
@@ -148,18 +149,13 @@ public class ArcticGuiScreen extends Screen {
 		for (Module m : EXPANDED) EXP.putIfAbsent(m, 0f);
 
 		int wx = wx(), wy = wy() + Math.round((1f - a) * 8f), ww = ww(), wh = wh();
-		// brilho em volta da janela
-		RenderUtil.softShadow(g, wx, wy, ww, wh, 16, RenderUtil.alpha(0xFFBFDAFF, 0.10f * a));
-		RenderUtil.softShadow(g, wx, wy, ww, wh, 9, RenderUtil.alpha(0xFFCFE4FF, 0.14f * a));
-		RenderUtil.softShadow(g, wx, wy, ww, wh, 4, RenderUtil.alpha(0xFFFFFFFF, 0.06f * a));
 		// corpo e cabecalho
 		RenderUtil.roundRect(g, wx, wy, ww, wh, R, RenderUtil.alpha(BASE, 0.78f * a));
 		RenderUtil.roundRect(g, wx, wy, ww, HEAD_H, R, RenderUtil.alpha(HEADC, 0.70f * a));
 		g.fill(wx, wy + HEAD_H / 2, wx + ww, wy + HEAD_H, RenderUtil.alpha(HEADC, 0.70f * a));
 		g.fill(wx + 1, wy + HEAD_H, wx + ww - 1, wy + HEAD_H + 1, RenderUtil.alpha(ICE, 0.30f * a));
-		RenderUtil.roundRing(g, wx, wy, ww, wh, R, RenderUtil.alpha(ICE, 0.50f * a)); // borda fina, 1px
+		frame(g, wx, wy, ww, wh, 0.80f * a);
 		g.fill(wx + SIDE_W, wy + HEAD_H + 2, wx + SIDE_W + 1, wy + wh - R, RenderUtil.alpha(ICE, 0.40f * a));
-		swoosh(g, wx, wy, ww, wh, a);
 		// reflexo suave que passa
 		float cyc = (System.nanoTime() / 1_000_000L % 9000L) / 9000f;
 		int rx = Math.round(wx + (cyc * 1.5f - 0.25f) * ww);
@@ -254,24 +250,30 @@ public class ArcticGuiScreen extends Screen {
 		g.pose().popMatrix();
 	}
 
-	/** Curvas claras nos cantos (superior esquerdo e inferior direito), como no desenho de referencia. */
-	private static void swoosh(GuiGraphicsExtractor g, int wx, int wy, int ww, int wh, float a) {
-		int S = 64;
-		for (int r = 0; r < S; r++) {
-			float k = r / (float) S;
-			int wdt = Math.round(S * (1f - (float) Math.sqrt(k)));
-			int ins = cornerInset(r);
-			int c = RenderUtil.alpha(RenderUtil.mix(0xFFFFFFFF, BLUE, k), (0.42f - 0.30f * k) * a);
-			if (wx + wdt > wx + 1 + ins) g.fill(wx + 1 + ins, wy + 1 + r, wx + wdt, wy + 2 + r, c);
-			int yb = wy + wh - 2 - r;
-			if (wx + ww - wdt < wx + ww - 1 - ins) g.fill(wx + ww - wdt, yb, wx + ww - 1 - ins, yb + 1, c);
-		}
-	}
+	// Moldura (brilho, borda e curvas dos cantos) recortada do desenho do usuario: arctic_frame.png, miolo transparente.
+	private static final int TW = 1229, TH = 819;
+	private static final int SL = 200, SR = 1000, ST = 208, SB = 560;      // linhas de corte (px da textura)
+	private static final int WX0 = 62, WY0 = 99, WX1 = 1170, WY1 = 711;    // retangulo da janela dentro da textura
+	private static final float SC = 0.5f;                                   // px da tela por px da textura
 
-	private static int cornerInset(int dy) {
-		if (dy >= R) return 0;
-		double d = R - dy - 0.5;
-		return (int) Math.ceil(R - Math.sqrt(Math.max(0, R * (double) R - d * d)));
+	private static void frame(GuiGraphicsExtractor g, int wx, int wy, int ww, int wh, float alpha) {
+		int col = RenderUtil.alpha(0xFFFFFFFF, alpha);
+		int xA = Math.round(wx - WX0 * SC), xB = Math.round(xA + SL * SC);
+		int xD = Math.round(wx + ww + (TW - WX1) * SC), xC = Math.round(xD - (TW - SR) * SC);
+		int yA = Math.round(wy - WY0 * SC), yB = Math.round(yA + ST * SC);
+		int yD = Math.round(wy + wh + (TH - WY1) * SC), yC = Math.round(yD - (TH - SB) * SC);
+		if (xC < xB) xC = xB;
+		if (yC < yB) yC = yB;
+		var P = net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED;
+		int[] xs = {xA, xB, xC, xD}, ys = {yA, yB, yC, yD};
+		int[] us = {0, SL, SR, TW}, vs = {0, ST, SB, TH};
+		for (int r = 0; r < 3; r++) {
+			for (int c = 0; c < 3; c++) {
+				int dw = xs[c + 1] - xs[c], dh = ys[r + 1] - ys[r];
+				if (dw <= 0 || dh <= 0) continue;
+				g.blit(P, FRAME, xs[c], ys[r], (float) us[c], (float) vs[r], dw, dh, us[c + 1] - us[c], vs[r + 1] - vs[r], TW, TH, col);
+			}
+		}
 	}
 
 	private void row(GuiGraphicsExtractor g, Module m, int x, int ry, int w, int mx, int my, float a, float speed, int clipY, int clipH) {
@@ -280,8 +282,8 @@ public class ArcticGuiScreen extends Screen {
 		m.toggleAnim = Mth.lerp(Math.min(1f, speed * 0.3f), m.toggleAnim, m.isEnabled() ? 1f : 0f);
 		m.hoverAnim = Mth.lerp(Math.min(1f, speed * 0.3f), m.hoverAnim, hover ? 1f : 0f);
 		float t = m.toggleAnim;
-		int bg = RenderUtil.mix(0x2EFFFFFF, 0x55FFFFFF, Math.max(t * 0.6f, m.hoverAnim * 0.5f));
-		RenderUtil.roundRect(g, x, ry, w, ROW_H, 7, RenderUtil.alpha(bg, a));
+		int bg = RenderUtil.mix(0xFF2B4B86, 0xFF40689F, Math.max(t * 0.6f, m.hoverAnim * 0.6f));
+		RenderUtil.roundRect(g, x, ry, w, ROW_H, 7, RenderUtil.alpha(bg, 0.52f * a));
 		if (t > 0.01f) RenderUtil.roundRect(g, x, ry, w, ROW_H, 7, RenderUtil.alpha(BLUE_DK, 0.32f * t * a));
 		int col = RenderUtil.mix(0xFFD2E2F7, 0xFFFFFFFF, Math.max(t, m.hoverAnim * 0.6f));
 		FontUtil.draw(g, ModuleRow.fit(m.name, w - 70), x + 10, ry + (ROW_H - fh) / 2, RenderUtil.alpha(col, a));
