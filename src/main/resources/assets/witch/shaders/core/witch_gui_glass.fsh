@@ -59,17 +59,17 @@ void main() {
     float line = 0.030 / (abs(n2 - 0.5) + 0.030);
     float glow = clamp(line * 0.75, 0.0, 1.2);
     vec3 ice = vec3(0.55, 0.80, 1.0);
-    vec3 plasma = mix(ice, vec3(1.0), clamp(glow - 0.7, 0.0, 1.0)) * glow * 0.30;
+    vec3 plasma = mix(ice, vec3(1.0), clamp(glow - 0.7, 0.0, 1.0)) * glow * 0.75;
 
     // reflexo diagonal de vidro que atravessa a janela
     float s = texCoord0.x * 0.85 + texCoord0.y * 0.45;
     float band = fract(phase) * 2.6 - 0.7;
-    float sheen = exp(-pow((s - band) * 6.5, 2.0)) * 0.16;
+    float sheen = exp(-pow((s - band) * 5.0, 2.0)) * 0.30;
 
     // brilho fino junto da borda
-    float edge = exp(-max(-sdf, 0.0) * 55.0) * 0.18;
+    float edge = exp(-max(-sdf, 0.0) * 45.0) * 0.30;
 
     vec3 col = plasma + vec3(sheen) + ice * edge;
-    float a = clamp(max(max(plasma.r, plasma.b) * 1.4, sheen) + edge, 0.0, 1.0) * inten * mask + keep;
+    float a = clamp(max(max(plasma.r, plasma.b) * 1.6, sheen) + edge, 0.0, 1.0) * inten * mask + keep;
     fragColor = vec4(col / max(a, 0.001) * min(a, 1.0), a);
 }
