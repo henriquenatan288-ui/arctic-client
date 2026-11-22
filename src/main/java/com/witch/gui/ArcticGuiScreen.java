@@ -29,8 +29,8 @@ import java.util.Set;
  */
 public class ArcticGuiScreen extends Screen {
 	private static final float UI = 0.85f;
-	private static final int SIDE_W = 100, HEAD_H = 28, ROW_H = 20, GAP = 3, PAD = 8, R = 10;
-	private static final int BASE = 0xFF3A5E94, SIDE = 0xFF1B2F54, HEADC = 0xFF2C4A7C;
+	private static final int SIDE_W = 100, HEAD_H = 28, ROW_H = 20, GAP = 3, PAD = 8, R = 16;
+	private static final int BASE = 0xFF4670B8, SIDE = 0xFF21407A, HEADC = 0xFF34589A;
 	private static final int BLUE = 0xFF8EC5FF, BLUE_DK = 0xFF5B9BF0, ICE = 0xFFE3F1FF;
 
 	private static final Category[] CATS = Category.values();
@@ -133,7 +133,7 @@ public class ArcticGuiScreen extends Screen {
 			this.extractBlurredBackground(g);
 		} catch (Throwable ignored) {
 		}
-		g.fill(0, 0, this.width, this.height, RenderUtil.alpha(0xFF0A1428, 0.25f * a));
+		g.fill(0, 0, this.width, this.height, RenderUtil.alpha(0xFF1A3570, 0.38f * a));
 		g.pose().pushMatrix();
 		g.pose().scale(UI, UI);
 		mx = Math.round(mx / UI);
@@ -148,12 +148,19 @@ public class ArcticGuiScreen extends Screen {
 		for (Module m : EXPANDED) EXP.putIfAbsent(m, 0f);
 
 		int wx = wx(), wy = wy() + Math.round((1f - a) * 8f), ww = ww(), wh = wh();
+		// brilho em volta da janela
+		RenderUtil.softShadow(g, wx, wy, ww, wh, 16, RenderUtil.alpha(0xFFBFDAFF, 0.10f * a));
+		RenderUtil.softShadow(g, wx, wy, ww, wh, 9, RenderUtil.alpha(0xFFCFE4FF, 0.14f * a));
+		RenderUtil.softShadow(g, wx, wy, ww, wh, 4, RenderUtil.alpha(0xFFFFFFFF, 0.16f * a));
 		// corpo e cabecalho
-		RenderUtil.roundRect(g, wx, wy, ww, wh, R, RenderUtil.alpha(BASE, 0.66f * a));
+		RenderUtil.roundRect(g, wx, wy, ww, wh, R, RenderUtil.alpha(BASE, 0.78f * a));
 		RenderUtil.roundRect(g, wx, wy, ww, HEAD_H, R, RenderUtil.alpha(HEADC, 0.70f * a));
 		g.fill(wx, wy + HEAD_H / 2, wx + ww, wy + HEAD_H, RenderUtil.alpha(HEADC, 0.70f * a));
 		g.fill(wx + 1, wy + HEAD_H, wx + ww - 1, wy + HEAD_H + 1, RenderUtil.alpha(ICE, 0.30f * a));
-		RenderUtil.roundRing(g, wx, wy, ww, wh, R, RenderUtil.alpha(ICE, 0.55f * a));
+		RenderUtil.roundRing(g, wx, wy, ww, wh, R, RenderUtil.alpha(0xFFFFFFFF, 0.85f * a));
+		RenderUtil.roundRing(g, wx + 1, wy + 1, ww - 2, wh - 2, R - 1, RenderUtil.alpha(BLUE, 0.35f * a));
+		g.fill(wx + SIDE_W, wy + HEAD_H + 2, wx + SIDE_W + 1, wy + wh - R, RenderUtil.alpha(ICE, 0.40f * a));
+		swoosh(g, wx, wy, ww, wh, a);
 		// reflexo suave que passa
 		float cyc = (System.nanoTime() / 1_000_000L % 9000L) / 9000f;
 		int rx = Math.round(wx + (cyc * 1.5f - 0.25f) * ww);
@@ -196,7 +203,12 @@ public class ArcticGuiScreen extends Screen {
 			int iy = sby + 5 + i * 23;
 			boolean sel = search.isEmpty() && CATS[i] == current;
 			boolean hov = RenderUtil.inside(mx, my, sbx + 3, iy, sbw - 6, 21);
-			if (sel) RenderUtil.roundRect(g, sbx + 3, iy, sbw - 6, 21, 10, RenderUtil.alpha(BLUE_DK, 0.92f * a));
+			if (sel) {
+				RenderUtil.softShadow(g, sbx + 3, iy, sbw - 6, 21, 4, RenderUtil.alpha(BLUE, 0.22f * a));
+				RenderUtil.roundRect(g, sbx + 3, iy, sbw - 6, 21, 10, RenderUtil.alpha(BLUE_DK, 0.95f * a));
+				RenderUtil.roundRect(g, sbx + 5, iy + 1, sbw - 10, 8, 6, RenderUtil.alpha(0xFFFFFFFF, 0.16f * a));
+				RenderUtil.roundRing(g, sbx + 3, iy, sbw - 6, 21, 10, RenderUtil.alpha(0xFFD9ECFF, 0.7f * a));
+			}
 			else if (hov) RenderUtil.roundRect(g, sbx + 3, iy, sbw - 6, 21, 10, RenderUtil.alpha(0xFFFFFFFF, 0.10f * a));
 			int col = sel ? 0xFFFFFFFF : (hov ? 0xFFEAF4FF : 0xFFB6CCEB);
 			CategoryIcons.draw(g, CATS[i], sbx + 11, iy + (21 - 7) / 2, RenderUtil.alpha(col, a));
@@ -241,6 +253,26 @@ public class ArcticGuiScreen extends Screen {
 			}
 		}
 		g.pose().popMatrix();
+	}
+
+	/** Curvas claras nos cantos (superior esquerdo e inferior direito), como no desenho de referencia. */
+	private static void swoosh(GuiGraphicsExtractor g, int wx, int wy, int ww, int wh, float a) {
+		int S = 64;
+		for (int r = 0; r < S; r++) {
+			float k = r / (float) S;
+			int wdt = Math.round(S * (1f - (float) Math.sqrt(k)));
+			int ins = cornerInset(r);
+			int c = RenderUtil.alpha(RenderUtil.mix(0xFFFFFFFF, BLUE, k), (0.42f - 0.30f * k) * a);
+			if (wx + wdt > wx + 1 + ins) g.fill(wx + 1 + ins, wy + 1 + r, wx + wdt, wy + 2 + r, c);
+			int yb = wy + wh - 2 - r;
+			if (wx + ww - wdt < wx + ww - 1 - ins) g.fill(wx + ww - wdt, yb, wx + ww - 1 - ins, yb + 1, c);
+		}
+	}
+
+	private static int cornerInset(int dy) {
+		if (dy >= R) return 0;
+		double d = R - dy - 0.5;
+		return (int) Math.ceil(R - Math.sqrt(Math.max(0, R * (double) R - d * d)));
 	}
 
 	private void row(GuiGraphicsExtractor g, Module m, int x, int ry, int w, int mx, int my, float a, float speed, int clipY, int clipH) {
