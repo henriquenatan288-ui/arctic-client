@@ -151,14 +151,13 @@ public class ArcticGuiScreen extends Screen {
 		// brilho em volta da janela
 		RenderUtil.softShadow(g, wx, wy, ww, wh, 16, RenderUtil.alpha(0xFFBFDAFF, 0.10f * a));
 		RenderUtil.softShadow(g, wx, wy, ww, wh, 9, RenderUtil.alpha(0xFFCFE4FF, 0.14f * a));
-		RenderUtil.softShadow(g, wx, wy, ww, wh, 4, RenderUtil.alpha(0xFFFFFFFF, 0.16f * a));
+		RenderUtil.softShadow(g, wx, wy, ww, wh, 4, RenderUtil.alpha(0xFFFFFFFF, 0.06f * a));
 		// corpo e cabecalho
 		RenderUtil.roundRect(g, wx, wy, ww, wh, R, RenderUtil.alpha(BASE, 0.78f * a));
 		RenderUtil.roundRect(g, wx, wy, ww, HEAD_H, R, RenderUtil.alpha(HEADC, 0.70f * a));
 		g.fill(wx, wy + HEAD_H / 2, wx + ww, wy + HEAD_H, RenderUtil.alpha(HEADC, 0.70f * a));
 		g.fill(wx + 1, wy + HEAD_H, wx + ww - 1, wy + HEAD_H + 1, RenderUtil.alpha(ICE, 0.30f * a));
-		RenderUtil.roundRing(g, wx, wy, ww, wh, R, RenderUtil.alpha(0xFFFFFFFF, 0.85f * a));
-		RenderUtil.roundRing(g, wx + 1, wy + 1, ww - 2, wh - 2, R - 1, RenderUtil.alpha(BLUE, 0.35f * a));
+		RenderUtil.roundRing(g, wx, wy, ww, wh, R, RenderUtil.alpha(ICE, 0.50f * a)); // borda fina, 1px
 		g.fill(wx + SIDE_W, wy + HEAD_H + 2, wx + SIDE_W + 1, wy + wh - R, RenderUtil.alpha(ICE, 0.40f * a));
 		swoosh(g, wx, wy, ww, wh, a);
 		// reflexo suave que passa
