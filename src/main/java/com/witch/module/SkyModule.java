@@ -12,7 +12,7 @@ public class SkyModule extends Module {
 	private final ColorSetting color = add(new ColorSetting("Color", 0));
 	private final IntSetting mode = add(new IntSetting("Mode (1 cor, 2 plasma)", 1, 2, 2, ""));
 	private final ColorSetting plasma = add(new ColorSetting("Plasma color", 1));
-	private final IntSetting plasmaGlow = add(new IntSetting("Plasma intensity", 20, 100, 70, "%"));
+	private final IntSetting plasmaGlow = add(new IntSetting("Plasma intensity", 20, 100, 85, "%"));
 	private final IntSetting tint = add(new IntSetting("Tint", 0, 100, 55, "%"));
 	private final IntSetting stars = add(new IntSetting("Stars", 0, 100, 70, "%"));
 

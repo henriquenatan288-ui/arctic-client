@@ -53,14 +53,14 @@ void main() {
     float n2 = fbm(vec3(q * 1.1 + n1 * 1.7, 2.0) + w2);
     float n3 = fbm(vec3(q * 1.7 - n2 * 1.3, 5.0) + w1.zxy);
 
-    float l1 = 0.020 / (abs(n2 - 0.5) + 0.020);
-    float l2 = 0.014 / (abs(n3 - 0.5) + 0.016);
+    float l1 = 0.034 / (abs(n2 - 0.5) + 0.022);
+    float l2 = 0.024 / (abs(n3 - 0.5) + 0.018);
     float glow = clamp(l1 * 0.85 + l2 * 0.55, 0.0, 1.6);
 
     vec3 base = mix(vec3(0.008, 0.025, 0.07), vec3(0.03, 0.09, 0.2), n1);
     vec3 tint = ColorModulator.rgb;
     vec3 core = mix(tint, vec3(1.0), clamp(glow - 0.8, 0.0, 1.0));
-    vec3 col = base + core * glow * ColorModulator.a * 0.55 + tint * n2 * 0.10;
+    vec3 col = base + core * glow * ColorModulator.a * 0.95 + tint * n2 * 0.10;
     col = mix(vec3(0.012, 0.03, 0.07), col, up);
     fragColor = vec4(col, 1.0);
 }
