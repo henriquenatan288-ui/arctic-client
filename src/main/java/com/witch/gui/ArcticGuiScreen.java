@@ -156,13 +156,15 @@ public class ArcticGuiScreen extends Screen {
 		g.fill(wx + 1, wy + HEAD_H, wx + ww - 1, wy + HEAD_H + 1, RenderUtil.alpha(ICE, 0.30f * a));
 		frame(g, wx, wy, ww, wh, 0.80f * a);
 		g.fill(wx + SIDE_W, wy + HEAD_H + 2, wx + SIDE_W + 1, wy + wh - R, RenderUtil.alpha(ICE, 0.40f * a));
-		// reflexo suave que passa
-		float cyc = (System.nanoTime() / 1_000_000L % 9000L) / 9000f;
-		int rx = Math.round(wx + (cyc * 1.5f - 0.25f) * ww);
-		for (int d = -14; d <= 14; d++) {
-			int xx = rx + d;
-			if (xx <= wx + R || xx >= wx + ww - R) continue;
-			g.fill(xx, wy + HEAD_H + 2, xx + 1, wy + wh - 3, ((int) ((1f - Math.abs(d) / 14f) * 0.06f * a * 255) << 24) | 0xFFFFFF);
+		// shader: plasma suave + reflexo de vidro + brilho de borda (se falhar, reflexo simples)
+		float cyc = (System.nanoTime() / 1_000_000L % 12000L) / 12000f;
+		if (!com.witch.module.GuiSettingsModule.guiShader() || !com.witch.render.GuiGlassShader.draw(g, wx, wy, ww, wh, cyc, a)) {
+			int rx = Math.round(wx + (cyc * 1.5f - 0.25f) * ww);
+			for (int d = -14; d <= 14; d++) {
+				int xx = rx + d;
+				if (xx <= wx + R || xx >= wx + ww - R) continue;
+				g.fill(xx, wy + HEAD_H + 2, xx + 1, wy + wh - 3, ((int) ((1f - Math.abs(d) / 14f) * 0.06f * a * 255) << 24) | 0xFFFFFF);
+			}
 		}
 
 		// marca e nome
