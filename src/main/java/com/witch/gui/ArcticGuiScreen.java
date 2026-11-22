@@ -31,8 +31,33 @@ public class ArcticGuiScreen extends Screen {
 	private static final float UI = 0.85f;
 	private static final int SIDE_W = 100, HEAD_H = 28, ROW_H = 20, GAP = 3, PAD = 8, R = 18;
 	private static final net.minecraft.resources.Identifier FRAME = net.minecraft.resources.Identifier.fromNamespaceAndPath("witch", "textures/gui/arctic_frame.png");
-	private static final int BASE = 0xFF4670B8, SIDE = 0xFF21407A, HEADC = 0xFF34589A;
-	private static final int BLUE = 0xFF8EC5FF, BLUE_DK = 0xFF5B9BF0, ICE = 0xFFE3F1FF;
+	private static int BASE = 0xFF4670B8, SIDE = 0xFF21407A, HEADC = 0xFF34589A;
+	private static int BLUE = 0xFF8EC5FF, BLUE_DK = 0xFF5B9BF0, ICE = 0xFFE3F1FF;
+	/** matiz (0..1) e fator de saturacao da cor escolhida em GUI Settings; branco/cinza = tema neutro. */
+	private static float tintHue = 0.60f, tintSat = 1f;
+
+	private static void syncTint() {
+		int c = com.witch.module.GuiSettingsModule.guiColor();
+		float r = ((c >> 16) & 255) / 255f, gg = ((c >> 8) & 255) / 255f, b = (c & 255) / 255f;
+		float max = Math.max(r, Math.max(gg, b)), min = Math.min(r, Math.min(gg, b)), d = max - min;
+		float h;
+		if (d < 1e-4f) h = 0f;
+		else if (max == r) h = (((gg - b) / d) + 6f) % 6f;
+		else if (max == gg) h = (b - r) / d + 2f;
+		else h = (r - gg) / d + 4f;
+		tintHue = h / 6f;
+		tintSat = max <= 0f ? 0f : Math.min(1f, (d / max) / 0.5f);
+		BASE = t(0xFF4670B8); SIDE = t(0xFF21407A); HEADC = t(0xFF34589A);
+		BLUE = t(0xFF8EC5FF); BLUE_DK = t(0xFF5B9BF0); ICE = t(0xFFE3F1FF);
+	}
+
+	/** Troca o matiz de uma cor azul do tema pelo matiz escolhido, mantendo brilho e (quase) a saturacao. */
+	static int t(int argb) {
+		float r = ((argb >> 16) & 255) / 255f, gg = ((argb >> 8) & 255) / 255f, b = (argb & 255) / 255f;
+		float max = Math.max(r, Math.max(gg, b)), min = Math.min(r, Math.min(gg, b));
+		float s = (max <= 0f ? 0f : (max - min) / max) * tintSat;
+		return (argb & 0xFF000000) | (com.witch.setting.ColorSetting.hsvToRgb(tintHue, s, max) & 0xFFFFFF);
+	}
 
 	private static final Category[] CATS = Category.values();
 	private static Category current = CATS[0];
@@ -125,6 +150,7 @@ public class ArcticGuiScreen extends Screen {
 
 	@Override
 	public void extractRenderState(GuiGraphicsExtractor g, int mx, int my, float delta) {
+		syncTint();
 		long now = System.nanoTime();
 		float speed = lastNanos == 0 ? 1f : Math.min(3f, (now - lastNanos) / 16_666_667f);
 		lastNanos = now;
@@ -134,7 +160,7 @@ public class ArcticGuiScreen extends Screen {
 			this.extractBlurredBackground(g);
 		} catch (Throwable ignored) {
 		}
-		g.fill(0, 0, this.width, this.height, RenderUtil.alpha(0xFF1A3570, 0.38f * a));
+		g.fill(0, 0, this.width, this.height, RenderUtil.alpha(t(0xFF1A3570), 0.38f * a));
 		g.pose().pushMatrix();
 		g.pose().scale(UI, UI);
 		mx = Math.round(mx / UI);
@@ -158,7 +184,7 @@ public class ArcticGuiScreen extends Screen {
 		g.fill(wx + SIDE_W, wy + HEAD_H + 2, wx + SIDE_W + 1, wy + wh - R, RenderUtil.alpha(ICE, 0.40f * a));
 		// shader: plasma suave + reflexo de vidro + brilho de borda (se falhar, reflexo simples)
 		float cyc = (System.nanoTime() / 1_000_000L % 12000L) / 12000f;
-		if (!com.witch.module.GuiSettingsModule.guiShader() || !com.witch.render.GuiGlassShader.draw(g, wx, wy, ww, wh, cyc, a)) {
+		if (!com.witch.module.GuiSettingsModule.guiShader() || !com.witch.render.GuiGlassShader.draw(g, wx, wy, ww, wh, cyc, a, tintSat < 0.5f ? -1f : tintHue)) {
 			int rx = Math.round(wx + (cyc * 1.5f - 0.25f) * ww);
 			for (int d = -14; d <= 14; d++) {
 				int xx = rx + d;
@@ -174,14 +200,14 @@ public class ArcticGuiScreen extends Screen {
 
 		// busca
 		int sx = searchX(), sy = wy + 5, sw = searchW(), sh = HEAD_H - 10;
-		RenderUtil.roundRect(g, sx, sy, sw, sh, 7, RenderUtil.alpha(0xFF0B1730, 0.35f * a));
+		RenderUtil.roundRect(g, sx, sy, sw, sh, 7, RenderUtil.alpha(t(0xFF0B1730), 0.35f * a));
 		RenderUtil.roundRing(g, sx, sy, sw, sh, 7, RenderUtil.alpha(searchFocused ? BLUE : ICE, (searchFocused ? 0.95f : 0.35f) * a));
-		CategoryIcons.blit(g, CategoryIcons.SEARCH, sx + 5, sy + (sh - 9) / 2, 9, RenderUtil.alpha(0xFFDCEBFF, a));
+		CategoryIcons.blit(g, CategoryIcons.SEARCH, sx + 5, sy + (sh - 9) / 2, 9, RenderUtil.alpha(t(0xFFDCEBFF), a));
 		String shown;
 		int scol;
 		if (search.isEmpty() && !searchFocused) {
 			shown = "Search...";
-			scol = 0xFF9DB6D9;
+			scol = t(0xFF9DB6D9);
 		} else {
 			shown = search + (searchFocused && (System.currentTimeMillis() / 500) % 2 == 0 ? "|" : "");
 			scol = 0xFFFFFFFF;
@@ -204,10 +230,10 @@ public class ArcticGuiScreen extends Screen {
 				RenderUtil.softShadow(g, sbx + 3, iy, sbw - 6, 21, 4, RenderUtil.alpha(BLUE, 0.22f * a));
 				RenderUtil.roundRect(g, sbx + 3, iy, sbw - 6, 21, 10, RenderUtil.alpha(BLUE_DK, 0.95f * a));
 				RenderUtil.roundRect(g, sbx + 5, iy + 1, sbw - 10, 8, 6, RenderUtil.alpha(0xFFFFFFFF, 0.16f * a));
-				RenderUtil.roundRing(g, sbx + 3, iy, sbw - 6, 21, 10, RenderUtil.alpha(0xFFD9ECFF, 0.7f * a));
+				RenderUtil.roundRing(g, sbx + 3, iy, sbw - 6, 21, 10, RenderUtil.alpha(t(0xFFD9ECFF), 0.7f * a));
 			}
 			else if (hov) RenderUtil.roundRect(g, sbx + 3, iy, sbw - 6, 21, 10, RenderUtil.alpha(0xFFFFFFFF, 0.10f * a));
-			int col = sel ? 0xFFFFFFFF : (hov ? 0xFFEAF4FF : 0xFFB6CCEB);
+			int col = sel ? 0xFFFFFFFF : (hov ? t(0xFFEAF4FF) : t(0xFFB6CCEB));
 			CategoryIcons.drawSized(g, CATS[i], sbx + 8, iy + 3, 15, RenderUtil.alpha(col, a));
 			FontUtil.draw(g, ModuleRow.fit(CATS[i].label, sbw - 38), sbx + 28, iy + (21 - fh) / 2, RenderUtil.alpha(col, a));
 		}
@@ -225,7 +251,7 @@ public class ArcticGuiScreen extends Screen {
 		}
 		if (mods.isEmpty()) {
 			String none = "Nenhum modulo";
-			FontUtil.draw(g, none, cx + (cw - FontUtil.width(none)) / 2, cy + 20, RenderUtil.alpha(0xFFB6CCEB, a));
+			FontUtil.draw(g, none, cx + (cw - FontUtil.width(none)) / 2, cy + 20, RenderUtil.alpha(t(0xFFB6CCEB), a));
 		}
 		g.disableScissor();
 		int total = contentH();
@@ -245,8 +271,8 @@ public class ArcticGuiScreen extends Screen {
 				int th = fh + 8;
 				int tx = Mth.clamp(mx + 10, 6, vw() - tw - 6);
 				int ty = Mth.clamp(my + 12, 6, vh() - th - 6);
-				RenderUtil.roundRect(g, tx, ty, tw, th, 5, RenderUtil.alpha(0xFF0B1730, 0.96f * a));
-				FontUtil.draw(g, ModuleRow.fit(d, tw - 10), tx + 6, ty + 4, RenderUtil.alpha(0xFFEAF4FF, a));
+				RenderUtil.roundRect(g, tx, ty, tw, th, 5, RenderUtil.alpha(t(0xFF0B1730), 0.96f * a));
+				FontUtil.draw(g, ModuleRow.fit(d, tw - 10), tx + 6, ty + 4, RenderUtil.alpha(t(0xFFEAF4FF), a));
 			}
 		}
 		g.pose().popMatrix();
@@ -259,7 +285,7 @@ public class ArcticGuiScreen extends Screen {
 	private static final float SC = 0.5f;                                   // px da tela por px da textura
 
 	private static void frame(GuiGraphicsExtractor g, int wx, int wy, int ww, int wh, float alpha) {
-		int col = RenderUtil.alpha(0xFFFFFFFF, alpha);
+		int col = RenderUtil.alpha(com.witch.setting.ColorSetting.hsvToRgb(tintHue, 0.30f * tintSat, 1f), alpha);
 		int xA = Math.round(wx - WX0 * SC), xB = Math.round(xA + SL * SC);
 		int xD = Math.round(wx + ww + (TW - WX1) * SC), xC = Math.round(xD - (TW - SR) * SC);
 		int yA = Math.round(wy - WY0 * SC), yB = Math.round(yA + ST * SC);
@@ -284,20 +310,20 @@ public class ArcticGuiScreen extends Screen {
 		m.toggleAnim = Mth.lerp(Math.min(1f, speed * 0.3f), m.toggleAnim, m.isEnabled() ? 1f : 0f);
 		m.hoverAnim = Mth.lerp(Math.min(1f, speed * 0.3f), m.hoverAnim, hover ? 1f : 0f);
 		float t = m.toggleAnim;
-		int bg = RenderUtil.mix(0xFF2B4B86, 0xFF40689F, Math.max(t * 0.6f, m.hoverAnim * 0.6f));
+		int bg = RenderUtil.mix(t(0xFF2B4B86), t(0xFF40689F), Math.max(t * 0.6f, m.hoverAnim * 0.6f));
 		RenderUtil.roundRect(g, x, ry, w, ROW_H, 7, RenderUtil.alpha(bg, 0.52f * a));
 		if (t > 0.01f) RenderUtil.roundRect(g, x, ry, w, ROW_H, 7, RenderUtil.alpha(BLUE_DK, 0.32f * t * a));
-		int col = RenderUtil.mix(0xFFD2E2F7, 0xFFFFFFFF, Math.max(t, m.hoverAnim * 0.6f));
+		int col = RenderUtil.mix(t(0xFFD2E2F7), 0xFFFFFFFF, Math.max(t, m.hoverAnim * 0.6f));
 		FontUtil.draw(g, ModuleRow.fit(m.name, w - 70), x + 10, ry + (ROW_H - fh) / 2, RenderUtil.alpha(col, a));
 		// interruptor
 		int swW = 24, swH = 12, swx = x + w - swW - 9, swy = ry + (ROW_H - swH) / 2;
-		RenderUtil.roundRect(g, swx, swy, swW, swH, 6, RenderUtil.alpha(RenderUtil.mix(0xFF35507F, BLUE, t), a));
+		RenderUtil.roundRect(g, swx, swy, swW, swH, 6, RenderUtil.alpha(RenderUtil.mix(t(0xFF35507F), BLUE, t), a));
 		int kx = swx + 2 + Math.round((swW - swH) * t);
 		RenderUtil.roundRect(g, kx, swy + 2, swH - 4, swH - 4, 4, RenderUtil.alpha(0xFFFFFFFF, a));
 		// seta de ajustes
 		boolean open = EXPANDED.contains(m);
 		String arrow = open ? "v" : ">";
-		FontUtil.draw(g, arrow, swx - 14 - FontUtil.width(arrow) / 2, ry + (ROW_H - fh) / 2, RenderUtil.alpha(0xFFB6CCEB, a));
+		FontUtil.draw(g, arrow, swx - 14 - FontUtil.width(arrow) / 2, ry + (ROW_H - fh) / 2, RenderUtil.alpha(t(0xFFB6CCEB), a));
 		if (hover) tipNow = m;
 
 		float e = expAnim(m);
@@ -305,7 +331,7 @@ public class ArcticGuiScreen extends Screen {
 			int hh = Math.round(settingsH(m) * e);
 			int sy0 = ry + ROW_H + 1;
 			g.enableScissor(x, Math.max(sy0, clipY), x + w, Math.min(sy0 + hh, clipY + clipH));
-			RenderUtil.roundRect(g, x, sy0, w, Math.max(2, hh - 2), 7, RenderUtil.alpha(0xFF0B1730, 0.34f * a));
+			RenderUtil.roundRect(g, x, sy0, w, Math.max(2, hh - 2), 7, RenderUtil.alpha(t(0xFF0B1730), 0.34f * a));
 			int sy = sy0 + 3;
 			for (Setting s : m.settings()) {
 				int sh = SettingRenderer.height(s, w);
