@@ -104,7 +104,6 @@ public class WitchTitleScreen extends Screen {
 	private static final boolean DAB = false; // o Dab parecia travado olhando pra baixo
 	private static final float WALK_YAW = -85f, FRONT_YAW = 20f;
 	/** Duracao da caminhada ate a posicao final. */
-	private static final double WALK_SECONDS = 4.5;
 	private boolean yawReleased;
 	private static java.lang.reflect.Field rotY;
 
@@ -188,8 +187,9 @@ public class WitchTitleScreen extends Screen {
 			}
 			if (walkStart == 0L) walkStart = System.nanoTime();
 			double t = (System.nanoTime() - walkStart) / 1_000_000_000.0;
+			final double WALK_SECONDS = com.witch.module.GuiSettingsModule.walkSeconds();
 			double k = Math.min(1.0, t / WALK_SECONDS);
-			double ease = Math.sin(k * Math.PI / 2.0); // chega devagar, sem arrancada
+			double ease = k * k * (3.0 - 2.0 * k); // sai e chega devagar (tempo em GUI Settings)
 			int stopX = (int) (w * 0.68) - mw / 2;
 			int x = (int) (w + (stopX - w) * ease);
 			int y = h - 24 - mh;
@@ -199,6 +199,8 @@ public class WitchTitleScreen extends Screen {
 			int groundY = h - 20;
 			int cx = x + mw / 2;
 			RenderUtil.softShadow(g, cx - mw / 2, groundY - 3, mw, 6, 12, RenderUtil.alpha(0xFF000000, Minimal.light() ? 0.22f : 0.55f));
+			float fx = (float) Math.min(1.0, Math.max(0.0, (k - 0.6) / 0.4)); // efeitos dos modulos aparecem quando ele chega
+			MenuEffects.orbit(g, cx, y + mh / 2, mw, mh, sec, false, fx);
 			Minimal.hairline(g, cx, groundY, mw * 2, 0.9f);
 			double travel = Math.max(1, w - stopX);
 				double cycles = Math.max(2.0, travel / (mw * 0.5));
@@ -207,8 +209,10 @@ public class WitchTitleScreen extends Screen {
 				turn = turn * turn * (3 - 2 * turn);
 				// durante a caminhada o script controla o giro; depois que chega, o jogador gira livremente (arrastando)
 				if (k < 1.0) setYaw(WALK_YAW + (FRONT_YAW - WALK_YAW) * turn);
-				else if (!yawReleased) { yawReleased = true; setYaw(FRONT_YAW); }
+				else { yawReleased = true; setYaw(FRONT_YAW + userYaw); }
 			skinWidget.extractRenderState(g, mx, my, 0f);
+			MenuEffects.orbit(g, cx, y + mh / 2, mw, mh, sec, true, fx);
+			MenuEffects.floaters(g, cx, groundY, mw, mh, sec, fx);
 			if (k >= 1.0) {
 				float na = (float) Math.min(1.0, Math.max(0.0, (t - WALK_SECONDS - 0.2) / 0.4));
 				if (na > 0f) {
@@ -226,11 +230,8 @@ public class WitchTitleScreen extends Screen {
 
 	@Override
 	public boolean mouseDragged(MouseButtonEvent click, double offsetX, double offsetY) {
-		if (click.x() > this.width * 0.55) {
-			userYaw += (float) (offsetX * 0.03);
-			if (skinWidget != null) {
-				try { skinWidget.mouseDragged(click, offsetX, offsetY); } catch (Throwable ignored) { }
-			}
+		if (click.x() > this.width * 0.42 && yawReleased) {
+			userYaw += (float) (offsetX * 0.9); // graus por pixel: gira de verdade com o dedo/mouse
 			return true;
 		}
 		return super.mouseDragged(click, offsetX, offsetY);

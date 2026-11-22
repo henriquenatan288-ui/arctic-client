@@ -9,6 +9,7 @@ public class GuiSettingsModule extends Module {
 
 	private final ColorSetting accent = add(new ColorSetting("Accent", 7));
 	private final ColorSetting guiColor = add(new ColorSetting("Cor do ClickGUI", 1));
+	private final IntSetting arrival = add(new IntSetting("Chegada do player no menu (1 normal 2 lenta 3 bem lenta)", 1, 3, 2, ""));
 	private final IntSetting opacity = add(new IntSetting("Window opacity", 0, 100, 12, "%"));
 	private final IntSetting menuOpacity = add(new IntSetting("Menu opacity", 5, 100, 100, "%"));
 	private final IntSetting menuTheme = add(new IntSetting("Tema do menu (1 escuro, 2 claro)", 1, 2, 1, ""));
@@ -24,6 +25,12 @@ public class GuiSettingsModule extends Module {
 		super("GUI Settings", Category.UTILITY);
 		instance = this;
 		guiColor.setHsv(0.60f, 0.62f, 1f);
+	}
+
+	/** Segundos que o personagem leva para andar ate a posicao na tela inicial. */
+	public static double walkSeconds() {
+		int v = instance == null ? 2 : instance.arrival.get();
+		return v == 1 ? 5.0 : v == 3 ? 14.0 : 9.0;
 	}
 
 	/** Cor escolhida para o ClickGUI Arctic (padrao azul bebe). */

@@ -31,6 +31,30 @@ public class CardParticlesModule extends Module {
 	private boolean wasGround = true;
 	private int tickN = 0;
 
+	public int menuAmount() { return amount.get(); }
+	public int menuSize() { return size.get(); }
+
+	/** Nome da textura (gui/mp_*.png) da forma escolhida; as cartas variam de naipe com o indice. */
+	public String menuSprite(int i) {
+		return switch (shape.get()) {
+			case 2 -> "shape_money";
+			case 3 -> "shape_witchhat";
+			case 4 -> "shape_duck";
+			case 5 -> "shape_sparkle";
+			case 6 -> "shape_heart";
+			case 7 -> "shape_glow";
+			case 8 -> "shape_flake";
+			default -> "card_" + SUITS[Math.floorMod(i, 4)];
+		};
+	}
+
+	/** So as formas 5 a 8 (brancas) recebem cor. */
+	public int menuColor(int i, int n, double sec) {
+		if (shape.get() < 5) return 0xFFFFFFFF;
+		if (rainbow.get() == 1) return ColorSetting.hsvToRgb((float) ((sec * 0.25 + i / (double) Math.max(1, n)) % 1.0), 0.7f, 1f);
+		return color.get();
+	}
+
 	public CardParticlesModule() {
 		super("Particles 2D", Category.EFFECTS);
 		instance = this;

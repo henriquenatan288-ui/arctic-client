@@ -24,6 +24,17 @@ public class ParticlesModule extends Module implements EspSource {
 	private final IntSetting rainbow = add(new IntSetting("Rainbow (0/1)", 0, 1, 0, ""));
 	private final ColorSetting color = add(new ColorSetting("Color", 0));
 
+	public int menuAmount() { return amount.get(); }
+	public int menuSpeed() { return speed.get(); }
+	public int menuSize() { return size.get(); }
+	public int menuTrail() { return trail.get(); }
+
+	/** Cor da particula i de n para a tela inicial (arco-iris ou a cor escolhida). */
+	public int menuColor(int i, int n, double sec) {
+		if (rainbow.get() == 1) return ColorSetting.hsvToRgb((float) ((sec * 0.25 + i / (double) Math.max(1, n)) % 1.0), 0.7f, 1f);
+		return color.get();
+	}
+
 	public ParticlesModule() {
 		super("Particles 3D", Category.EFFECTS);
 	}
