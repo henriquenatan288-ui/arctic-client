@@ -41,12 +41,14 @@ void main() {
     vec3 d = normalize(pos);
     vec3 tint = ColorModulator.rgb;
     vec3 deep = tint * 0.07 + vec3(0.004, 0.012, 0.024);
-    float up = smoothstep(0.0, 0.14, d.y);
+    bool below = ColorModulator.a < 0.0; // passe espelhado: plasma abaixo do horizonte, sem fade
+    float inten = abs(ColorModulator.a);
+    float up = 1.0; // metade de cima e de baixo espelhadas: continuo no horizonte
     if (up <= 0.0) {
         fragColor = vec4(deep, 1.0);
         return;
     }
-    vec2 q = d.xz / (d.y + 0.30) * 1.5;
+    vec2 q = d.xz / (abs(d.y) + 0.30) * 1.5;
     float tt = GameTime * 6.2831853;
     vec3 w1 = vec3(cos(tt * 30.0), sin(tt * 30.0), sin(tt * 15.0)) * 0.55;
     vec3 w2 = vec3(sin(tt * 20.0), cos(tt * 20.0), cos(tt * 10.0)) * 0.55;
@@ -61,7 +63,7 @@ void main() {
 
     vec3 base = mix(tint * 0.05, tint * 0.20, n1) + vec3(0.004, 0.012, 0.024);
     vec3 core = mix(tint, vec3(1.0), clamp(glow - 0.8, 0.0, 1.0));
-    vec3 col = base + core * glow * ColorModulator.a * 0.95 + tint * n2 * 0.10;
+    vec3 col = base + core * glow * inten * 0.95 + tint * n2 * 0.10;
     col = mix(deep, col, up);
     fragColor = vec4(col, 1.0);
 }

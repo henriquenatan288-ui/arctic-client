@@ -24,7 +24,16 @@ public abstract class SkyRendererMixin {
 	@Inject(method = "renderSkyDisc", at = @At("HEAD"), cancellable = true, require = 0)
 	private void witch$plasma(int color, CallbackInfo ci) {
 		int c = SkyModule.plasmaColor();
-		if (c != 0 && com.witch.render.PlasmaSky.draw(renderTarget, topSkyBuffer, c)) ci.cancel();
+		if (c != 0 && com.witch.render.PlasmaSky.draw(renderTarget, topSkyBuffer, c)) {
+			com.witch.render.PlasmaSky.draw(renderTarget, topSkyBuffer, c, true); // metade de baixo (abaixo do horizonte)
+			ci.cancel();
+		}
+	}
+
+	/** Com plasma, o disco escuro de baixo do jogo some: a metade de baixo ja e plasma. */
+	@Inject(method = "renderDarkDisc", at = @At("HEAD"), cancellable = true, require = 0)
+	private void witch$noDark(CallbackInfo ci) {
+		if (SkyModule.plasmaColor() != 0) ci.cancel();
 	}
 
 	@Inject(method = "extractRenderState", at = @At("RETURN"), require = 0)

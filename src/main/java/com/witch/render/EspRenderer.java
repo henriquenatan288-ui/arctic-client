@@ -181,7 +181,8 @@ public final class EspRenderer {
 		pose.translate(-cam.x, -cam.y, -cam.z);
 		// sem inverseBob: o frame do mundo ja leva o bob na projection; cancelar aqui fazia ESP/tracers
 		// balancarem em relacao ao mundo ao andar. A origem dos tracers (screenCenter) ja considera o bob.
-		Esp esp = new Esp(pose.last().pose(), cam, pt, origin);
+		Vector3f fw = new Matrix4f(crs.viewRotationMatrix).invert().transformDirection(0f, 0f, -1f, new Vector3f());
+		Esp esp = new Esp(pose.last().pose(), cam, pt, origin, new Vec3(fw.x, fw.y, fw.z));
 		for (EspSource s : SOURCES) {
 			if (s.active()) s.collect(esp);
 		}
@@ -226,6 +227,27 @@ public final class EspRenderer {
 		private final Vec3 cam;
 		private final float partial;
 		private final Vec3 start;
+		/** Direcao para onde a camera olha (mundo): serve para cortar linhas que passam por tras dela. */
+		private final Vec3 fwd;
+
+		/**
+		 * Linhas com um ponta atras da camera viravam faixas horizontais na tela inteira (a projecao inverte).
+		 * Corta o segmento no plano proximo; devolve null se ele inteiro esta atras.
+		 */
+		private double[] clipNear(double sx, double sy, double sz, double tx, double ty, double tz) {
+			final double eps = 0.15;
+			double ds = (sx - cam.x) * fwd.x + (sy - cam.y) * fwd.y + (sz - cam.z) * fwd.z;
+			double dt = (tx - cam.x) * fwd.x + (ty - cam.y) * fwd.y + (tz - cam.z) * fwd.z;
+			if (ds < eps && dt < eps) return null;
+			if (ds < eps) {
+				double k = (eps - ds) / (dt - ds);
+				sx += (tx - sx) * k; sy += (ty - sy) * k; sz += (tz - sz) * k;
+			} else if (dt < eps) {
+				double k = (eps - dt) / (ds - dt);
+				tx += (sx - tx) * k; ty += (sy - ty) * k; tz += (sz - tz) * k;
+			}
+			return new double[]{sx, sy, sz, tx, ty, tz};
+		}
 
 		/** Cada troca filled<->lines abre uma draw nova: o builder anterior e fechado pelo appendDraw. */
 		private final java.util.List<StagedVertexBuffer.Draw> draws = new java.util.ArrayList<>();
@@ -233,7 +255,8 @@ public final class EspRenderer {
 		private VertexConsumer cur;
 		private boolean curLines;
 
-		private Esp(Matrix4fc m, Vec3 cam, float partial, Vec3 origin) {
+		private Esp(Matrix4fc m, Vec3 cam, float partial, Vec3 origin, Vec3 fwd) {
+			this.fwd = fwd;
 			this.m = m;
 			this.cam = cam;
 			this.partial = partial;
@@ -331,6 +354,9 @@ public final class EspRenderer {
 
 		public void thinLine(double sx, double sy, double sz, double tx, double ty, double tz, int argb, float alpha,
 							 float width) {
+			double[] cl = clipNear(sx, sy, sz, tx, ty, tz);
+			if (cl == null) return;
+			sx = cl[0]; sy = cl[1]; sz = cl[2]; tx = cl[3]; ty = cl[4]; tz = cl[5];
 			float[] c = rgba(argb, alpha);
 			VertexConsumer vb = lines();
 
@@ -355,8 +381,10 @@ public final class EspRenderer {
 
 		private void ribbon(double sx, double sy, double sz, double tx, double ty, double tz, int argb, float alpha,
 							float kw, float minW, boolean equalWidth) {
-			float ax = (float) sx, ay = (float) sy, az = (float) sz;
-			float bx = (float) tx, by = (float) ty, bz = (float) tz;
+			double[] cl = clipNear(sx, sy, sz, tx, ty, tz);
+			if (cl == null) return;
+			float ax = (float) cl[0], ay = (float) cl[1], az = (float) cl[2];
+			float bx = (float) cl[3], by = (float) cl[4], bz = (float) cl[5];
 			float dx = bx - ax, dy = by - ay, dz = bz - az;
 			float len = (float) Math.sqrt(dx * dx + dy * dy + dz * dz);
 			if (len < 0.01f) return;

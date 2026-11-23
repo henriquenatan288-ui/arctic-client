@@ -14,9 +14,10 @@ PAL = {
     4: ("0.0,0.0,0.01", "0.015,0.015,0.03", "0.03,0.036,0.07", "0.05,0.06,0.125", "0.06,0.105,0.18", "0.012,0.012,0.025", "0.60,0.85,1.0", "0.85,0.95,1.0", "1.7"),     # vazio
     5: ("0.01,0.06,0.04", "0.02,0.10,0.09", "0.10,0.55,0.30", "0.55,0.30,0.75", "0.09,0.45,0.33", "0.03,0.10,0.08", "0.70,1.0,0.80", "0.85,1.0,0.90", "1.0"),             # aurora
     6: ("0.09,0.02,0.05", "0.15,0.04,0.09", "0.60,0.18,0.35", "0.95,0.50,0.65", "0.48,0.38,0.43", "0.14,0.05,0.09", "1.0,0.80,0.90", "1.0,0.92,0.95", "1.0"),           # rosa
+    8: ("0.004,0.012,0.04", "0.01,0.03,0.09", "0.02,0.06,0.16", "0.04,0.10,0.26", "0.05,0.12,0.30", "0.01,0.03,0.08", "0.65,0.88,1.0", "0.85,0.95,1.0", "1.0"),     # plasma (mesmo plasma do ceu do Sky)
     7: ("0.012,0.075,0.085", "0.03,0.12,0.12", "0.084,0.36,0.36", "0.22,0.495,0.352", "0.06,0.24,0.45", "0.04,0.12,0.13", "0.55,1.0,0.90", "0.90,1.0,0.95", "1.0"),   # arco-iris (ciano girando o matiz)
 }
-NAMES = {1: "ciano", 2: "roxo", 3: "fogo", 4: "vazio", 5: "aurora", 6: "rosa", 7: "arco-iris"}
+NAMES = {1: "ciano", 2: "roxo", 3: "fogo", 4: "vazio", 5: "aurora", 6: "rosa", 7: "arco-iris", 8: "plasma"}
 
 
 def palette():
@@ -76,6 +77,23 @@ vec3 hueShift(vec3 c, float a) {
 
 // fundo de nebulosa + camadas de estrelas, na paleta do STYLE. q = coordenada, sc = escala das estrelas, rad = raio da estrela
 vec3 galaxy(vec2 q, float t, float sc, float sbase, float rad, out float n1o) {
+#if STYLE == 8
+    // plasma: mesmo padrao do ceu do Sky (filamentos eletricos azuis); periodico em GameTime = sem pulo na virada do dia
+    float tp = t * 6.2831853 / 9600.0;
+    vec2 w1 = vec2(cos(tp * 30.0), sin(tp * 30.0)) * 0.55;
+    vec2 w2 = vec2(sin(tp * 20.0), cos(tp * 20.0)) * 0.55;
+    float pa = fbm(q * 0.9 + w1);
+    float pb = fbm(q * 1.1 + pa * 1.7 + w2 + 2.0);
+    float pc = fbm(q * 1.7 - pb * 1.3 + w1.yx + 5.0);
+    float pl1 = 0.034 / (abs(pb - 0.5) + 0.022);
+    float pl2 = 0.024 / (abs(pc - 0.5) + 0.018);
+    float pg = clamp(pl1 * 0.85 + pl2 * 0.55, 0.0, 1.6);
+    vec3 ptint = vec3(0.30, 0.62, 1.0);
+    vec3 pbase = mix(ptint * 0.05, ptint * 0.20, pa) + vec3(0.004, 0.012, 0.024);
+    vec3 pcore = mix(ptint, vec3(1.0), clamp(pg - 0.8, 0.0, 1.0));
+    n1o = pa;
+    return pbase + pcore * pg * 0.95 + ptint * pb * 0.10;
+#endif
     vec3 col = mix(G_BASE0, G_BASE1, fbm(q * 1.3 + vec2(t * 0.010, -t * 0.006)));
     float n1 = fbm(q * 2.2 + vec2(3.0, 1.0) + vec2(t * 0.020, t * 0.012));
     col += G_N1 * smoothstep(0.40, 0.85, n1);
