@@ -39,6 +39,7 @@ public final class PlasmaSky {
 					.withLocation("pipeline/witch_plasma_sky")
 					.withVertexShader(Identifier.fromNamespaceAndPath("witch", "core/witch_plasma"))
 					.withFragmentShader(Identifier.fromNamespaceAndPath("witch", "core/witch_plasma"))
+					.withCull(false)
 					.withVertexBinding(0, DefaultVertexFormat.POSITION)
 					.withPrimitiveTopology(com.mojang.blaze3d.PrimitiveTopology.TRIANGLE_FAN);
 			var p = b.build();
@@ -63,11 +64,22 @@ public final class PlasmaSky {
 
 	/** ARGB: rgb = cor do plasma, a = intensidade. Retorna true se desenhou (o disco normal deve ser cancelado). */
 	public static boolean draw(RenderTarget target, GpuBuffer disc, int argb) {
+		return draw(target, disc, argb, false);
+	}
+
+	/** mirror = metade de baixo do ceu: o mesmo disco espelhado e esticado para baixo, com o plasma continuando abaixo do horizonte. */
+	public static boolean draw(RenderTarget target, GpuBuffer disc, int argb, boolean mirror) {
 		if (failed || target == null || disc == null) return false;
 		RenderPipeline p = pipeline();
 		if (p == null) return false;
 		try {
-			GpuBufferSlice t = RenderSystem.getDynamicUniforms().writeTransform(RenderSystem.getModelViewMatrixCopy(), ARGB.vector4fFromARGB32(argb));
+			var mv = RenderSystem.getModelViewMatrixCopy();
+			var col = ARGB.vector4fFromARGB32(argb);
+			if (mirror) {
+				mv.scale(1f, -4f, 1f); // anel em y=-64: cobre ~7 graus abaixo do horizonte
+				col.w = -col.w;        // alfa negativo = aviso para o shader (sem fade no horizonte)
+			}
+			GpuBufferSlice t = RenderSystem.getDynamicUniforms().writeTransform(mv, col);
 			try (RenderPass pass = RenderSystem.getDevice().createCommandEncoder().createRenderPass(
 					() -> "witch plasma sky", target.getColorTextureView(), Optional.empty(), target.getDepthTextureView(), OptionalDouble.empty())) {
 				pass.setPipeline(p);
