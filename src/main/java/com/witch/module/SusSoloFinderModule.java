@@ -12,6 +12,7 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.biome.Biomes;
 import net.minecraft.world.level.levelgen.Heightmap;
 
 import java.util.ArrayList;
@@ -30,7 +31,8 @@ import java.util.Set;
 public class SusSoloFinderModule extends Module implements EspSource {
 	private static final long SCAN_BUDGET_NS = 4_000_000L;
 	private static final int MAX_SCANS_PER_TICK = 16;
-	private static final long RESCAN_TICKS = 900L;
+	private static final long RESCAN_QUIET = 2400L;
+	private static final long RESCAN_ACTIVE = 600L;
 	private final java.util.Map<Long, Long> lastScan = new java.util.HashMap<>();
 	private static final long ALERT_DISPLAY_MS = 2800L;
 	/** score/(score+K): K=40 -> 25% ~ 13 pts, 50% = 40, 75% = 120, 81% ~ 170. */
@@ -50,6 +52,9 @@ public class SusSoloFinderModule extends Module implements EspSource {
 	private final IntSetting maxAlerts = add(new IntSetting("Max alerts", 1, 20, 6, ""));
 	private final IntSetting fill = add(new IntSetting("Fill opacity", 5, 60, 25, "%"));
 	private final IntSetting autoWp = add(new IntSetting("Auto waypoint (0/1)", 0, 1, 0, ""));
+	private final IntSetting plateOn = add(new IntSetting("Imagem na placa (0/1) - pasta 'placas' do jogo", 0, 1, 0, ""));
+	private final IntSetting plateRes = add(new IntSetting("Resolucao da imagem (1 16x16, 2 32x32)", 1, 2, 1, ""));
+	private final IntSetting plateTint = add(new IntSetting("Cor da chance sobre a imagem", 0, 50, 15, "%"));
 	private final KeybindSetting reloadKey = add(new KeybindSetting("Reload chunks"));
 
 	private final Map<Block, Integer> weights = SusChunkFinderModule.buildWeights();
@@ -60,6 +65,15 @@ public class SusSoloFinderModule extends Module implements EspSource {
 	/** Chunks de estrutura natural (cidade antiga, fortaleza, trial) e vizinhas: nao viram base. */
 	private final Set<Long> naturalZone = new HashSet<>();
 	private volatile List<int[]> view = List.of();
+	private final Set<Block> villageMarkers = SusChunkFinderModule.buildVillageMarkers();
+	private boolean lastInteresting;
+	/** Imagem da placa reduzida (n*n ARGB), carregada em segundo plano. */
+	private volatile int[] plate;
+	private volatile int plateN;
+	private volatile boolean plateLoading;
+	private long plateStamp = -1;
+	private int plateCheck = 0;
+	private boolean plateWarned;
 
 	private int[][] offsets = null;
 	private int offsetsRadius = -1;
@@ -89,18 +103,93 @@ public class SusSoloFinderModule extends Module implements EspSource {
 	@Override
 	public void collect(Esp esp) {
 		float fa = fill.get() / 100f;
-		for (int[] v : view) {
+		int[] img = plateOn.get() == 1 ? plate : null;
+		int n = plateN;
+		var pl = Minecraft.getInstance().player;
+		// so as placas mais proximas levam a imagem (cada uma vira ate n*n quadrados); as outras ficam como caixa
+		int budget = n >= 32 ? 3 : 8;
+		List<int[]> vs = view;
+		if (img != null && pl != null && vs.size() > 1) {
+			vs = new ArrayList<>(vs);
+			double px = pl.getX(), pz = pl.getZ();
+			vs.sort((p, q) -> Double.compare(Math.hypot(p[0] * 16 + 8 - px, p[1] * 16 + 8 - pz), Math.hypot(q[0] * 16 + 8 - px, q[1] * 16 + 8 - pz)));
+		}
+		int used = 0;
+		for (int[] v : vs) {
 			double x0 = v[0] * 16.0;
 			double z0 = v[1] * 16.0;
 			int gy = v[2];
 			int argb = colorFor(v[3]);
-			// placa no solo cobrindo a chunk
-			esp.box(x0, gy, z0, x0 + 16, gy + 0.25, z0 + 16, argb, fa);
+			if (img != null && used < budget) {
+				used++;
+				drawImage(esp, img, n, x0, gy, z0, argb, fa);
+				esp.box(x0, gy, z0, x0 + 16, gy + 0.25, z0 + 16, argb, 0f); // contorno na cor da chance
+			} else {
+				esp.box(x0, gy, z0, x0 + 16, gy + 0.25, z0 + 16, argb, fa);
+			}
 		}
+	}
+
+	/** Imagem como grade de quadrados coloridos no chao; a cor da chance entra so de leve por cima. */
+	private void drawImage(Esp esp, int[] img, int n, double x0, double gy, double z0, int chanceArgb, float fa) {
+		double cs = 16.0 / n;
+		float t = plateTint.get() / 100f;
+		float base = Math.min(1f, fa * 3f);
+		int cr = (chanceArgb >> 16) & 255, cg = (chanceArgb >> 8) & 255, cb = chanceArgb & 255;
+		double y = gy + 0.06;
+		for (int j = 0; j < n; j++) {
+			for (int i = 0; i < n; i++) {
+				int c = img[j * n + i];
+				int a = c >>> 24;
+				if (a < 10) continue;
+				int r = Math.round(((c >> 16) & 255) * (1f - t) + cr * t);
+				int g = Math.round(((c >> 8) & 255) * (1f - t) + cg * t);
+				int b = Math.round((c & 255) * (1f - t) + cb * t);
+				float al = a / 255f * base;
+				double ax = x0 + i * cs, az = z0 + j * cs;
+				esp.gradQuad(ax, y, az, ax + cs, y, az, ax + cs, y, az + cs, ax, y, az + cs,
+						0xFF000000 | (r << 16) | (g << 8) | b, al, al, al, al);
+			}
+		}
+	}
+
+	private void refreshPlate() {
+		if (plateOn.get() == 0 || plateLoading) return;
+		java.nio.file.Path dir = net.fabricmc.loader.api.FabricLoader.getInstance().getGameDir().resolve("placas");
+		java.nio.file.Path f = PlateImage.find(dir);
+		int n = plateRes.get() == 2 ? 32 : 16;
+		long stamp = -2;
+		try { if (f != null) stamp = java.nio.file.Files.getLastModifiedTime(f).toMillis() * 4 + n; } catch (Throwable ignored) { }
+		if (stamp == plateStamp) return;
+		plateStamp = stamp;
+		if (f == null) {
+			plate = null;
+			if (!plateWarned) {
+				plateWarned = true;
+				try { java.nio.file.Files.createDirectories(dir); } catch (Throwable ignored) { }
+				com.witch.gui.Toasts.push("Sus Solo: coloque um png/jpg na pasta 'placas' do jogo", false);
+			}
+			return;
+		}
+		plateLoading = true;
+		final java.nio.file.Path ff = f;
+		Thread th = new Thread(() -> {
+			int[] px = PlateImage.load(ff, n);
+			plateN = n;
+			plate = px;
+			if (px == null) {
+				Minecraft.getInstance().execute(() -> com.witch.gui.Toasts.push("Sus Solo: nao consegui ler a imagem (jpg pode nao funcionar neste aparelho; use png)", false));
+			}
+			plateLoading = false;
+		}, "witch-plate");
+		th.setDaemon(true);
+		th.start();
 	}
 
 	@Override
 	protected void onEnable() {
+		plateStamp = -1;
+		plateWarned = false;
 		cooldown = 0;
 		cursor = 0;
 		alertCount = 0;
@@ -154,6 +243,10 @@ public class SusSoloFinderModule extends Module implements EspSource {
 			reloadKey.wasDown = false;
 		}
 
+		if (--plateCheck <= 0) {
+			plateCheck = 60;
+			refreshPlate();
+		}
 		if (--cooldown > 0) return;
 		cooldown = 1;
 
@@ -181,11 +274,12 @@ public class SusSoloFinderModule extends Module implements EspSource {
 			int cz = pcz + off[1];
 			if (!level.getChunkSource().hasChunk(cx, cz)) continue;
 			long ck = ((long) cx << 32) ^ (cz & 0xFFFFFFFFL);
-			Long prev = lastScan.get(ck);
-			long gt = level.getGameTime();
-			if (prev != null && gt - prev < RESCAN_TICKS) continue;
-			lastScan.put(ck, gt);
-			scanChunk(level, cx, cz, player);
+			Long due = lastScan.get(ck);
+				long gt = level.getGameTime();
+				if (due != null && gt < due) continue;
+				lastInteresting = false;
+				scanChunk(level, cx, cz, player);
+				lastScan.put(ck, gt + (lastInteresting ? RESCAN_ACTIVE : RESCAN_QUIET));
 			scanned++;
 			if (scanned >= MAX_SCANS_PER_TICK || System.nanoTime() - t0 > SCAN_BUDGET_NS) break;
 		}
@@ -197,27 +291,49 @@ public class SusSoloFinderModule extends Module implements EspSource {
 
 	private void scanChunk(net.minecraft.client.multiplayer.ClientLevel level, int cx, int cz,
 			net.minecraft.client.player.LocalPlayer player) {
+		long key = ((long) cx << 32) ^ (cz & 0xFFFFFFFFL);
+		// Cidade Antiga (Warden): bioma deep dark, ignora a chunk e as vizinhas
+		try {
+			boolean deep = false;
+			for (int by = -48; by <= -16 && !deep; by += 16) {
+				if (by >= level.getMinY() && by <= level.getMaxY()
+						&& level.getBiome(new BlockPos(cx * 16 + 8, by, cz * 16 + 8)).is(Biomes.DEEP_DARK)) deep = true;
+			}
+			if (deep) {
+				for (int dx = -1; dx <= 1; dx++) {
+					for (int dz = -1; dz <= 1; dz++) {
+						long nk = ((long) (cx + dx) << 32) ^ ((cz + dz) & 0xFFFFFFFFL);
+						naturalZone.add(nk);
+						found.remove(nk);
+						seen.add(nk);
+					}
+				}
+				return;
+			}
+		} catch (Throwable ignored) { }
 		int ground = level.getHeight(Heightmap.Types.WORLD_SURFACE, cx * 16 + 8, cz * 16 + 8);
 		int y0 = Math.max(level.getMinY(), minY.get());
 		int y1 = Math.min(level.getMaxY(), Math.max(y0, ground + above.get()));
 		// acc: 0 score, 1 marcadores naturais, 2 lo, 3 hi
-		int[] acc = {0, 0, Integer.MAX_VALUE, Integer.MIN_VALUE};
+		int[] acc = {0, 0, Integer.MAX_VALUE, Integer.MIN_VALUE, 0, 0};
 		SectionScan.chunk(level, cx, cz, y0, y1,
-				st -> weights.containsKey(st.getBlock()) || trialBlocks.contains(st.getBlock()),
+				st -> weights.containsKey(st.getBlock()) || trialBlocks.contains(st.getBlock()) || villageMarkers.contains(st.getBlock()),
 				(x, y, z, st) -> {
 					Block block = st.getBlock();
 					if (trialBlocks.contains(block)) acc[1]++;
+					if (villageMarkers.contains(block)) acc[4]++;
 					Integer w = weights.get(block);
 					if (w != null) {
 						acc[0] += w;
+						if (w <= 4) acc[5] += w;
 						if (y < acc[2]) acc[2] = y;
 						if (y > acc[3]) acc[3] = y;
 					}
 				});
 		int score = acc[0];
 		int markers = acc[1];
-
-		long key = ((long) cx << 32) ^ (cz & 0xFFFFFFFFL);
+		lastInteresting = score > 0 || markers > 0;
+		if (acc[4] >= 3) score -= acc[5]; // aldeia: bau/forno/bigorna dela nao contam
 		// estrutura natural (trial chamber, cidade antiga, fortaleza): nao e base, e as vizinhas ficam silenciosas
 		if (markers >= 6) {
 			for (int dx = -1; dx <= 1; dx++) {
