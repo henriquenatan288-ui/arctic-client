@@ -75,10 +75,10 @@ public final class PlasmaSky {
 		try {
 			var mv = RenderSystem.getModelViewMatrixCopy();
 			var col = ARGB.vector4fFromARGB32(argb);
-			if (mirror) {
-				mv.scale(1f, -4f, 1f); // anel em y=-64: cobre ~7 graus abaixo do horizonte
-				col.w = -col.w;        // alfa negativo = aviso para o shader (sem fade no horizonte)
-			}
+			// disco achatado (y*0.05): o anel fica a ~0,1 grau do horizonte, em cima e embaixo, sem faixa escura no meio.
+			// O vertex shader desfaz a escala para o plasma usar a direcao real.
+			mv.scale(1f, mirror ? -0.05f : 0.05f, 1f);
+			if (mirror) col.w = -col.w; // alfa negativo = passe de baixo
 			GpuBufferSlice t = RenderSystem.getDynamicUniforms().writeTransform(mv, col);
 			try (RenderPass pass = RenderSystem.getDevice().createCommandEncoder().createRenderPass(
 					() -> "witch plasma sky", target.getColorTextureView(), Optional.empty(), target.getDepthTextureView(), OptionalDouble.empty())) {
