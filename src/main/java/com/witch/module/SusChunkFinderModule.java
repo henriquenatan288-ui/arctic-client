@@ -16,7 +16,6 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.biome.Biomes;
-import net.minecraft.world.entity.EntityType;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -335,7 +334,7 @@ public class SusChunkFinderModule extends Module implements EspSource {
 		}
 		Map<Long, Integer> crystals = new HashMap<>();
 		for (var e : level.entitiesForRendering()) {
-			if (e.getType() == EntityType.END_CRYSTAL) {
+			if (e instanceof net.minecraft.world.entity.boss.enderdragon.EndCrystal) {
 				crystals.merge(key((int) Math.floor(e.getX()) >> 4, (int) Math.floor(e.getZ()) >> 4), 1, Integer::sum);
 			}
 		}
