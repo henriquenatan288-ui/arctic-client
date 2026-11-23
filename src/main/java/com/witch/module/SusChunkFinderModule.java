@@ -203,7 +203,7 @@ public class SusChunkFinderModule extends Module implements EspSource {
 		for (int[] v : view) {
 			int x0 = v[0] * 16;
 			int z0 = v[1] * 16;
-			int argb = v.length > 5 && v[5] != 0 ? TRIAL_COLOR : normal;
+			int argb = v[5] == 2 ? RAIDED_COLOR : v[5] == 1 ? RAID_COLOR : normal;
 			esp.box(x0, v[2], z0, x0 + 16, v[3] + 1, z0 + 16, argb, 0f);
 		}
 	}
@@ -222,6 +222,9 @@ public class SusChunkFinderModule extends Module implements EspSource {
 		seen.clear();
 		lastScan.clear();
 		trialZone.clear();
+		extras.clear();
+		groups = List.of();
+		raidAlerted.clear();
 		view = List.of();
 		alertText = null;
 		alertUntil = 0L;
@@ -304,11 +307,12 @@ public class SusChunkFinderModule extends Module implements EspSource {
 			int cz = pcz + off[1];
 			if (!level.getChunkSource().hasChunk(cx, cz)) continue;
 			long ck = ((long) cx << 32) ^ (cz & 0xFFFFFFFFL);
-			Long prev = lastScan.get(ck);
-			long gt = level.getGameTime();
-			if (prev != null && gt - prev < RESCAN_TICKS) continue;
-			lastScan.put(ck, gt);
-			scanChunk(level, cx, cz, pp.getY(), player);
+			Long due = lastScan.get(ck);
+				long gt = level.getGameTime();
+				if (due != null && gt < due) continue;
+				lastInteresting = false;
+				scanChunk(level, cx, cz, pp.getY(), player);
+				lastScan.put(ck, gt + (lastInteresting ? RESCAN_ACTIVE : RESCAN_QUIET));
 			scanned++;
 			if (scanned >= MAX_SCANS_PER_TICK || System.nanoTime() - t0 > SCAN_BUDGET_NS) break;
 		}
