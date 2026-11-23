@@ -23,7 +23,7 @@ public abstract class PauseScreenMixin extends Screen {
 		int n = 24;
 		for (int i = 0; i < n; i++) {
 			float f = i / (float) (n - 1);
-			g.fill(0, this.height * i / n, this.width, this.height * (i + 1) / n + 1,
+			g.fill(0, this.height * i / n, this.width, this.height * (i + 1) / n,
 					com.witch.gui.RenderUtil.alpha(com.witch.gui.RenderUtil.mix(0xFF1A3570, 0xFF050A18, f), 0.30f + 0.20f * f));
 		}
 		double t = System.nanoTime() / 1_000_000_000.0;
