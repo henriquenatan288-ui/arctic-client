@@ -9,9 +9,12 @@ import net.minecraft.util.Mth;
 public final class WitchLogo {
 	private WitchLogo() {}
 
-	private static final Identifier T64 = Identifier.fromNamespaceAndPath("witch", "textures/gui/mod_64.png");
-	private static final Identifier T128 = Identifier.fromNamespaceAndPath("witch", "textures/gui/mod_128.png");
-	private static final Identifier T256 = Identifier.fromNamespaceAndPath("witch", "textures/gui/mod_256.png");
+	private static final int[] TIERS = {24, 32, 48, 64, 96, 128, 192, 256};
+	private static final Identifier[] TEX = new Identifier[TIERS.length];
+
+	static {
+		for (int i = 0; i < TIERS.length; i++) TEX[i] = Identifier.fromNamespaceAndPath("witch", "textures/gui/mod_" + TIERS[i] + ".png");
+	}
 
 	public static int height(int w) {
 		return Math.max(2, w);
@@ -24,9 +27,13 @@ public final class WitchLogo {
 	public static void draw(GuiGraphicsExtractor g, int x, int y, int w, float alpha, int rgb) {
 		int a = Mth.clamp((int) (alpha * 255f), 0, 255);
 		if (a <= 0 || w < 4) return;
-		// o GUI amostra sem filtro: usa o tamanho de textura mais proximo (so reduz, nunca estica) para nao pixelar
-		int t = w <= 80 ? 64 : w <= 160 ? 128 : 256;
-		Identifier id = t == 64 ? T64 : t == 128 ? T128 : T256;
-		g.blit(RenderPipelines.GUI_TEXTURED, id, x, y, 0f, 0f, w, w, t, t, t, t, (a << 24) | (rgb & 0xFFFFFF));
+		// o GUI amostra sem filtro e 1 px de GUI = guiScale px reais: escolhe a textura mais proxima do tamanho REAL na tela
+		double scale = 1.0;
+		try { scale = net.minecraft.client.Minecraft.getInstance().getWindow().getGuiScale(); } catch (Throwable ignored) { }
+		double real = w * scale;
+		int best = 0;
+		for (int i = 0; i < TIERS.length; i++) if (Math.abs(TIERS[i] - real) < Math.abs(TIERS[best] - real)) best = i;
+		int t = TIERS[best];
+		g.blit(RenderPipelines.GUI_TEXTURED, TEX[best], x, y, 0f, 0f, w, w, t, t, t, t, (a << 24) | (rgb & 0xFFFFFF));
 	}
 }

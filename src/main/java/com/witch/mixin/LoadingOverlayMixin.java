@@ -66,6 +66,9 @@ public abstract class LoadingOverlayMixin {
 		int w = mc.getWindow().getGuiScaledWidth();
 		int h = mc.getWindow().getGuiScaledHeight();
 		int ai = (int) (a * 255f) << 24;
+		// garantia: cobre a faixa central onde ficaria o logo da Mojang, caso a troca da logo nao tenha pego
+		int half = Math.round(Math.min(w * 0.75f, h) * 0.32f);
+		g.fill(0, h / 2 - half, w, h / 2 + half, ((int) (a * 255f) << 24) | 0x0A0A0C);
 		long now = Util.getMillis();
 		if (witch$t0 == 0L) witch$t0 = now;
 		float t = Mth.clamp((now - witch$t0) / 900f, 0f, 1f);
