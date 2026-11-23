@@ -14,6 +14,9 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.biome.Biomes;
+import net.minecraft.world.entity.EntityType;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -26,7 +29,9 @@ import java.util.Set;
  * Marca chunks com sinais fortes de base de jogador (containers, redstone, decoracao).
  * Cada bloco tem um peso; blocos que nascem naturalmente (tabua, trilho, tocha...) nao contam.
  * Alerta com mensagem no centro + som de level-up quando encontra uma chunk nova.
- * Trial spawner: marca vermelho e nao apita.
+ * Trial chamber e Cidade Antiga (Warden): ignoradas, sem caixa e sem alerta (vizinhas tambem).
+ * Aldeias: baus/fornos/bigornas de aldeia nao contam como base.
+ * Chunks coladas viram uma base so: soma obsidiana, ancoras de respawn e cristais (entidades) e marca "possivelmente raidada" / "raidada".
  * Range de chunks 1-40. Limite de avisos 1-10. Cada chunk so alerta uma vez.
  * Keybind "Reload chunks" limpa e rescanneia.
  */
@@ -34,11 +39,13 @@ public class SusChunkFinderModule extends Module implements EspSource {
 	/** Orcamento de tempo por tick para escanear chunks (varias por tick, em vez de 1 a cada 3 ticks). */
 	private static final long SCAN_BUDGET_NS = 4_000_000L;
 	private static final int MAX_SCANS_PER_TICK = 16;
-	private static final long RESCAN_TICKS = 900L;
 	private final java.util.Map<Long, Long> lastScan = new java.util.HashMap<>();
 	private static final long ALERT_DISPLAY_MS = 2800L;
-	/** Vermelho fixo pra trial (mesmo tom da palette). */
-	private static final int TRIAL_COLOR = 0xFFEF4444;
+	private static final int RAID_COLOR = 0xFFFF7A2E;
+	private static final int RAIDED_COLOR = 0xFFEF4444;
+	/** Chunks sem nada interessante so sao reescaneadas de vez em quando (mais rapido); com sinal, mais seguido. */
+	private static final long RESCAN_QUIET = 2400L;
+	private static final long RESCAN_ACTIVE = 600L;
 
 	private static SusChunkFinderModule instance;
 
@@ -48,6 +55,8 @@ public class SusChunkFinderModule extends Module implements EspSource {
 	private final IntSetting maxAlerts = add(new IntSetting("Max alerts", 1, 10, 3, ""));
 	private final ColorSetting color = add(new ColorSetting("Color", 4));
 	private final IntSetting autoWp = add(new IntSetting("Auto waypoint (0/1)", 0, 1, 0, ""));
+	private final IntSetting raidObs = add(new IntSetting("Obsidiana p/ 'possivelmente raidada' (raidada = 3x)", 20, 2000, 150, ""));
+	private final IntSetting showList = add(new IntSetting("Lista de bases na tela (0/1)", 0, 1, 1, ""));
 	private final KeybindSetting reloadKey = add(new KeybindSetting("Reload chunks"));
 
 	private final Map<Block, Integer> weights = buildWeights();
@@ -58,6 +67,29 @@ public class SusChunkFinderModule extends Module implements EspSource {
 	private final Set<Long> trialZone = new HashSet<>();
 	private final Set<Block> trialBlocks = buildTrialBlocks();
 	private volatile List<int[]> view = List.of();
+	/** Obsidiana e ancoras por chunk (todas as escaneadas): {obsidiana, ancoras}. */
+	private final Map<Long, int[]> extras = new HashMap<>();
+	private final Set<Block> villageMarkers = buildVillageMarkers();
+	private volatile List<Group> groups = List.of();
+	private final Set<Long> raidAlerted = new HashSet<>();
+	private int groupCooldown = 0;
+	private boolean lastInteresting;
+
+	/** Uma base: chunks coladas somadas. */
+	public static final class Group {
+		final int chunks;
+		final int obsidian, anchors, crystals;
+		final int level; // 0 normal, 1 possivelmente raidada, 2 raidada
+		final double dist;
+		Group(int chunks, int obsidian, int anchors, int crystals, int level, double dist) {
+			this.chunks = chunks; this.obsidian = obsidian; this.anchors = anchors; this.crystals = crystals;
+			this.level = level; this.dist = dist;
+		}
+		String text() {
+			String t = "Base " + chunks + (chunks == 1 ? " chunk" : " chunks") + " | obs " + obsidian + " | anc " + anchors + " | cri " + crystals;
+			return level == 2 ? t + " | RAIDADA" : level == 1 ? t + " | possivelmente raidada" : t;
+		}
+	}
 
 	private int[][] offsets = null;
 	private int offsetsRadius = -1;
@@ -136,9 +168,28 @@ public class SusChunkFinderModule extends Module implements EspSource {
 		return set;
 	}
 
+	/** Blocos que quase so existem em aldeia (jogador raramente junta varios). */
+	static Set<Block> buildVillageMarkers() {
+		Set<Block> set = new HashSet<>();
+		for (Block b : BuiltInRegistries.BLOCK) {
+			String n = BuiltInRegistries.BLOCK.getKey(b).getPath();
+			if (n.equals("bell") || n.equals("hay_block") || n.equals("composter") || n.equals("lectern")
+					|| n.equals("loom") || n.equals("stonecutter") || n.equals("fletching_table")
+					|| n.equals("cartography_table") || n.equals("grindstone") || n.equals("cauldron")
+					|| n.equals("farmland") || n.equals("path") || n.equals("dirt_path")) {
+				set.add(b);
+			}
+		}
+		return set;
+	}
+
 	static boolean isTrialSpawner(Block b) {
 		String n = BuiltInRegistries.BLOCK.getKey(b).getPath();
 		return n.equals("trial_spawner");
+	}
+
+	private static boolean isObsidianLike(Block b) {
+		return b == Blocks.OBSIDIAN || b == Blocks.CRYING_OBSIDIAN;
 	}
 
 	@Override
@@ -185,6 +236,9 @@ public class SusChunkFinderModule extends Module implements EspSource {
 		found.clear();
 		seen.clear();
 		trialZone.clear();
+		extras.clear();
+		groups = List.of();
+		raidAlerted.clear();
 		view = List.of();
 		alertCount = 0;
 		alertText = null;
@@ -261,7 +315,79 @@ public class SusChunkFinderModule extends Module implements EspSource {
 
 		if (lastScan.size() > 40000) lastScan.clear();
 		found.values().removeIf(v -> Math.abs(v[0] - pcx) > r + 1 || Math.abs(v[1] - pcz) > r + 1);
+		extras.keySet().removeIf(k -> Math.abs((int) (k >> 32) - pcx) > r + 2 || Math.abs((int) (long) k - pcz) > r + 2);
+		if (--groupCooldown <= 0) {
+			groupCooldown = 10;
+			buildGroups(level, pcx, pcz);
+		}
 		view = new ArrayList<>(found.values());
+	}
+
+	/** Junta chunks coladas (8 vizinhas) numa base, soma obsidiana/ancoras/cristais e classifica como raidada. */
+	private void buildGroups(net.minecraft.client.multiplayer.ClientLevel level, int pcx, int pcz) {
+		if (found.isEmpty()) {
+			groups = List.of();
+			return;
+		}
+		Map<Long, Integer> crystals = new HashMap<>();
+		for (var e : level.entitiesForRendering()) {
+			if (e.getType() == EntityType.END_CRYSTAL) {
+				crystals.merge(key((int) Math.floor(e.getX()) >> 4, (int) Math.floor(e.getZ()) >> 4), 1, Integer::sum);
+			}
+		}
+		Set<Long> left = new HashSet<>(found.keySet());
+		List<Group> out = new ArrayList<>();
+		int T = raidObs.get();
+		while (!left.isEmpty()) {
+			long start = left.iterator().next();
+			List<Long> comp = new ArrayList<>();
+			java.util.ArrayDeque<Long> q = new java.util.ArrayDeque<>();
+			q.add(start);
+			left.remove(start);
+			while (!q.isEmpty()) {
+				long k = q.poll();
+				comp.add(k);
+				int kx = (int) (k >> 32), kz = (int) k;
+				for (int dx = -1; dx <= 1; dx++) {
+					for (int dz = -1; dz <= 1; dz++) {
+						long nk = key(kx + dx, kz + dz);
+						if (left.remove(nk)) q.add(nk);
+					}
+				}
+			}
+			// a base + 1 chunk em volta (obsidiana e cristais de uma base destruida ficam fora das chunks com bau)
+			Set<Long> area = new HashSet<>();
+			for (long k : comp) {
+				int kx = (int) (k >> 32), kz = (int) k;
+				for (int dx = -1; dx <= 1; dx++) for (int dz = -1; dz <= 1; dz++) area.add(key(kx + dx, kz + dz));
+			}
+			int obs = 0, anc = 0, cri = 0;
+			double sx = 0, sz = 0;
+			for (long k : area) {
+				int[] ex = extras.get(k);
+				if (ex != null) { obs += ex[0]; anc += ex[1]; }
+				Integer c = crystals.get(k);
+				if (c != null) cri += c;
+			}
+			for (long k : comp) { sx += (int) (k >> 32); sz += (int) k; }
+			double d = Math.hypot(sx / comp.size() - pcx, sz / comp.size() - pcz);
+			int lvl = obs >= T * 3 || (obs >= T && cri >= 2) ? 2 : obs >= T ? 1 : 0;
+			for (long k : comp) {
+				int[] v = found.get(k);
+				if (v != null) v[5] = lvl;
+			}
+			if (lvl > 0 && raidAlerted.add(start)) {
+				alertText = lvl == 2 ? "Base raidada" : "Base possivelmente raidada";
+				alertUntil = System.currentTimeMillis() + ALERT_DISPLAY_MS;
+			}
+			out.add(new Group(comp.size(), obs, anc, cri, lvl, d));
+		}
+		out.sort((a, b) -> Double.compare(a.dist, b.dist));
+		groups = out;
+	}
+
+	private static long key(int cx, int cz) {
+		return ((long) cx << 32) ^ (cz & 0xFFFFFFFFL);
 	}
 
 	private void scanChunk(net.minecraft.client.multiplayer.ClientLevel level, int cx, int cz, int py,
@@ -269,18 +395,40 @@ public class SusChunkFinderModule extends Module implements EspSource {
 		int vr = vrange.get();
 		int minY = Math.max(level.getMinY(), py - vr);
 		int maxY = Math.min(level.getMaxY(), py + vr);
-		// acc: 0 score, 1 lo, 2 hi, 3 marcadores de estrutura natural
-		int[] acc = {0, Integer.MAX_VALUE, Integer.MIN_VALUE, 0};
+		long key = key(cx, cz);
+		// Cidade Antiga (Warden) nasce no bioma deep dark: ignora a chunk inteira sem nem escanear
+		boolean deep = false;
+		try {
+			int bx = cx * 16 + 8, bz = cz * 16 + 8;
+			for (int by = -48; by <= -16 && !deep; by += 16) {
+				if (by >= level.getMinY() && by <= level.getMaxY()
+						&& level.getBiome(new BlockPos(bx, by, bz)).is(Biomes.DEEP_DARK)) deep = true;
+			}
+		} catch (Throwable ignored) { }
+		if (deep) {
+			ignoreZone(cx, cz);
+			return;
+		}
+		// acc: 0 score, 1 lo, 2 hi, 3 marcadores de estrutura natural, 4 obsidiana, 5 ancoras, 6 marcadores de aldeia, 7 peso "comum" (bau, forno...)
+		int[] acc = {0, Integer.MAX_VALUE, Integer.MIN_VALUE, 0, 0, 0, 0, 0};
 		boolean[] trial = {false};
 		SectionScan.chunk(level, cx, cz, minY, maxY,
-				st -> weights.containsKey(st.getBlock()) || trialBlocks.contains(st.getBlock()),
+				st -> weights.containsKey(st.getBlock()) || trialBlocks.contains(st.getBlock())
+						|| villageMarkers.contains(st.getBlock()) || isObsidianLike(st.getBlock()),
 				(x, y, z, st) -> {
 					Block block = st.getBlock();
 					boolean any = false;
+					if (isObsidianLike(block)) acc[4]++;
+					if (block == Blocks.RESPAWN_ANCHOR) acc[5]++;
+					if (villageMarkers.contains(block)) acc[6]++;
 					if (isTrialSpawner(block)) { trial[0] = true; any = true; }
 					if (trialBlocks.contains(block)) { acc[3]++; any = true; }
 					Integer w = weights.get(block);
-					if (w != null) { acc[0] += w; any = true; }
+					if (w != null) {
+						acc[0] += w;
+						if (w <= 4) acc[7] += w;
+						any = true;
+					}
 					if (any) {
 						if (y < acc[1]) acc[1] = y;
 						if (y > acc[2]) acc[2] = y;
@@ -289,29 +437,15 @@ public class SusChunkFinderModule extends Module implements EspSource {
 		int score = acc[0];
 		int lo = acc[1];
 		int hi = acc[2];
-		boolean hasTrial = trial[0];
 		int markers = acc[3];
 
-		long key = ((long) cx << 32) ^ (cz & 0xFFFFFFFFL);
+		if (acc[4] > 0 || acc[5] > 0) extras.put(key, new int[]{acc[4], acc[5]});
+		else extras.remove(key);
+		lastInteresting = score > 0 || markers > 0 || acc[4] > 0;
 
-		// trial chamber (spawner ou varios blocos tipicos): vermelho, sem alerta; vizinhas ficam silenciosas
-		if (hasTrial || markers >= 6) {
-			if (lo == Integer.MAX_VALUE) {
-				lo = minY;
-				hi = maxY;
-			}
-			for (int dx = -1; dx <= 1; dx++) {
-				for (int dz = -1; dz <= 1; dz++) {
-					long nk = ((long) (cx + dx) << 32) ^ ((cz + dz) & 0xFFFFFFFFL);
-					trialZone.add(nk);
-					if (nk != key) {
-						int[] v = found.get(nk);
-						if (v != null && (v.length < 6 || v[5] == 0)) found.remove(nk);
-					}
-				}
-			}
-			found.put(key, new int[]{cx, cz, lo, hi, score, 1});
-			seen.add(key);
+		// trial chamber ou estrutura profunda (varios blocos tipicos): ignorada, sem caixa e sem alerta; vizinhas tambem
+		if (trial[0] || markers >= 6) {
+			ignoreZone(cx, cz);
 			return;
 		}
 		if (trialZone.contains(key)) {
@@ -319,16 +453,31 @@ public class SusChunkFinderModule extends Module implements EspSource {
 			seen.add(key);
 			return;
 		}
+		// aldeia: bau, barril, forno, bigorna etc. dela nao contam como base (so os sinais fortes de jogador)
+		if (acc[6] >= 3) score -= acc[7];
 
 		if (score >= threshold.get()) {
 			boolean isNew = !found.containsKey(key);
-			found.put(key, new int[]{cx, cz, lo, hi, score, 0});
+			int[] old = found.get(key);
+			found.put(key, new int[]{cx, cz, lo, hi, score, old == null ? 0 : old[5]});
 			if (isNew) {
 				tryAlert(key, player);
 				if (autoWp.get() == 1) Waypoints.addAuto("Chunk", cx * 16 + 8, (lo + hi) / 2, cz * 16 + 8);
 			}
 		} else {
 			found.remove(key);
+		}
+	}
+
+	/** Marca a chunk e as 8 vizinhas como estrutura natural (trial / cidade antiga): somem da lista. */
+	private void ignoreZone(int cx, int cz) {
+		for (int dx = -1; dx <= 1; dx++) {
+			for (int dz = -1; dz <= 1; dz++) {
+				long nk = key(cx + dx, cz + dz);
+				trialZone.add(nk);
+				found.remove(nk);
+				seen.add(nk);
+			}
 		}
 	}
 
@@ -350,6 +499,7 @@ public class SusChunkFinderModule extends Module implements EspSource {
 	/** Mensagem pequena no centro da tela (chamado pelo HudRenderer). */
 	public static void drawHud(GuiGraphicsExtractor g) {
 		if (instance == null || !instance.isEnabled()) return;
+		instance.drawList(g);
 		String text = instance.alertText;
 		long until = instance.alertUntil;
 		if (text == null || System.currentTimeMillis() > until) return;
@@ -372,5 +522,27 @@ public class SusChunkFinderModule extends Module implements EspSource {
 		RenderUtil.roundRect(g, x, y, bw, bh, 5, RenderUtil.alpha(0xFF1A1028, 0.82f * a));
 		RenderUtil.roundRect(g, x, y, 3, bh, 1, RenderUtil.alpha(0xFFE8C56A, a));
 		FontUtil.draw(g, text, x + padX, y + padY, RenderUtil.alpha(0xFFFFF0C8, a));
+	}
+
+	/** Lista das bases (chunks coladas somadas), a mais proxima primeiro. */
+	private void drawList(GuiGraphicsExtractor g) {
+		if (showList.get() == 0) return;
+		List<Group> gs = groups;
+		if (gs.isEmpty()) return;
+		Minecraft mc = Minecraft.getInstance();
+		int sh = mc.getWindow().getGuiScaledHeight();
+		int n = Math.min(4, gs.size());
+		int th = FontUtil.height();
+		int y = sh / 2 - 20;
+		for (int i = 0; i < n; i++) {
+			Group gr = gs.get(i);
+			String t = gr.text();
+			int w = FontUtil.width(t) + 14;
+			int accent = gr.level == 2 ? RAIDED_COLOR : gr.level == 1 ? RAID_COLOR : 0xFFE8C56A;
+			RenderUtil.roundRect(g, 6, y, w, th + 8, 4, RenderUtil.alpha(0xFF1A1028, 0.78f));
+			RenderUtil.roundRect(g, 6, y, 3, th + 8, 1, accent);
+			FontUtil.draw(g, t, 14, y + 4, 0xFFFFF0C8);
+			y += th + 11;
+		}
 	}
 }
