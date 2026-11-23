@@ -14,6 +14,7 @@ public final class HudRenderer {
 		if (ClickGui.isClickGui(mc.gui.screen()) || mc.gui.screen() instanceof ModuleEditorScreen) return;
 		com.witch.module.AntiVanishModule.drawHud(g);
 		com.witch.module.SusChunkFinderModule.drawHud(g);
+		com.witch.module.TracersModule.drawHud(g);
 		com.witch.module.SusSoloFinderModule.drawHud(g);
 		com.witch.module.CoordsHudModule.drawHud(g);
 		com.witch.module.SpotifyModule.drawHud(g);
