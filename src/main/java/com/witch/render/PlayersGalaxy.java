@@ -9,8 +9,8 @@ import net.minecraft.resources.Identifier;
 public final class PlayersGalaxy {
 	private PlayersGalaxy() {}
 
-	private static final Object[] PIPES = new Object[8 * 4 * 2];
-	private static final boolean[] FAILED = new boolean[8 * 4 * 2];
+	private static final Object[] PIPES = new Object[9 * 4 * 2];
+	private static final boolean[] FAILED = new boolean[9 * 4 * 2];
 	@SuppressWarnings("unchecked")
 	private static final Map<Identifier, RenderType>[] CACHES = new Map[8 * 4 * 2];
 	public static volatile String status;

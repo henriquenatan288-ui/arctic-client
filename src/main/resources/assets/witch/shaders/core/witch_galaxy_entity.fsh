@@ -81,6 +81,16 @@ out vec4 fragColor;
 #define G_RIM vec3(1.0,0.80,0.90)
 #define G_STAR vec3(1.0,0.92,0.95)
 #define G_STARGAIN 1.0
+#elif STYLE == 8 // plasma
+#define G_BASE0 vec3(0.004,0.012,0.04)
+#define G_BASE1 vec3(0.01,0.03,0.09)
+#define G_N1 vec3(0.02,0.06,0.16)
+#define G_N2 vec3(0.04,0.10,0.26)
+#define G_N3 vec3(0.05,0.12,0.30)
+#define G_FLOOR vec3(0.01,0.03,0.08)
+#define G_RIM vec3(0.65,0.88,1.0)
+#define G_STAR vec3(0.85,0.95,1.0)
+#define G_STARGAIN 1.0
 #elif STYLE == 7 // arco-iris
 #define G_BASE0 vec3(0.012,0.075,0.085)
 #define G_BASE1 vec3(0.03,0.12,0.12)
@@ -138,6 +148,23 @@ vec3 hueShift(vec3 c, float a) {
 
 // fundo de nebulosa + camadas de estrelas, na paleta do STYLE. q = coordenada, sc = escala das estrelas, rad = raio da estrela
 vec3 galaxy(vec2 q, float t, float sc, float sbase, float rad, out float n1o) {
+#if STYLE == 8
+    // plasma: mesmo padrao do ceu do Sky (filamentos eletricos azuis); periodico em GameTime = sem pulo na virada do dia
+    float tp = t * 6.2831853 / 9600.0;
+    vec2 w1 = vec2(cos(tp * 30.0), sin(tp * 30.0)) * 0.55;
+    vec2 w2 = vec2(sin(tp * 20.0), cos(tp * 20.0)) * 0.55;
+    float pa = fbm(q * 0.9 + w1);
+    float pb = fbm(q * 1.1 + pa * 1.7 + w2 + 2.0);
+    float pc = fbm(q * 1.7 - pb * 1.3 + w1.yx + 5.0);
+    float pl1 = 0.034 / (abs(pb - 0.5) + 0.022);
+    float pl2 = 0.024 / (abs(pc - 0.5) + 0.018);
+    float pg = clamp(pl1 * 0.85 + pl2 * 0.55, 0.0, 1.6);
+    vec3 ptint = vec3(0.30, 0.62, 1.0);
+    vec3 pbase = mix(ptint * 0.05, ptint * 0.20, pa) + vec3(0.004, 0.012, 0.024);
+    vec3 pcore = mix(ptint, vec3(1.0), clamp(pg - 0.8, 0.0, 1.0));
+    n1o = pa;
+    return pbase + pcore * pg * 0.95 + ptint * pb * 0.10;
+#endif
     vec3 col = mix(G_BASE0, G_BASE1, fbm(q * 1.3 + vec2(t * 0.010, -t * 0.006)));
     float n1 = fbm(q * 2.2 + vec2(3.0, 1.0) + vec2(t * 0.020, t * 0.012));
     col += G_N1 * smoothstep(0.40, 0.85, n1);

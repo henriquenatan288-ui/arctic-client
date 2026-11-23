@@ -10,7 +10,7 @@ public class ChinaHatModule extends Module {
 
 	public final IntSetting target = add(new IntSetting("Alvo (1 eu, 2 todos os jogadores)", 1, 2, 1, ""));
 	public final IntSetting look = add(new IntSetting("Visual (1 galaxy, 2 spectral)", 1, 2, 1, ""));
-	public final IntSetting style = add(new IntSetting("Estilo da galaxy (1 ciano 2 roxo 3 fogo 4 vazio 5 aurora 6 rosa 7 arco-iris)", 1, 7, 2, ""));
+	public final IntSetting style = add(new IntSetting("Estilo da galaxy (1 ciano 2 roxo 3 fogo 4 vazio 5 aurora 6 rosa 7 arco-iris 8 plasma)", 1, 8, 2, ""));
 	public final IntSetting size = add(new IntSetting("Tamanho", 1, 10, 5, ""));
 	public final ColorSetting spectral = add(new ColorSetting("Cor do spectral", 1));
 
