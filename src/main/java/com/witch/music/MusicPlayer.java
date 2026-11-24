@@ -58,7 +58,7 @@ public final class MusicPlayer {
 	private static boolean active = false;
 
 	public static Path dir() {
-		return FabricLoader.getInstance().getGameDir().resolve("musicas");
+		return com.witch.config.Folders.get("musicas");
 	}
 
 	public static List<Path> tracks() {

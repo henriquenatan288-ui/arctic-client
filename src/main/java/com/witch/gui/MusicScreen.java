@@ -50,7 +50,7 @@ public class MusicScreen extends Screen {
 		RenderUtil.roundRect(g, wx + 1, wy + 1, ww - 2, wh - 2, 7, 0xFF0A0C0F);
 
 		FontUtil.draw(g, "Music", wx + 10, wy + 8, 0xFFFFFFFF);
-		String hint = "pasta: musicas (.mp3 .ogg .wav)";
+		String hint = "pasta: " + MusicPlayer.dir().toAbsolutePath() + " (.mp3 .ogg .wav)";
 		FontUtil.draw(g, ModuleRow.fit(hint, ww - 90), wx + 10, wy + 8 + fh + 2, 0xFF6B7078);
 		String rf = "Refresh";
 		int rw = FontUtil.width(rf) + 10;

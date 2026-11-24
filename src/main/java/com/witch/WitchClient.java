@@ -26,6 +26,7 @@ public class WitchClient implements ClientModInitializer {
 	public void onInitializeClient() {
 		ModuleManager.init();
 		Config.load();
+		com.witch.config.Folders.init();
 
 		// botao "Editar HUD (grade)" no menu de pausa
 		net.fabricmc.fabric.api.client.screen.v1.ScreenEvents.AFTER_INIT.register((client, screen, w, h) -> {

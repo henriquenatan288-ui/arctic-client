@@ -155,7 +155,7 @@ public class SusSoloFinderModule extends Module implements EspSource {
 
 	private void refreshPlate() {
 		if (plateOn.get() == 0 || plateLoading) return;
-		java.nio.file.Path dir = net.fabricmc.loader.api.FabricLoader.getInstance().getGameDir().resolve("placas");
+		java.nio.file.Path dir = com.witch.config.Folders.get("placas");
 		java.nio.file.Path f = PlateImage.find(dir);
 		int n = plateRes.get() == 2 ? 32 : 16;
 		long stamp = -2;
