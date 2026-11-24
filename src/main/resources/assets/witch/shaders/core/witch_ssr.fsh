@@ -101,10 +101,9 @@ void main() {
         conf = edge * (1.0 - smoothstep(14.0, 36.0, hitT));
         col = mix(tint, col, conf);
     } else {
-        // o raio saiu da tela ou terminou sem achar nada: usa a cor do ultimo ponto (ceu, normalmente)
-        vec3 edgeCol = texture(Sampler0, escaped ? euv : lastUV).rgb;
-        col = mix(tint, edgeCol, 0.8);
-        conf = 0.45;
+        // o raio saiu da tela ou terminou sem achar nada: reflete o ceu (so a cor, sem amostrar a tela: evita listras)
+        col = tint;
+        conf = 0.5;
     }
 
     float a = clamp(F * strength * 1.5 * mix(0.45, 1.0, conf), 0.0, 0.92);

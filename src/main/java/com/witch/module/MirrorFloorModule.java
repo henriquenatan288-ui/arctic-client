@@ -23,7 +23,7 @@ import java.util.Map;
  * entidades: isso exige renderizar a cena de novo e e a etapa 2.
  */
 public class MirrorFloorModule extends Module implements EspSource, com.witch.render.MirrorSsr.Source {
-	private static final int LIFE_TICKS = 60;
+	private static final int LIFE_TICKS = 160;
 	private final ColorSetting color = add(new ColorSetting("Color", 1));
 	private final IntSetting strength = add(new IntSetting("Strength", 1, 10, 6, ""));
 	private final IntSetting range = add(new IntSetting("Range", 4, 20, 12, " blocks"));
@@ -66,8 +66,7 @@ public class MirrorFloorModule extends Module implements EspSource, com.witch.re
 		for (double[] t : tiles.values()) {
 			double cx = t[0] + 0.5 - p.getX(), cz = t[2] + 0.5 - p.getZ();
 			double edge = 1.0 - Mth.clamp((Math.sqrt(cx * cx + cz * cz) - rg * 0.6) / (rg * 0.4), 0.0, 1.0);
-			double life = Math.min(1.0, (t[3] - tick) / 12.0);
-			float a = (float) Mth.clamp(k * edge * life, 0.0, 1.0);
+			float a = (float) Mth.clamp(k * edge, 0.0, 1.0);
 			if (a <= 0.01f) continue;
 			out.add(new float[] {(float) t[0], (float) t[1], (float) t[2], a});
 		}
@@ -78,7 +77,8 @@ public class MirrorFloorModule extends Module implements EspSource, com.witch.re
 	public float[] ssrTint() {
 		var level = Minecraft.getInstance().level;
 		float day = level == null ? 1f : (float) (0.35 + 0.65 * (1.0 - Math.min(1.0, level.getSkyDarken() / 11.0)));
-		int c = FxShapes.mix(color.get() | 0xFF000000, 0xFFFFFFFF, 0.35f);
+		// cor do "ceu" refletido quando o raio nao acha nada na tela (ex.: olhando para baixo): mistura azul de ceu com a cor escolhida
+		int c = FxShapes.mix(color.get() | 0xFF000000, 0xFF8CB8FF, 0.55f);
 		return new float[] {((c >> 16) & 0xFF) / 255f * day, ((c >> 8) & 0xFF) / 255f * day, (c & 0xFF) / 255f * day};
 	}
 
@@ -92,6 +92,8 @@ public class MirrorFloorModule extends Module implements EspSource, com.witch.re
 		tiles.clear();
 	}
 
+	private int cursor;
+
 	@Override
 	public void onTick() {
 		Minecraft mc = Minecraft.getInstance();
@@ -102,16 +104,19 @@ public class MirrorFloorModule extends Module implements EspSource, com.witch.re
 			return;
 		}
 		tick++;
-		double r = range.get();
-		double r2 = (r + 2) * (r + 2);
+		int r = range.get();
+		double r2 = (r + 2.0) * (r + 2.0);
 		tiles.values().removeIf(t -> t[3] < tick || (t[0] - p.getX()) * (t[0] - p.getX()) + (t[2] - p.getZ()) * (t[2] - p.getZ()) > r2);
+		boolean ssrWorks = ssrOn();
 		Vec3 eye = p.getEyePosition();
-		int tries = 40;
-		for (int i = 0; i < tries; i++) {
-			double ang = rnd.nextDouble() * Math.PI * 2;
-			double dist = r * Math.sqrt(rnd.nextDouble());
-			int bx = Mth.floor(p.getX() + Math.cos(ang) * dist);
-			int bz = Mth.floor(p.getZ() + Math.sin(ang) * dist);
+		int side = 2 * r + 1, total = side * side;
+		int bx0 = Mth.floor(p.getX()) - r, bz0 = Mth.floor(p.getZ()) - r;
+		int per = Math.min(total, 110); // varre a grade inteira em poucos ticks, sem aleatoriedade (nao pisca)
+		for (int i = 0; i < per; i++) {
+			cursor = (cursor + 1) % total;
+			int bx = bx0 + cursor % side, bz = bz0 + cursor / side;
+			double dx = bx + 0.5 - p.getX(), dz = bz + 0.5 - p.getZ();
+			if (dx * dx + dz * dz > (double) r * r) continue;
 			long key = ((long) bx << 32) ^ (bz & 0xFFFFFFFFL);
 			BlockPos top = level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING, new BlockPos(bx, 0, bz));
 			if (!level.hasChunkAt(top)) continue;
@@ -128,10 +133,14 @@ public class MirrorFloorModule extends Module implements EspSource, com.witch.re
 						|| sh.max(Direction.Axis.Z) - sh.min(Direction.Axis.Z) < 0.99) { tiles.remove(key); continue; }
 				y = below.getY() + sh.max(Direction.Axis.Y);
 			}
-			// o ESP desenha atraves de paredes: so o piso que voce enxerga
-			var hit = level.clip(new ClipContext(eye, new Vec3(bx + 0.5, y + 0.05, bz + 0.5), ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, p));
-			if (hit.getType() != HitResult.Type.MISS) { tiles.remove(key); continue; }
-			tiles.put(key, new double[] {bx, y + 0.012, bz, tick + LIFE_TICKS});
+			double vis = 1;
+			if (!ssrWorks) {
+				// brilho simples (ESP) atravessa paredes: marca se ha linha de visao em vez de apagar o piso
+				var hit = level.clip(new ClipContext(eye, new Vec3(bx + 0.5, y + 0.05, bz + 0.5), ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, p));
+				if (hit.getType() != HitResult.Type.MISS) vis = 0;
+			}
+			// o reflexo de tela usa a profundidade da cena para esconder o que esta atras de paredes
+			tiles.put(key, new double[] {bx, y + 0.012, bz, tick + LIFE_TICKS, vis});
 		}
 	}
 
@@ -154,6 +163,7 @@ public class MirrorFloorModule extends Module implements EspSource, com.witch.re
 		boolean rainy = level.getRainLevel(1f) > 0.1f;
 		int c = FxShapes.mix(color.get() | 0xFF000000, 0xFFFFFFFF, 0.35f);
 		for (double[] t : tiles.values()) {
+			if (t[4] < 0.5) continue;
 			double x = t[0], y = t[1], z = t[2];
 			double life = Math.min(1.0, (t[3] - tick) / 12.0); // some devagar quando expira
 			double cx = x + 0.5 - ex, cz = z + 0.5 - ez;
