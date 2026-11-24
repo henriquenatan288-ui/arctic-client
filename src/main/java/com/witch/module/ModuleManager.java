@@ -106,6 +106,7 @@ public final class ModuleManager {
 		MODULES.add(new ChunkBordersModule());
 		MODULES.add(new LightLevelModule());
 		MODULES.add(new WeatherOffModule());
+		MODULES.add(new BetterRainModule());
 		MODULES.add(new AutoSprintModule());
 		MODULES.add(new AutoReconnectModule());
 		MODULES.add(new ChatTimestampsModule());
@@ -202,7 +203,7 @@ public final class ModuleManager {
 				// efeitos
 				{"EFFECTS", "Particles 3D", "Particles 2D"},
 				{"AVATAR", "Players Galaxy", "China Hat", "No Legs", "Fire Head"},
-				{"SHADERS", "Galaxy", "Elytra Shader", "Glow Items", "Filter", "Mirror Floor"},
+				{"SHADERS", "Galaxy", "Elytra Shader", "Glow Items", "Filter", "Mirror Floor", "Better Rain"},
 				// HUD: o que so mostra informacao na tela
 				{"HUD", "Mob Counter", "Nearby Players", "Weather HUD", "Armor HUD", "Coords HUD", "Inventory Counter", "Item Count",
 						"Combo Counter", "Hit Marker", "Low Health Alert", "Reach Display", "Target HUD", "Entity Distance"},

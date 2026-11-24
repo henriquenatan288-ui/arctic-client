@@ -34,6 +34,7 @@ public final class ModuleDescriptions {
 			case "Fire Head" -> "Cabeca em chamas (particulas de fogo). So quem usa o Arctic Client ve.";
 			case "No Legs" -> "Tira as pernas do seu personagem (as duas, so a esquerda ou so a direita). So voce ve.";
 			case "Mirror Floor" -> "Reflexo no chao parecendo espelho.";
+			case "Better Rain" -> "Ondas na chuva: aneis se abrem no chao e na agua onde as gotas caem (so a ceu aberto).";
 			case "Player ESP" -> "Destaca jogadores atraves das paredes.";
 			case "Slow Hit Visual" -> "Visual de golpe lento.";
 			case "Speed" -> "Aumenta a velocidade de movimento (0 = normal).";
