@@ -28,6 +28,7 @@ public class MirrorFloorModule extends Module implements EspSource {
 	private final IntSetting strength = add(new IntSetting("Strength", 1, 10, 6, ""));
 	private final IntSetting range = add(new IntSetting("Range", 4, 20, 12, " blocks"));
 	private final IntSetting water = add(new IntSetting("Agua tambem (0/1)", 0, 1, 1, ""));
+	private final IntSetting entities = add(new IntSetting("Reflexo de jogadores e mobs (0/1)", 0, 1, 1, ""));
 	private final IntSetting wet = add(new IntSetting("Mais forte na chuva (0/1)", 0, 1, 1, ""));
 
 	/** coluna -> {x, y, z, validoAte(tick)} */
@@ -63,7 +64,7 @@ public class MirrorFloorModule extends Module implements EspSource {
 		double r2 = (r + 2) * (r + 2);
 		tiles.values().removeIf(t -> t[3] < tick || (t[0] - p.getX()) * (t[0] - p.getX()) + (t[2] - p.getZ()) * (t[2] - p.getZ()) > r2);
 		Vec3 eye = p.getEyePosition();
-		int tries = 28;
+		int tries = 40;
 		for (int i = 0; i < tries; i++) {
 			double ang = rnd.nextDouble() * Math.PI * 2;
 			double dist = r * Math.sqrt(rnd.nextDouble());
@@ -105,6 +106,10 @@ public class MirrorFloorModule extends Module implements EspSource {
 		double k = strength.get() / 10.0;
 		if (wet.get() == 1) k *= 1.0 + 0.7 * level.getRainLevel(1f);
 		double rg = range.get();
+		// de noite o ceu reflete menos
+		k *= 0.35 + 0.65 * (1.0 - Math.min(1.0, level.getSkyDarken() / 11.0));
+		double tm = System.nanoTime() / 1.0e9;
+		boolean rainy = level.getRainLevel(1f) > 0.1f;
 		int c = FxShapes.mix(color.get() | 0xFF000000, 0xFFFFFFFF, 0.35f);
 		for (double[] t : tiles.values()) {
 			double x = t[0], y = t[1], z = t[2];
@@ -112,11 +117,43 @@ public class MirrorFloorModule extends Module implements EspSource {
 			double cx = x + 0.5 - ex, cz = z + 0.5 - ez;
 			double edge = 1.0 - Mth.clamp((Math.sqrt(cx * cx + cz * cz) - rg * 0.6) / (rg * 0.4), 0.0, 1.0);
 			if (edge <= 0.0 || life <= 0.0) continue;
-			float a0 = corner(x, y, z, ex, ey, ez, k * edge * life);
-			float a1 = corner(x + 1, y, z, ex, ey, ez, k * edge * life);
-			float a2 = corner(x + 1, y, z + 1, ex, ey, ez, k * edge * life);
-			float a3 = corner(x, y, z + 1, ex, ey, ez, k * edge * life);
+			// brilho que oscila devagar (mais agitado na chuva)
+			double sh = 0.88 + 0.12 * Math.sin(tm * (rainy ? 3.2 : 1.1) + x * 1.7 + z * 2.3);
+			double kk = k * edge * life * sh;
+			float a0 = corner(x, y, z, ex, ey, ez, kk);
+			float a1 = corner(x + 1, y, z, ex, ey, ez, kk);
+			float a2 = corner(x + 1, y, z + 1, ex, ey, ez, kk);
+			float a3 = corner(x, y, z + 1, ex, ey, ez, kk);
 			esp.gradQuad(x, y, z, x + 1, y, z, x + 1, y, z + 1, x, y, z + 1, c, a0, a1, a2, a3);
+		}
+		if (entities.get() == 1) reflectEntities(esp, mc, ex, ey, ez, pt, k, c);
+	}
+
+	/** Reflexo de jogadores e mobs: silhueta espelhada abaixo do piso, que some com a profundidade. */
+	private void reflectEntities(Esp esp, Minecraft mc, double ex, double ey, double ez, float pt, double k, int c) {
+		boolean fp = mc.options.getCameraType().isFirstPerson();
+		double rg = range.get();
+		for (var e : mc.level.entitiesForRendering()) {
+			if (!(e instanceof net.minecraft.world.entity.LivingEntity le) || le.isInvisible() || le.isSpectator()) continue;
+			if (e == mc.player && fp) continue;
+			double x = Mth.lerp(pt, e.xOld, e.getX()), y = Mth.lerp(pt, e.yOld, e.getY()), z = Mth.lerp(pt, e.zOld, e.getZ());
+			double dx = x - ex, dz = z - ez;
+			if (dx * dx + dz * dz > rg * rg) continue;
+			double[] t = tiles.get(((long) Mth.floor(x) << 32) ^ (Mth.floor(z) & 0xFFFFFFFFL));
+			if (t == null) continue;
+			double fy = t[1];
+			double h0 = y - fy;
+			if (h0 < -0.2 || h0 > 4.0) continue;
+			double w = e.getBbWidth() / 2.0, h = e.getBbHeight();
+			double yHi = fy - Math.max(0.0, h0), yLo = fy - Math.max(0.0, h0) - h;
+			float a = (float) Mth.clamp(k * 0.55 * (1.0 - h0 / 5.0), 0.0, 0.6);
+			if (a <= 0.01f) continue;
+			float b = a * 0.1f;
+			double x0 = x - w, x1 = x + w, z0 = z - w, z1 = z + w;
+			esp.gradQuad(x0, yHi, z0, x1, yHi, z0, x1, yLo, z0, x0, yLo, z0, c, a, a, b, b);
+			esp.gradQuad(x0, yHi, z1, x1, yHi, z1, x1, yLo, z1, x0, yLo, z1, c, a, a, b, b);
+			esp.gradQuad(x0, yHi, z0, x0, yHi, z1, x0, yLo, z1, x0, yLo, z0, c, a, a, b, b);
+			esp.gradQuad(x1, yHi, z0, x1, yHi, z1, x1, yLo, z1, x1, yLo, z0, c, a, a, b, b);
 		}
 	}
 
