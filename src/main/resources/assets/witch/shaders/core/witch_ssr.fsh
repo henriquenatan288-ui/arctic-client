@@ -57,6 +57,7 @@ void main() {
     bool escaped = false;
     vec2 huv = vec2(0.5);
     vec2 euv = vec2(0.5);
+    vec2 lastUV = vec2(0.5);
     float hitT = 0.0;
 
     for (int i = 0; i < 30; i++) {
@@ -69,6 +70,7 @@ void main() {
             if (c.w > 0.001) { escaped = true; euv = clamp(c.xy / c.w * 0.5 + 0.5, 0.003, 0.997); }
             break;
         }
+        lastUV = uv;
         float thick = 0.45 + t * 0.14;
         if (d > 0.0 && d < thick) {
             // refina entre o passo anterior (fora) e este (dentro)
@@ -98,26 +100,13 @@ void main() {
         col = texture(Sampler0, huv).rgb;
         conf = edge * (1.0 - smoothstep(14.0, 36.0, hitT));
         col = mix(tint, col, conf);
-    } else if (escaped && R.y > -0.5) {
-        // o raio saiu da tela: usa a cor da borda por onde saiu (ceu, normalmente)
-        vec3 edgeCol = texture(Sampler0, euv).rgb;
-        col = mix(tint, edgeCol, 0.6);
-        conf = 0.35;
+    } else {
+        // o raio saiu da tela ou terminou sem achar nada: usa a cor do ultimo ponto (ceu, normalmente)
+        vec3 edgeCol = texture(Sampler0, escaped ? euv : lastUV).rgb;
+        col = mix(tint, edgeCol, 0.8);
+        conf = 0.45;
     }
 
-    float dbg = ColorModulator.a;
-    if (dbg > 1.5) {
-        vec2 uvS = gl_FragCoord.xy / vec2(textureSize(Sampler1, 0));
-        if (dbg < 2.5) {
-            float err = abs(length(scenePos(uvS)) - length(P));
-            fragColor = vec4(vec3(clamp(err * 2.0, 0.0, 1.0)), 1.0);
-        } else if (dbg < 3.5) {
-            fragColor = vec4(gIdz ? 0.0 : 1.0, gIdz ? 1.0 : 0.0, rawF, 1.0);
-        } else {
-            fragColor = hit ? vec4(vec3(hitT / 20.0), 1.0) : vec4(escaped ? 1.0 : 0.0, 0.0, 0.5, 1.0);
-        }
-        return;
-    }
     float a = clamp(F * strength * 1.5 * mix(0.45, 1.0, conf), 0.0, 0.92);
     if (a < 0.004) discard;
     fragColor = vec4(col, a);
