@@ -30,6 +30,7 @@ public class MirrorFloorModule extends Module implements EspSource, com.witch.re
 	private final IntSetting water = add(new IntSetting("Agua tambem (0/1)", 0, 1, 1, ""));
 	private final IntSetting entities = add(new IntSetting("Reflexo de jogadores e mobs (0/1)", 0, 1, 1, ""));
 	private final IntSetting ssr = add(new IntSetting("Reflexo de tela - blocos e skins (0/1)", 0, 1, 1, ""));
+	private final IntSetting dbg = add(new IntSetting("Debug SSR (0-3)", 0, 3, 0, ""));
 	private final IntSetting wet = add(new IntSetting("Mais forte na chuva (0/1)", 0, 1, 1, ""));
 
 	/** coluna -> {x, y, z, validoAte(tick)} */
@@ -79,7 +80,7 @@ public class MirrorFloorModule extends Module implements EspSource, com.witch.re
 		var level = Minecraft.getInstance().level;
 		float day = level == null ? 1f : (float) (0.35 + 0.65 * (1.0 - Math.min(1.0, level.getSkyDarken() / 11.0)));
 		int c = FxShapes.mix(color.get() | 0xFF000000, 0xFFFFFFFF, 0.35f);
-		return new float[] {((c >> 16) & 0xFF) / 255f * day, ((c >> 8) & 0xFF) / 255f * day, (c & 0xFF) / 255f * day};
+		return new float[] {((c >> 16) & 0xFF) / 255f * day, ((c >> 8) & 0xFF) / 255f * day, (c & 0xFF) / 255f * day, 1f + dbg.get()};
 	}
 
 	@Override
