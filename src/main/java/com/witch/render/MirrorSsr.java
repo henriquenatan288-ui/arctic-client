@@ -76,7 +76,7 @@ public final class MirrorSsr {
 					.withFragmentShader(Identifier.fromNamespaceAndPath("witch", "core/witch_ssr"))
 					.withBindGroupLayout(net.minecraft.client.renderer.BindGroupLayouts.SAMPLER0_SAMPLER1)
 					.withCull(false)
-					.withDepthStencilState(new DepthStencilState(CompareOp.LESS_THAN_OR_EQUAL, false))
+					.withDepthStencilState(new DepthStencilState(DepthStencilState.DEFAULT.depthTest(), false))
 					.withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT))
 					.build();
 			try {
