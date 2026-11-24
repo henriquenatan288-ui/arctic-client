@@ -21,6 +21,7 @@ public class WitchGametest implements FabricClientGameTest {
 			context.runOnClient(mc -> {
 				var m = com.witch.module.ModuleManager.byName("Mirror Floor");
 				if (m != null && !m.isEnabled()) m.toggle();
+				if (m != null) for (var st : m.settings()) { if (st.name.startsWith("Strength")) ((com.witch.setting.IntSetting) st).set(10); }
 				if (mc.player != null) mc.player.setXRot(14f);
 			});
 			context.waitTicks(80);
