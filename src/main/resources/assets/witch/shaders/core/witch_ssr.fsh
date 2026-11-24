@@ -40,7 +40,7 @@ void main() {
     vec3 R = reflect(V, n);
 
     float cosT = clamp(abs(dot(V, n)), 0.0, 1.0);
-    float F = 0.06 + 0.94 * pow(1.0 - cosT, 4.0);
+    float F = 0.22 + 0.78 * pow(1.0 - cosT, 3.0);
 
     gVP = ProjMat * ModelViewMat;
     gInv = inverse(gVP);
@@ -105,7 +105,7 @@ void main() {
         conf = 0.35;
     }
 
-    float a = clamp(F * strength * mix(0.6, 1.0, conf), 0.0, 0.92);
+    float a = clamp(F * strength * 1.5 * mix(0.45, 1.0, conf), 0.0, 0.92);
     if (a < 0.004) discard;
     fragColor = vec4(col, a);
 }
