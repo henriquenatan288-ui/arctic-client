@@ -31,6 +31,28 @@ public class WitchGametest implements FabricClientGameTest {
 			context.takeScreenshot("espelho-ssr-b");
 			context.runOnClient(mc -> {
 				var m = com.witch.module.ModuleManager.byName("Mirror Floor");
+				for (var s : m.settings()) if (s.name.startsWith("Debug SSR")) ((com.witch.setting.IntSetting) s).set(1);
+			});
+			context.waitTicks(10);
+			context.takeScreenshot("dbg1");
+			context.runOnClient(mc -> {
+				var m = com.witch.module.ModuleManager.byName("Mirror Floor");
+				for (var s : m.settings()) if (s.name.startsWith("Debug SSR")) ((com.witch.setting.IntSetting) s).set(2);
+			});
+			context.waitTicks(10);
+			context.takeScreenshot("dbg2");
+			context.runOnClient(mc -> {
+				var m = com.witch.module.ModuleManager.byName("Mirror Floor");
+				for (var s : m.settings()) if (s.name.startsWith("Debug SSR")) ((com.witch.setting.IntSetting) s).set(3);
+			});
+			context.waitTicks(10);
+			context.takeScreenshot("dbg3");
+			context.runOnClient(mc -> {
+				var m = com.witch.module.ModuleManager.byName("Mirror Floor");
+				for (var s : m.settings()) if (s.name.startsWith("Debug SSR")) ((com.witch.setting.IntSetting) s).set(0);
+			});
+			context.runOnClient(mc -> {
+				var m = com.witch.module.ModuleManager.byName("Mirror Floor");
 				for (var s : m.settings()) if (s.name.startsWith("Reflexo de tela")) ((com.witch.setting.IntSetting) s).set(0);
 				if (mc.player != null) mc.player.setXRot(14f);
 			});
