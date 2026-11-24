@@ -1,6 +1,7 @@
 package com.witch.module;
 
 import com.witch.gui.FontUtil;
+import com.witch.gui.Hud;
 import com.witch.gui.HudLayout;
 import com.witch.gui.RenderUtil;
 import net.fabricmc.fabric.api.event.player.AttackEntityCallback;
@@ -53,21 +54,21 @@ public final class InfoModules {
 			if (m instanceof Line l && l.isEnabled()) l.collect(mc, p, rows);
 		}
 		if (rows.isEmpty()) return;
-		int lh = FontUtil.height() + 3;
+		int lh = Hud.th() + 3;
 		int lw = 0, vw = 0;
 		for (String[] r : rows) {
-			lw = Math.max(lw, FontUtil.width(r[0]));
-			vw = Math.max(vw, FontUtil.width(r[1]));
+			lw = Math.max(lw, Hud.tw(r[0]));
+			vw = Math.max(vw, Hud.tw(r[1]));
 		}
-		int bw = lw + vw + 26;
+		int bw = lw + vw + 8 + 14;
 		int bh = rows.size() * lh + 5;
 		int x = 5 + HudLayout.dx("info");
-		int y = 40 + HudLayout.dy("info");
-		RenderUtil.panel(g, x, y, bw, bh, 1f);
-		int ty = y + 4;
+		int y = 34 + HudLayout.dy("info");
+		Hud.pill(g, x, y, bw, bh, 1f);
+		int ty = y + 3;
 		for (String[] r : rows) {
-			FontUtil.draw(g, r[0], x + 7, ty, 0xFF8A8A8A);
-			FontUtil.draw(g, r[1], x + 7 + lw + 12, ty, 0xFFFFFFFF);
+			Hud.text(g, r[0], x + 7, ty, Hud.DIM);
+			Hud.text(g, r[1], x + 7 + lw + 8, ty, Hud.WHITE);
 			ty += lh;
 		}
 		HudLayout.report("info", x, y, bw, bh);
@@ -388,9 +389,9 @@ public final class InfoModules {
 			if (instance == null || !instance.isEnabled()) return;
 			Minecraft mc = Minecraft.getInstance();
 			if (mc.player == null) return;
-			int cell = 17, gap = 2;
+			int cell = 13, gap = 1;
 			int w = cell * 3 + gap * 2, h = cell * 3 + gap * 2;
-			int x0 = mc.getWindow().getGuiScaledWidth() - w - 6 + HudLayout.dx("keys");
+			int x0 = mc.getWindow().getGuiScaledWidth() - w - 5 + HudLayout.dx("keys");
 			int y0 = mc.getWindow().getGuiScaledHeight() / 2 + 20 + HudLayout.dy("keys");
 			key(g, x0 + cell + gap, y0, cell, cell, "W", mc.options.keyUp.isDown());
 			key(g, x0, y0 + cell + gap, cell, cell, "A", mc.options.keyLeft.isDown());
@@ -403,9 +404,8 @@ public final class InfoModules {
 		}
 
 		private static void key(GuiGraphicsExtractor g, int x, int y, int w, int h, String t, boolean down) {
-			RenderUtil.roundRect(g, x, y, w, h, 4, RenderUtil.alpha(0xFFFFFFFF, down ? 0.55f : 0.14f));
-			RenderUtil.roundRect(g, x + 1, y + 1, w - 2, h - 2, 3, RenderUtil.alpha(down ? 0xFFE0E0E0 : 0xFF0A0A0A, down ? 0.85f : 0.5f));
-			FontUtil.draw(g, t, x + (w - FontUtil.width(t)) / 2, y + (h - FontUtil.height()) / 2, down ? 0xFF111111 : 0xFFFFFFFF);
+			RenderUtil.roundRect(g, x, y, w, h, 3, down ? RenderUtil.alpha(0xFFF2F2F4, 0.88f) : RenderUtil.alpha(0xFF08080A, 0.58f));
+			Hud.text(g, t, x + (w - Hud.tw(t)) / 2, y + (h - Hud.th()) / 2, down ? 0xFF111114 : Hud.DIM);
 		}
 	}
 }

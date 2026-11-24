@@ -506,25 +506,9 @@ public class SusChunkFinderModule extends Module implements EspSource {
 		String text = instance.alertText;
 		long until = instance.alertUntil;
 		if (text == null || System.currentTimeMillis() > until) return;
-
-		Minecraft mc = Minecraft.getInstance();
-		int sw = mc.getWindow().getGuiScaledWidth();
-		int sh = mc.getWindow().getGuiScaledHeight();
-		int tw = FontUtil.width(text);
-		int th = FontUtil.height();
-		int padX = 10;
-		int padY = 6;
-		int bw = tw + padX * 2;
-		int bh = th + padY * 2;
-		int x = (sw - bw) / 2;
-		int y = sh / 2 - 40;
-
 		long left = until - System.currentTimeMillis();
 		float a = left > 500 ? 1f : Math.max(0f, left / 500f);
-
-		RenderUtil.roundRect(g, x, y, bw, bh, 5, RenderUtil.alpha(0xFF1A1028, 0.82f * a));
-		RenderUtil.roundRect(g, x, y, 3, bh, 1, RenderUtil.alpha(0xFFE8C56A, a));
-		FontUtil.draw(g, text, x + padX, y + padY, RenderUtil.alpha(0xFFFFF0C8, a));
+		com.witch.gui.Hud.alert(g, text, 0xFFE8C56A, a);
 	}
 
 	/** Lista das bases (chunks coladas somadas), a mais proxima primeiro. */
@@ -535,17 +519,17 @@ public class SusChunkFinderModule extends Module implements EspSource {
 		Minecraft mc = Minecraft.getInstance();
 		int sh = mc.getWindow().getGuiScaledHeight();
 		int n = Math.min(4, gs.size());
-		int th = FontUtil.height();
+		int h = com.witch.gui.Hud.rowH();
 		int y = sh / 2 - 20;
 		for (int i = 0; i < n; i++) {
 			Group gr = gs.get(i);
 			String t = gr.text();
-			int w = FontUtil.width(t) + 14;
+			int w = com.witch.gui.Hud.tw(t) + 17;
 			int accent = gr.level == 2 ? RAIDED_COLOR : gr.level == 1 ? RAID_COLOR : 0xFFE8C56A;
-			RenderUtil.roundRect(g, 6, y, w, th + 8, 4, RenderUtil.alpha(0xFF1A1028, 0.78f));
-			RenderUtil.roundRect(g, 6, y, 3, th + 8, 1, accent);
-			FontUtil.draw(g, t, 14, y + 4, 0xFFFFF0C8);
-			y += th + 11;
+			com.witch.gui.Hud.pill(g, 5, y, w, h, 1f);
+			com.witch.gui.Hud.dot(g, 11, y + h / 2, accent);
+			com.witch.gui.Hud.text(g, t, 17, y + (h - com.witch.gui.Hud.th()) / 2, com.witch.gui.Hud.WHITE);
+			y += h + 2;
 		}
 	}
 }

@@ -146,6 +146,35 @@ public final class EspRenderer {
 		return new Vec3(cam.x + center4.x, cam.y + center4.y, cam.z + center4.z);
 	}
 
+	private static volatile Matrix4f hudProjView;
+	private static volatile Matrix4f hudViewRot;
+	private static volatile Vec3 hudCam;
+
+	/**
+	 * Projeta um ponto do mundo para a tela (coordenadas da GUI). Retorna {x, y, estado, dirX, dirY}:
+	 * estado 0 = visivel, 1 = fora da tela (na frente), 2 = atras da camera; dir = direcao na tela a partir do centro.
+	 * Null se ainda nao houve frame com ESP.
+	 */
+	public static float[] toScreen(double x, double y, double z, int gw, int gh) {
+		Matrix4f pv = hudProjView, vr = hudViewRot;
+		Vec3 cam = hudCam;
+		if (pv == null || vr == null || cam == null) return null;
+		float rx = (float) (x - cam.x), ry = (float) (y - cam.y), rz = (float) (z - cam.z);
+		Vector4f v = new Vector4f(rx, ry, rz, 1f).mul(pv);
+		if (v.w > 0.01f) {
+			float nx = v.x / v.w, ny = v.y / v.w;
+			float sx = (nx * 0.5f + 0.5f) * gw, sy = (1f - (ny * 0.5f + 0.5f)) * gh;
+			boolean in = Math.abs(nx) <= 1f && Math.abs(ny) <= 1f;
+			float l = (float) Math.sqrt(nx * nx + ny * ny);
+			if (l < 1e-4f) { nx = 0f; ny = 1f; l = 1f; }
+			return new float[]{sx, sy, in ? 0f : 1f, nx / l, -ny / l};
+		}
+		Vector3f vv = vr.transformPosition(rx, ry, rz, new Vector3f());
+		float l = (float) Math.sqrt(vv.x * vv.x + vv.y * vv.y);
+		if (l < 1e-4f) { vv.x = 0f; vv.y = -1f; l = 1f; }
+		return new float[]{0f, 0f, 2f, vv.x / l, -vv.y / l};
+	}
+
 	private static void onRender(LevelRenderContext context) {
 		boolean any = false;
 		for (EspSource s : SOURCES) {
@@ -181,8 +210,14 @@ public final class EspRenderer {
 		pose.translate(-cam.x, -cam.y, -cam.z);
 		// sem inverseBob: o frame do mundo ja leva o bob na projection; cancelar aqui fazia ESP/tracers
 		// balancarem em relacao ao mundo ao andar. A origem dos tracers (screenCenter) ja considera o bob.
+		hudProjView = new Matrix4f(crs.projectionMatrix).mul(bobM).mul(crs.viewRotationMatrix);
+		hudViewRot = new Matrix4f(crs.viewRotationMatrix);
+		hudCam = cam;
+		Vector3f dn = new Matrix4f(crs.viewRotationMatrix).invert().transformDirection(0f, -1f, 0f, new Vector3f());
+		Vec3 originBottom = new Vec3(origin.x + dn.x * 0.15, origin.y + dn.y * 0.15, origin.z + dn.z * 0.15);
 		Vector3f fw = new Matrix4f(crs.viewRotationMatrix).invert().transformDirection(0f, 0f, -1f, new Vector3f());
 		Esp esp = new Esp(pose.last().pose(), cam, pt, origin, new Vec3(fw.x, fw.y, fw.z));
+		esp.startBottom = originBottom;
 		for (EspSource s : SOURCES) {
 			if (s.active()) s.collect(esp);
 		}
@@ -229,6 +264,17 @@ public final class EspRenderer {
 		private final Vec3 start;
 		/** Direcao para onde a camera olha (mundo): serve para cortar linhas que passam por tras dela. */
 		private final Vec3 fwd;
+		private Vec3 startBottom;
+		private boolean useBottom;
+
+		/** Origem dos tracers: false = centro da mira, true = base da tela. */
+		public void originBottom(boolean b) {
+			useBottom = b;
+		}
+
+		private Vec3 st() {
+			return useBottom && startBottom != null ? startBottom : start;
+		}
 
 		/**
 		 * Linhas com um ponta atras da camera viravam faixas horizontais na tela inteira (a projecao inverte).
@@ -315,15 +361,15 @@ public final class EspRenderer {
 		}
 
 		public void tracer(double tx, double ty, double tz, int argb) {
-			thinLine(start.x, start.y, start.z, tx, ty, tz, argb, 1f);
+			thinLine(st().x, st().y, st().z, tx, ty, tz, argb, 1f);
 		}
 
 		public void tracer(double tx, double ty, double tz, int argb, float alpha) {
-			thinLine(start.x, start.y, start.z, tx, ty, tz, argb, alpha, 1.0f);
+			thinLine(st().x, st().y, st().z, tx, ty, tz, argb, alpha, 1.0f);
 		}
 
 		public void tracer(double tx, double ty, double tz, int argb, float alpha, float width) {
-			thinLine(start.x, start.y, start.z, tx, ty, tz, argb, alpha, width);
+			thinLine(st().x, st().y, st().z, tx, ty, tz, argb, alpha, width);
 		}
 
 		public void solid(double x0, double y0, double z0, double x1, double y1, double z1, int argb, float alpha) {

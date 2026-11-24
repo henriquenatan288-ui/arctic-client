@@ -188,40 +188,41 @@ public class AntiVanishModule extends Module {
 		Minecraft mc = Minecraft.getInstance();
 		int focus = 0;
 		List<String> keys = new ArrayList<>(ranks.keySet());
-		int lh = FontUtil.height() + 2;
+		int lh = com.witch.gui.Hud.th() + 2;
 		int lines = 1 + keys.size();
 		if (focus >= 1 && focus <= keys.size()) {
 			lines += 1 + ranks.get(keys.get(focus - 1)).size();
 		}
-		int w = 130;
-		for (String k : keys) w = Math.max(w, FontUtil.width(k) + 50);
+		int w = 0;
+		String title = "Cargos online";
+		w = Math.max(w, com.witch.gui.Hud.tw(title));
+		for (String k : keys) w = Math.max(w, com.witch.gui.Hud.tw("! 9. " + k + " (99)"));
 		if (focus >= 1 && focus <= keys.size()) {
-			for (String n : ranks.get(keys.get(focus - 1))) w = Math.max(w, FontUtil.width(n) + 24);
+			for (String n : ranks.get(keys.get(focus - 1))) w = Math.max(w, com.witch.gui.Hud.tw(n) + 6);
 		}
-		int h = lines * lh + 10;
-		int x = mc.getWindow().getGuiScaledWidth() - w - 6;
-		int y = 6;
-		RenderUtil.roundRect(g, x, y, w, h, 5, 0xB0201830);
-		RenderUtil.roundRect(g, x, y, 3, h, 1, Theme.ACCENT);
-		int ty = y + 5;
-		FontUtil.draw(g, "Cargos online", x + 8, ty, Theme.TEXT);
+		w += 14;
+		int h = lines * lh + 6;
+		int x = mc.getWindow().getGuiScaledWidth() - w - 5;
+		int y = com.witch.gui.Hud.takeRight(h);
+		com.witch.gui.Hud.pill(g, x, y, w, h, 1f);
+		int ty = y + 4;
+		com.witch.gui.Hud.text(g, title, x + 7, ty, com.witch.gui.Hud.DIM);
 		ty += lh;
 		for (int i = 0; i < keys.size(); i++) {
 			String key = keys.get(i);
 			boolean focused = (i + 1) == focus;
 			boolean alert = false;
 			for (String n : ranks.get(key)) if (DANGEROUS.contains(n.toLowerCase(java.util.Locale.ROOT))) alert = true;
-			String mark = alert ? "[!]	" : "    ";
-			String line = mark + (i + 1) + ". " + key + " (" + ranks.get(key).size() + ")";
-			int col = alert ? 0xFFFF6B6B : (focused ? 0xFFFFFFFF : 0xFFB9A8D8);
-			FontUtil.draw(g, line, x + 8, ty, col);
+			String line = (alert ? "! " : "") + (i + 1) + ". " + key + " (" + ranks.get(key).size() + ")";
+			int col = alert ? 0xFFE5646C : (focused ? 0xFFFFFFFF : com.witch.gui.Hud.WHITE);
+			com.witch.gui.Hud.text(g, line, x + 7, ty, col);
 			ty += lh;
 		}
 		if (focus >= 1 && focus <= keys.size()) {
-			FontUtil.draw(g, "-- " + keys.get(focus - 1), x + 8, ty, 0xFFB7ACF0);
+			com.witch.gui.Hud.text(g, "- " + keys.get(focus - 1), x + 7, ty, com.witch.gui.Hud.DIM);
 			ty += lh;
 			for (String n : ranks.get(keys.get(focus - 1))) {
-				FontUtil.draw(g, n, x + 14, ty, 0xFFFFFFFF);
+				com.witch.gui.Hud.text(g, n, x + 13, ty, com.witch.gui.Hud.WHITE);
 				ty += lh;
 			}
 		}

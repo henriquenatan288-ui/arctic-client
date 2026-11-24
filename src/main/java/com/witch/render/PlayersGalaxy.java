@@ -12,7 +12,7 @@ public final class PlayersGalaxy {
 	private static final Object[] PIPES = new Object[9 * 4 * 2];
 	private static final boolean[] FAILED = new boolean[9 * 4 * 2];
 	@SuppressWarnings("unchecked")
-	private static final Map<Identifier, RenderType>[] CACHES = new Map[8 * 4 * 2];
+	private static final Map<Identifier, RenderType>[] CACHES = new Map[9 * 4 * 2];
 	public static volatile String status;
 	public static volatile boolean statusOk;
 	private static boolean reportedOk;

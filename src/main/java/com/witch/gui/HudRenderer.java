@@ -12,8 +12,11 @@ public final class HudRenderer {
 	public static void extract(GuiGraphicsExtractor g, DeltaTracker deltaTracker) {
 		Minecraft mc = Minecraft.getInstance();
 		if (ClickGui.isClickGui(mc.gui.screen()) || mc.gui.screen() instanceof ModuleEditorScreen) return;
+		Hud.begin();
 		com.witch.module.AntiVanishModule.drawHud(g);
 		com.witch.module.SusChunkFinderModule.drawHud(g);
+		com.witch.module.TracersModule.drawHud(g);
+		com.witch.module.EntityAlertModule.drawHud(g);
 		com.witch.module.SusSoloFinderModule.drawHud(g);
 		com.witch.module.CoordsHudModule.drawHud(g);
 		com.witch.module.SpotifyModule.drawHud(g);
@@ -28,8 +31,8 @@ public final class HudRenderer {
 		int x = 5 + HudLayout.dx("modules");
 		int y = 5 + HudLayout.dy("modules");
 		int top = y;
-		int lw = 40;
-		WitchLogo.draw(g, x, y, lw, 0.95f);
+		int lw = 26;
+		WitchLogo.draw(g, x, y, lw, 0.9f);
 		HudLayout.report("modules", x, top, lw, WitchLogo.height(lw));
 	}
 }

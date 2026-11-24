@@ -84,6 +84,7 @@ public final class ModuleManager {
 		MODULES.add(new FreeLookModule());
 		MODULES.add(new BreakWaveModule());
 		MODULES.add(new AntiVanishModule());
+		MODULES.add(new EntityAlertModule());
 		MODULES.add(new ParticlesModule());
 		MODULES.add(new FlyModule());
 		MODULES.add(new SpeedModule());
@@ -105,6 +106,8 @@ public final class ModuleManager {
 		MODULES.add(new ChunkBordersModule());
 		MODULES.add(new LightLevelModule());
 		MODULES.add(new WeatherOffModule());
+		MODULES.add(new BetterRainModule());
+		MODULES.add(new MirrorFloorModule());
 		MODULES.add(new AutoSprintModule());
 		MODULES.add(new AutoReconnectModule());
 		MODULES.add(new ChatTimestampsModule());
@@ -196,12 +199,12 @@ public final class ModuleManager {
 		String[][] map = {
 				// mundo: ESP, buscadores e camera
 				{"WORLD", "X-Ray Hologram", "Player ESP", "Elytra ESP", "Storage ESP", "Farm ESP", "Tracers", "Ancient Finder", "Sus Chunk Finder",
-						"Sus Hole Finder", "Sus Solo Finder", "Chunk Borders", "Waypoints", "Light Level", "Freecam", "FreeLook", "Zoom",
+						"Sus Hole Finder", "Sus Solo Finder", "Entity Alert", "Chunk Borders", "Waypoints", "Light Level", "Freecam", "FreeLook", "Zoom",
 						"FOV Changer", "Render Distance"},
 				// efeitos
 				{"EFFECTS", "Particles 3D", "Particles 2D"},
 				{"AVATAR", "Players Galaxy", "China Hat", "No Legs", "Fire Head"},
-				{"SHADERS", "Galaxy", "Elytra Shader", "Glow Items", "Filter", "Mirror Floor"},
+				{"SHADERS", "Galaxy", "Elytra Shader", "Glow Items", "Filter", "Mirror Floor", "Better Rain"},
 				// HUD: o que so mostra informacao na tela
 				{"HUD", "Mob Counter", "Nearby Players", "Weather HUD", "Armor HUD", "Coords HUD", "Inventory Counter", "Item Count",
 						"Combo Counter", "Hit Marker", "Low Health Alert", "Reach Display", "Target HUD", "Entity Distance"},

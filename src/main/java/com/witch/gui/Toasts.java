@@ -30,7 +30,8 @@ public final class Toasts {
 		long now = System.currentTimeMillis();
 		LIST.removeIf(t -> now - t.at > LIFE);
 		int sw = Minecraft.getInstance().getWindow().getGuiScaledWidth();
-		int y = 6;
+		int y = Hud.rightTop();
+		int bh = Hud.rowH();
 		for (int i = LIST.size() - 1; i >= 0; i--) {
 			Toast t = LIST.get(i);
 			long age = now - t.at;
@@ -38,16 +39,14 @@ public final class Toasts {
 			float out = age > LIFE - OUT ? (LIFE - age) / (float) OUT : 1f;
 			float e = 1f - (1f - in) * (1f - in);
 			String state = t.on ? "ON" : "OFF";
-			int tw = FontUtil.width(t.name) + 8 + FontUtil.width(state);
-			int bw = tw + 19;
-			int bh = FontUtil.height() + 5;
-			int x = sw - 6 - bw + Math.round((1f - e) * (bw + 8));
+			int bw = Hud.tw(t.name) + 6 + Hud.tw(state) + 18;
+			int x = sw - 5 - bw + Math.round((1f - e) * (bw + 8));
 			float a = out;
-			int bar = t.on ? Theme.accent() : 0xFF6A6A6A;
-			RenderUtil.panel(g, x, y, bw, bh, a);
-			RenderUtil.roundRect(g, x + 6, y + bh / 2 - 1, 3, 3, 1, RenderUtil.alpha(t.on ? 0xFFFFFFFF : 0xFF5A5A5A, a));
-			FontUtil.draw(g, t.name, x + 13, y + 3, RenderUtil.alpha(0xFFFFFFFF, a));
-			FontUtil.draw(g, state, x + 13 + FontUtil.width(t.name) + 8, y + 3, RenderUtil.alpha(t.on ? 0xFFB5B9C0 : 0xFF6A6A6A, a));
+			Hud.pill(g, x, y, bw, bh, a);
+			Hud.dot(g, x + 6, y + bh / 2, RenderUtil.alpha(t.on ? Theme.accent() | 0xFF000000 : 0xFF5A5A60, a));
+			int ty = y + (bh - Hud.th()) / 2;
+			Hud.text(g, t.name, x + 12, ty, RenderUtil.alpha(Hud.WHITE, a));
+			Hud.text(g, state, x + 12 + Hud.tw(t.name) + 6, ty, RenderUtil.alpha(t.on ? 0xFFB5B9C0 : 0xFF6A6A70, a));
 			y += bh + 2;
 		}
 	}
