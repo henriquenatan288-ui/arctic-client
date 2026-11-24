@@ -30,6 +30,12 @@ public class WitchGametest implements FabricClientGameTest {
 			context.runOnClient(mc -> { if (mc.player != null) mc.player.setXRot(6f); });
 			context.waitTicks(10);
 			context.takeScreenshot("espelho-ssr-b");
+			context.runOnClient(mc -> { if (mc.player != null) mc.player.setXRot(55f); });
+			context.waitTicks(10);
+			context.takeScreenshot("espelho-baixo55");
+			context.runOnClient(mc -> { if (mc.player != null) mc.player.setXRot(88f); });
+			context.waitTicks(10);
+			context.takeScreenshot("espelho-baixo88");
 			context.runOnClient(mc -> {
 				var m = com.witch.module.ModuleManager.byName("Mirror Floor");
 				for (var s : m.settings()) if (s.name.startsWith("Reflexo de tela")) ((com.witch.setting.IntSetting) s).set(0);
