@@ -22,13 +22,14 @@ import java.util.Map;
  * (fraco de cima, forte em angulo rasante), mais forte na chuva e na agua. Ainda NAO reflete blocos nem
  * entidades: isso exige renderizar a cena de novo e e a etapa 2.
  */
-public class MirrorFloorModule extends Module implements EspSource {
+public class MirrorFloorModule extends Module implements EspSource, com.witch.render.MirrorSsr.Source {
 	private static final int LIFE_TICKS = 60;
 	private final ColorSetting color = add(new ColorSetting("Color", 1));
 	private final IntSetting strength = add(new IntSetting("Strength", 1, 10, 6, ""));
 	private final IntSetting range = add(new IntSetting("Range", 4, 20, 12, " blocks"));
 	private final IntSetting water = add(new IntSetting("Agua tambem (0/1)", 0, 1, 1, ""));
 	private final IntSetting entities = add(new IntSetting("Reflexo de jogadores e mobs (0/1)", 0, 1, 1, ""));
+	private final IntSetting ssr = add(new IntSetting("Reflexo de tela - blocos e skins (0/1)", 0, 1, 1, ""));
 	private final IntSetting wet = add(new IntSetting("Mais forte na chuva (0/1)", 0, 1, 1, ""));
 
 	/** coluna -> {x, y, z, validoAte(tick)} */
@@ -38,6 +39,47 @@ public class MirrorFloorModule extends Module implements EspSource {
 
 	public MirrorFloorModule() {
 		super("Mirror Floor", Category.SHADERS);
+		com.witch.render.MirrorSsr.source = this;
+		com.witch.render.MirrorSsr.init();
+	}
+
+	@Override
+	public boolean ssrWanted() {
+		return isEnabled() && ssr.get() == 1;
+	}
+
+	/** Reflexo de tela ativo e funcionando: o brilho simples e as silhuetas ficam desligados. */
+	private boolean ssrOn() {
+		return ssr.get() == 1 && com.witch.render.MirrorSsr.working;
+	}
+
+	@Override
+	public java.util.Collection<float[]> ssrTiles() {
+		Minecraft mc = Minecraft.getInstance();
+		var p = mc.player;
+		var level = mc.level;
+		java.util.List<float[]> out = new java.util.ArrayList<>(tiles.size());
+		if (p == null || level == null) return out;
+		double k = strength.get() / 10.0;
+		if (wet.get() == 1) k *= 1.0 + 0.7 * level.getRainLevel(1f);
+		double rg = range.get();
+		for (double[] t : tiles.values()) {
+			double cx = t[0] + 0.5 - p.getX(), cz = t[2] + 0.5 - p.getZ();
+			double edge = 1.0 - Mth.clamp((Math.sqrt(cx * cx + cz * cz) - rg * 0.6) / (rg * 0.4), 0.0, 1.0);
+			double life = Math.min(1.0, (t[3] - tick) / 12.0);
+			float a = (float) Mth.clamp(k * edge * life, 0.0, 1.0);
+			if (a <= 0.01f) continue;
+			out.add(new float[] {(float) t[0], (float) t[1], (float) t[2], a});
+		}
+		return out;
+	}
+
+	@Override
+	public float[] ssrTint() {
+		var level = Minecraft.getInstance().level;
+		float day = level == null ? 1f : (float) (0.35 + 0.65 * (1.0 - Math.min(1.0, level.getSkyDarken() / 11.0)));
+		int c = FxShapes.mix(color.get() | 0xFF000000, 0xFFFFFFFF, 0.35f);
+		return new float[] {((c >> 16) & 0xFF) / 255f * day, ((c >> 8) & 0xFF) / 255f * day, (c & 0xFF) / 255f * day};
 	}
 
 	@Override
@@ -98,7 +140,7 @@ public class MirrorFloorModule extends Module implements EspSource {
 		Minecraft mc = Minecraft.getInstance();
 		var p = mc.player;
 		var level = mc.level;
-		if (p == null || level == null || tiles.isEmpty()) return;
+		if (p == null || level == null || tiles.isEmpty() || ssrOn()) return;
 		float pt = esp.partial();
 		double ex = Mth.lerp(pt, p.xOld, p.getX());
 		double ey = Mth.lerp(pt, p.yOld, p.getY()) + p.getEyeHeight();
