@@ -150,7 +150,7 @@ public final class MirrorSsr {
 			if (info != null) {
 				float[] tint = src.ssrTint();
 				var dyn = RenderSystem.getDynamicUniforms().writeTransform(RenderSystem.getModelViewMatrixCopy(),
-						new Vector4f(tint[0], tint[1], tint[2], tint.length > 3 ? tint[3] : 1f), MODEL_OFFSET, TEXTURE_MATRIX);
+						new Vector4f(tint[0], tint[1], tint[2], 1f), MODEL_OFFSET, TEXTURE_MATRIX);
 				var lin = RenderSystem.getSamplerCache().getClampToEdge(FilterMode.LINEAR);
 				var nea = RenderSystem.getSamplerCache().getClampToEdge(FilterMode.NEAREST);
 				try (RenderPass pass = enc.createRenderPass(() -> "witch mirror ssr", main.getColorTextureView(), Optional.empty(),
