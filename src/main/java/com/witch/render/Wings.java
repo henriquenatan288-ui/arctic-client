@@ -55,7 +55,7 @@ public final class Wings {
 						float phi = (float) Math.toRadians(80.0 - 150.0 * k + layer * 7.0);
 						float len = sc * lenK * (0.55f + 0.45f * (float) Math.sin(Math.PI * (0.18 + 0.82 * (1.0 - k))));
 						float wid = 0.045f * sc * (0.8f + 0.4f * lenK);
-						feather(vc, pose, side, phi, len, wid, open, layer * 0.006f, flat, argb, k);
+						feather(vc, pose, side, phi, len, wid, open, layer * 0.006f + i * 0.0007f, flat, argb, k);
 					}
 				}
 			}
@@ -73,11 +73,12 @@ public final class Wings {
 		float ca = (float) Math.cos(open), sa = (float) Math.sin(open);
 		// pontos (u,v) -> x = side*u*ca, z = -u*sa (atras), y = v
 		float[] x = new float[4], y = new float[4], z = new float[4];
+		float tw = len * 0.25f; // ponta larga: as penas se encostam e formam uma asa continua
 		float[][] uv = {
-				{rootU - pu * wid, rootV - pv * wid},
-				{rootU + pu * wid, rootV + pv * wid},
-				{tipU, tipV},
-				{tipU, tipV}};
+				{rootU - pu * wid * 0.5f, rootV - pv * wid * 0.5f},
+				{rootU + pu * wid * 0.5f, rootV + pv * wid * 0.5f},
+				{tipU + pu * tw, tipV + pv * tw},
+				{tipU - pu * tw, tipV - pv * tw}};
 		for (int i = 0; i < 4; i++) {
 			x[i] = side * uv[i][0] * ca;
 			y[i] = uv[i][1];
