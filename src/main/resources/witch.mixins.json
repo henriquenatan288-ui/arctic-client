@@ -31,6 +31,7 @@
     "PlayerModelMixin",
     "RenderTypesMixin",
     "ChinaHatMixin",
+    "WingsMixin",
     "TridentSpecialRendererMixin"
   ],
   "injectors": {
