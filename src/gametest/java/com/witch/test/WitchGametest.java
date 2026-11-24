@@ -16,8 +16,9 @@ public class WitchGametest implements FabricClientGameTest {
 			srv.runCommand("execute at @p run fill ~2 ~ ~5 ~3 ~3 ~6 minecraft:red_concrete");
 			srv.runCommand("execute at @p run fill ~-3 ~ ~6 ~-3 ~2 ~6 minecraft:lime_concrete");
 			srv.runCommand("execute at @p run setblock ~0 ~ ~7 minecraft:glowstone");
-			srv.runCommand("execute at @p run summon minecraft:villager ~-1 ~ ~4");
+			srv.runCommand("execute at @p run summon minecraft:villager ~-1 ~ ~4 {NoAI:1b}");
 			srv.runCommand("execute at @p run summon minecraft:armor_stand ~1 ~ ~3");
+			srv.runCommand("execute at @p run summon minecraft:iron_golem ~4 ~ ~9 {NoAI:1b}");
 			context.runOnClient(mc -> {
 				var m = com.witch.module.ModuleManager.byName("Mirror Floor");
 				if (m != null && !m.isEnabled()) m.toggle();
@@ -29,28 +30,6 @@ public class WitchGametest implements FabricClientGameTest {
 			context.runOnClient(mc -> { if (mc.player != null) mc.player.setXRot(6f); });
 			context.waitTicks(10);
 			context.takeScreenshot("espelho-ssr-b");
-			context.runOnClient(mc -> {
-				var m = com.witch.module.ModuleManager.byName("Mirror Floor");
-				for (var s : m.settings()) if (s.name.startsWith("Debug SSR")) ((com.witch.setting.IntSetting) s).set(1);
-			});
-			context.waitTicks(10);
-			context.takeScreenshot("dbg1");
-			context.runOnClient(mc -> {
-				var m = com.witch.module.ModuleManager.byName("Mirror Floor");
-				for (var s : m.settings()) if (s.name.startsWith("Debug SSR")) ((com.witch.setting.IntSetting) s).set(2);
-			});
-			context.waitTicks(10);
-			context.takeScreenshot("dbg2");
-			context.runOnClient(mc -> {
-				var m = com.witch.module.ModuleManager.byName("Mirror Floor");
-				for (var s : m.settings()) if (s.name.startsWith("Debug SSR")) ((com.witch.setting.IntSetting) s).set(3);
-			});
-			context.waitTicks(10);
-			context.takeScreenshot("dbg3");
-			context.runOnClient(mc -> {
-				var m = com.witch.module.ModuleManager.byName("Mirror Floor");
-				for (var s : m.settings()) if (s.name.startsWith("Debug SSR")) ((com.witch.setting.IntSetting) s).set(0);
-			});
 			context.runOnClient(mc -> {
 				var m = com.witch.module.ModuleManager.byName("Mirror Floor");
 				for (var s : m.settings()) if (s.name.startsWith("Reflexo de tela")) ((com.witch.setting.IntSetting) s).set(0);
