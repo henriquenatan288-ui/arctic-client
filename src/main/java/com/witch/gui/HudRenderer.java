@@ -15,6 +15,7 @@ public final class HudRenderer {
 		com.witch.module.AntiVanishModule.drawHud(g);
 		com.witch.module.SusChunkFinderModule.drawHud(g);
 		com.witch.module.TracersModule.drawHud(g);
+		com.witch.module.EntityAlertModule.drawHud(g);
 		com.witch.module.SusSoloFinderModule.drawHud(g);
 		com.witch.module.CoordsHudModule.drawHud(g);
 		com.witch.module.SpotifyModule.drawHud(g);

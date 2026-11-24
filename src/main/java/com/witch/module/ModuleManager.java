@@ -84,6 +84,7 @@ public final class ModuleManager {
 		MODULES.add(new FreeLookModule());
 		MODULES.add(new BreakWaveModule());
 		MODULES.add(new AntiVanishModule());
+		MODULES.add(new EntityAlertModule());
 		MODULES.add(new ParticlesModule());
 		MODULES.add(new FlyModule());
 		MODULES.add(new SpeedModule());
@@ -196,7 +197,7 @@ public final class ModuleManager {
 		String[][] map = {
 				// mundo: ESP, buscadores e camera
 				{"WORLD", "X-Ray Hologram", "Player ESP", "Elytra ESP", "Storage ESP", "Farm ESP", "Tracers", "Ancient Finder", "Sus Chunk Finder",
-						"Sus Hole Finder", "Sus Solo Finder", "Chunk Borders", "Waypoints", "Light Level", "Freecam", "FreeLook", "Zoom",
+						"Sus Hole Finder", "Sus Solo Finder", "Entity Alert", "Chunk Borders", "Waypoints", "Light Level", "Freecam", "FreeLook", "Zoom",
 						"FOV Changer", "Render Distance"},
 				// efeitos
 				{"EFFECTS", "Particles 3D", "Particles 2D"},

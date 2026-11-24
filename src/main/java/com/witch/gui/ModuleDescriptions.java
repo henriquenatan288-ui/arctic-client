@@ -40,6 +40,7 @@ public final class ModuleDescriptions {
 			case "Elytra ESP" -> "Acha item frames com elytra: caixa pulsante, linha, feixe vertical e alarme proprio (+ aviso no chat com as coordenadas). So molduras ja carregadas (distancia de renderizacao).";
 			case "Spotify" -> "Widget verde no topo com a musica tocando no Spotify (app de computador aberto). Le o titulo da janela, sem login. Arraste em HUD Edit.";
 			case "Storage ESP" -> "Destaca baus e containers proximos.";
+			case "Entity Alert" -> "Avisa quando ha villager no subsolo (salao de troca/prisao/base escondida). Marca cada um uma vez em rosa neon.";
 			case "Sus Solo Finder" -> "Acha bases (ate o Y minimo, padrao -53), apita e marca o solo da chunk. Cor = chance de base (heuristica). So enxerga chunks que o servidor enviou.";
 			case "Waypoints" -> "Salva pontos (tecla Add waypoint), coluna visivel de longe e distancia na tela.";
 			case "Coords HUD" -> "Coordenadas, direcao e velocidade na tela.";
