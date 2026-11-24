@@ -52,7 +52,7 @@ public final class Wings {
 					for (int i = 0; i < fl; i++) {
 						float k = fl == 1 ? 0f : i / (float) (fl - 1); // 0 = pena de cima, 1 = de baixo
 						// angulo no plano da asa: de quase vertical (cima) ate quase horizontal-para-baixo
-						float phi = (float) Math.toRadians(80.0 - 150.0 * k + layer * 7.0);
+						float phi = (float) Math.toRadians(76.0 - 112.0 * k + layer * 6.0);
 						float len = sc * lenK * (0.55f + 0.45f * (float) Math.sin(Math.PI * (0.18 + 0.82 * (1.0 - k))));
 						float wid = 0.045f * sc * (0.8f + 0.4f * lenK);
 						feather(vc, pose, side, phi, len, wid, open, layer * 0.006f + i * 0.0007f, flat, argb, k);
@@ -69,11 +69,11 @@ public final class Wings {
 		float cu = (float) Math.cos(phi), cv = (float) Math.sin(phi);
 		float tipU = cu * len, tipV = cv * len;
 		float pu = -cv, pv = cu; // perpendicular, para dar largura
-		float rootU = 0.04f, rootV = 0f;
+		float rootU = 0.11f, rootV = 0f;
 		float ca = (float) Math.cos(open), sa = (float) Math.sin(open);
 		// pontos (u,v) -> x = side*u*ca, z = -u*sa (atras), y = v
 		float[] x = new float[4], y = new float[4], z = new float[4];
-		float tw = len * 0.25f; // ponta larga: as penas se encostam e formam uma asa continua
+		float tw = len * 0.21f; // ponta larga: as penas se encostam e formam uma asa continua
 		float[][] uv = {
 				{rootU - pu * wid * 0.5f, rootV - pv * wid * 0.5f},
 				{rootU + pu * wid * 0.5f, rootV + pv * wid * 0.5f},
