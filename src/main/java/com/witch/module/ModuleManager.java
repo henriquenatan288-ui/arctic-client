@@ -107,6 +107,7 @@ public final class ModuleManager {
 		MODULES.add(new LightLevelModule());
 		MODULES.add(new WeatherOffModule());
 		MODULES.add(new BetterRainModule());
+		MODULES.add(new MirrorFloorModule());
 		MODULES.add(new AutoSprintModule());
 		MODULES.add(new AutoReconnectModule());
 		MODULES.add(new ChatTimestampsModule());
