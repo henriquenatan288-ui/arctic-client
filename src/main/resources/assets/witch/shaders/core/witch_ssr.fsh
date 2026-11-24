@@ -105,6 +105,19 @@ void main() {
         conf = 0.35;
     }
 
+    float dbg = ColorModulator.a;
+    if (dbg > 1.5) {
+        vec2 uvS = gl_FragCoord.xy / vec2(textureSize(Sampler1, 0));
+        if (dbg < 2.5) {
+            float err = abs(length(scenePos(uvS)) - length(P));
+            fragColor = vec4(vec3(clamp(err * 2.0, 0.0, 1.0)), 1.0);
+        } else if (dbg < 3.5) {
+            fragColor = vec4(gIdz ? 0.0 : 1.0, gIdz ? 1.0 : 0.0, rawF, 1.0);
+        } else {
+            fragColor = hit ? vec4(vec3(hitT / 20.0), 1.0) : vec4(escaped ? 1.0 : 0.0, 0.0, 0.5, 1.0);
+        }
+        return;
+    }
     float a = clamp(F * strength * 1.5 * mix(0.45, 1.0, conf), 0.0, 0.92);
     if (a < 0.004) discard;
     fragColor = vec4(col, a);
