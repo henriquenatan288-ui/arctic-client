@@ -91,25 +91,28 @@ public class WaypointsModule extends Module implements EspSource {
 		Minecraft mc = Minecraft.getInstance();
 		int sw = mc.getWindow().getGuiScaledWidth();
 		int sh = mc.getWindow().getGuiScaledHeight();
-		int lh = FontUtil.height() + 3;
+		int h = com.witch.gui.Hud.rowH();
 		int shown = Math.min(n, list.size());
 		// canto direito, logo acima do Armor HUD (a esquerda fica a lista de modulos)
-		int y = sh / 2 - 26 - shown * (lh + 1) + com.witch.gui.HudLayout.dy("waypoints");
+		int y = sh / 2 - 26 - shown * (h + 2) + com.witch.gui.HudLayout.dy("waypoints");
 		int ox = com.witch.gui.HudLayout.dx("waypoints");
 		int top = y;
 		int minX = Integer.MAX_VALUE;
 		int maxW = 0;
 		for (int i = 0; i < shown; i++) {
 			var w = list.get(i);
-			String t = w.name() + "  " + Math.round(Math.sqrt(d2(w, p.getX(), p.getZ()))) + "m";
-			int bw = FontUtil.width(t) + 12;
-			int x = sw - 5 - bw - 6 + ox;
+			String name = w.name();
+			String dist = Math.round(Math.sqrt(d2(w, p.getX(), p.getZ()))) + "m";
+			int bw = com.witch.gui.Hud.tw(name) + 6 + com.witch.gui.Hud.tw(dist) + 18;
+			int x = sw - 5 - bw + ox;
 			minX = Math.min(minX, x);
 			maxW = Math.max(maxW, bw);
-			RenderUtil.panel(g, x, y, bw + 6, lh + 2, 1f);
-			RenderUtil.roundRect(g, x + 6, y + (lh + 2) / 2 - 1, 3, 3, 1, instance.color.get());
-			FontUtil.draw(g, t, x + 13, y + 3, 0xFFFFFFFF);
-			y += lh + 4;
+			com.witch.gui.Hud.pill(g, x, y, bw, h, 1f);
+			com.witch.gui.Hud.dot(g, x + 6, y + h / 2, instance.color.get());
+			int ty = y + (h - com.witch.gui.Hud.th()) / 2;
+			com.witch.gui.Hud.text(g, name, x + 12, ty, com.witch.gui.Hud.WHITE);
+			com.witch.gui.Hud.text(g, dist, x + 12 + com.witch.gui.Hud.tw(name) + 6, ty, com.witch.gui.Hud.DIM);
+			y += h + 2;
 		}
 		if (maxW > 0) com.witch.gui.HudLayout.report("waypoints", minX, top, maxW, y - top);
 	}

@@ -381,20 +381,8 @@ public class SusSoloFinderModule extends Module implements EspSource {
 		String text = instance.alertText;
 		long until = instance.alertUntil;
 		if (text == null || System.currentTimeMillis() > until) return;
-
-		Minecraft mc = Minecraft.getInstance();
-		int sw = mc.getWindow().getGuiScaledWidth();
-		int sh = mc.getWindow().getGuiScaledHeight();
-		int tw = FontUtil.width(text);
-		int bw = tw + 26;
-		int bh = FontUtil.height() + 10;
-		int x = (sw - bw) / 2;
-		int y = sh / 2 - 66;
 		long left = until - System.currentTimeMillis();
 		float a = left > 500 ? 1f : Math.max(0f, left / 500f);
-
-		RenderUtil.panel(g, x, y, bw, bh, a);
-		RenderUtil.roundRect(g, x + 8, y + bh / 2 - 1, 3, 3, 1, RenderUtil.alpha(0xFF22C55E, a));
-		FontUtil.draw(g, text, x + 16, y + 6, RenderUtil.alpha(0xFFFFFFFF, a));
+		com.witch.gui.Hud.alert(g, text, 0xFF22C55E, a);
 	}
 }

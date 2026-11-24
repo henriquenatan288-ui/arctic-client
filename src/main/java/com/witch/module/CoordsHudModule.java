@@ -23,16 +23,18 @@ public class CoordsHudModule extends Module {
 		String dir = DIR[Math.floorMod(Math.round(p.getYRot() / 45f), 8)];
 		var v = p.getDeltaMovement();
 		double speed = Math.sqrt(v.x * v.x + v.z * v.z) * 20.0;
-		String l1 = "XYZ  " + p.getBlockX() + "  " + p.getBlockY() + "  " + p.getBlockZ();
-		String l2 = dir + "   " + String.format("%.1f", speed) + " b/s";
+		String a = p.getBlockX() + "  " + p.getBlockY() + "  " + p.getBlockZ();
+		String b = dir + "  " + String.format("%.1f", speed) + " b/s";
 		int sh = mc.getWindow().getGuiScaledHeight();
-		int lh = FontUtil.height() + 3;
-		int bw = Math.max(FontUtil.width(l1), FontUtil.width(l2)) + 12;
+		int h = com.witch.gui.Hud.rowH();
+		int gap = 9;
+		int bw = com.witch.gui.Hud.tw(a) + gap + com.witch.gui.Hud.tw(b) + 12;
 		int x0 = 5 + com.witch.gui.HudLayout.dx("coords");
-		int y = sh - 4 - lh * 2 - 2 + com.witch.gui.HudLayout.dy("coords");
-		RenderUtil.panel(g, x0, y, bw, lh * 2 + 4, 1f);
-		FontUtil.draw(g, l1, x0 + 7, y + 3, 0xFFFFFFFF);
-		FontUtil.draw(g, l2, x0 + 7, y + 3 + lh, 0xFF8A8A8A);
-		com.witch.gui.HudLayout.report("coords", x0, y, bw, lh * 2 + 4);
+		int y = sh - 4 - h + com.witch.gui.HudLayout.dy("coords");
+		int ty = y + (h - com.witch.gui.Hud.th()) / 2;
+		com.witch.gui.Hud.pill(g, x0, y, bw, h, 1f);
+		com.witch.gui.Hud.text(g, a, x0 + 6, ty, com.witch.gui.Hud.WHITE);
+		com.witch.gui.Hud.text(g, b, x0 + 6 + com.witch.gui.Hud.tw(a) + gap, ty, com.witch.gui.Hud.DIM);
+		com.witch.gui.HudLayout.report("coords", x0, y, bw, h);
 	}
 }

@@ -159,22 +159,22 @@ public class SpotifyModule extends Module {
 				title = "Pausado";
 			}
 		}
-		int lh = FontUtil.height();
-		int icon = lh * 2 + 4; // capa / equalizador: altura das duas linhas de texto
-		int maxText = 96;
+		int lh = com.witch.gui.Hud.th();
+		int icon = lh * 2 + 3; // capa / equalizador: altura das duas linhas de texto
+		int maxText = 120; // em px reais do texto (antes da escala do widget)
 		artist = fit(artist, maxText);
 		title = fit(title, maxText);
-		int tw = Math.max(FontUtil.width(artist), FontUtil.width(title));
-		tw = Math.max(tw, local ? 64 : 40);
-		int w = 8 + icon + 7 + tw + 9;
-		int barRow = local ? lh + 2 : 0;
-		int h = 6 + icon + 5 + barRow;
+		int tw = Math.max(com.witch.gui.Hud.tw(artist), com.witch.gui.Hud.tw(title));
+		tw = Math.max(tw, local ? 56 : 34);
+		int w = 6 + icon + 6 + tw + 7;
+		int barRow = local ? lh + 1 : 0;
+		int h = 5 + icon + 4 + barRow;
 		int sw = mc.getWindow().getGuiScaledWidth();
 		int x = (sw - w) / 2 + HudLayout.dx("spotify");
 		int y = 4 + HudLayout.dy("spotify");
 		drawLiquidGlass(g, x, y, w, h);
 
-		int ix = x + 8, iy = y + 6;
+		int ix = x + 6, iy = y + 5;
 		if (cover != null) {
 			g.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, cover.id(), ix, iy, 0f, 0f, icon, icon,
 					cover.w(), cover.h(), cover.w(), cover.h(), 0xFFFFFFFF);
@@ -190,18 +190,18 @@ public class SpotifyModule extends Module {
 				RenderUtil.roundRect(g, ix + i * 5 + 1, base - bh, 3, bh, 1, isPlaying ? 0xFF3DDC84 : 0xAAB5C9BC);
 			}
 		}
-		int tx = ix + icon + 7;
-		FontUtil.draw(g, artist, tx, iy, 0xFFBDF5D0);
-		FontUtil.draw(g, title, tx, iy + lh + 1, isPlaying ? 0xFFFFFFFF : 0xFFD0DDD5);
+		int tx = ix + icon + 6;
+		com.witch.gui.Hud.text(g, artist, tx, iy, 0xFFBDF5D0);
+		com.witch.gui.Hud.text(g, title, tx, iy + lh + 1, isPlaying ? 0xFFFFFFFF : 0xFFD0DDD5);
 		if (local) { // linha do tempo: 0:00 [=====-----] 3:35
 			int ry = y + h - lh - 3;
-			int tW = FontUtil.width("00:00");
-			int bx = x + 8 + tW + 5;
-			int bw = w - 16 - 2 * (tW + 5);
+			int tW = com.witch.gui.Hud.tw("00:00");
+			int bx = x + 6 + tW + 4;
+			int bw = w - 12 - 2 * (tW + 4);
 			float f = dur > 0 ? Math.min(1f, pos / dur) : 0f;
-			FontUtil.draw(g, mmss(pos), x + 8, ry, 0xFFBDF5D0);
+			com.witch.gui.Hud.text(g, mmss(pos), x + 6, ry, 0xFFBDF5D0);
 			String rt = mmss(dur);
-			FontUtil.draw(g, rt, x + w - 8 - FontUtil.width(rt), ry, 0xFFBDF5D0);
+			com.witch.gui.Hud.text(g, rt, x + w - 6 - com.witch.gui.Hud.tw(rt), ry, 0xFFBDF5D0);
 			int by = ry + lh / 2 - 1;
 			RenderUtil.roundRect(g, bx, by, bw, 3, 1, 0x55FFFFFF);
 			int fw = Math.max(3, Math.round(bw * f));

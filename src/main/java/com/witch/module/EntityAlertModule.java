@@ -115,17 +115,8 @@ public class EntityAlertModule extends Module implements EspSource {
 		if (instance == null || !instance.isEnabled()) return;
 		String text = instance.alertText;
 		if (text == null || System.currentTimeMillis() > instance.alertUntil) return;
-		Minecraft mc = Minecraft.getInstance();
-		int sw = mc.getWindow().getGuiScaledWidth();
-		int sh = mc.getWindow().getGuiScaledHeight();
-		int bw = FontUtil.width(text) + 26;
-		int bh = FontUtil.height() + 10;
-		int x = (sw - bw) / 2;
-		int y = sh / 2 - 66;
 		long left = instance.alertUntil - System.currentTimeMillis();
 		float a = left > 500 ? 1f : Math.max(0f, left / 500f);
-		RenderUtil.panel(g, x, y, bw, bh, a);
-		RenderUtil.roundRect(g, x + 8, y + bh / 2 - 1, 3, 3, 1, RenderUtil.alpha(NEON_PINK, a));
-		FontUtil.draw(g, text, x + 16, y + 6, RenderUtil.alpha(0xFFFFFFFF, a));
+		com.witch.gui.Hud.alert(g, text, NEON_PINK, a);
 	}
 }
