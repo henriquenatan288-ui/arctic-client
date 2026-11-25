@@ -11,17 +11,19 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-/** Troca o balanco do item em primeira pessoa (puxao lateral + giro) por um desce-e-sobe reto. */
+/** Tira a curva lateral do balanco do item em primeira pessoa e deixa so o tapa para baixo. */
 @Mixin(ItemInHandRenderer.class)
 public abstract class StraightSwingMixin {
 	@Inject(method = "swingArm", at = @At("HEAD"), cancellable = true, require = 0)
 	private void witch$straight(float attack, PoseStack ps, int side, HumanoidArm arm, CallbackInfo ci) {
 		var m = StraightSwingModule.instance;
 		if (m == null || !StraightSwingModule.on) return;
-		float s = Mth.sin(Mth.sqrt(attack) * (float) Math.PI); // 0 -> 1 -> 0
-		ps.translate(0f, -0.07f * m.dist.get() * s, 0f);
-		int tilt = m.tilt.get();
-		if (tilt > 0) ps.mulPose(Axis.XP.rotationDegrees(-tilt * s));
+		// igual ao jogo, mas sem o puxao para o lado (x), sem o giro em Y e sem o giro em Z: so sobe/avanca um pouco e bate para baixo
+		float g = Mth.sin(Mth.sqrt(attack) * (float) Math.PI);
+		float h = 0.2f * Mth.sin(Mth.sqrt(attack) * (float) (Math.PI * 2));
+		float z = -0.2f * Mth.sin(attack * (float) Math.PI);
+		ps.translate(0f, h, z);
+		ps.mulPose(Axis.XP.rotationDegrees(g * -m.angle.get()));
 		ci.cancel();
 	}
 }
