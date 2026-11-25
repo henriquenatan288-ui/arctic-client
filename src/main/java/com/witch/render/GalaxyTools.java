@@ -102,7 +102,8 @@ public final class GalaxyTools {
 			String id = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem()).getPath();
 			ItemStack c = stack.copy();
 			c.set(net.minecraft.core.component.DataComponents.ITEM_MODEL,
-					net.minecraft.resources.Identifier.fromNamespaceAndPath("witch", "galaxy_" + id));
+					net.minecraft.resources.Identifier.fromNamespaceAndPath("witch",
+							(com.witch.module.GalaxyModule.instance.model3d.get() == 1 && id.endsWith("_sword") && (id.startsWith("diamond") || id.startsWith("netherite")) ? "galaxy3d_" : "galaxy_") + id));
 			if (!swapReported) { swapReported = true; report("animada OK", true); }
 			return c;
 		} catch (Throwable t) {
