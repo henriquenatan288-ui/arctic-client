@@ -17,6 +17,7 @@ public class WitchGametest implements FabricClientGameTest {
 			srv.runCommand("give @p minecraft:diamond_sword");
 			context.runOnClient(mc -> {
 				var m = com.witch.module.ModuleManager.byName("Galaxy");
+				for (var st : m.settings()) if (st.name.startsWith("Hotbar")) ((com.witch.setting.IntSetting) st).set(1);
 				if (!m.isEnabled()) m.toggle();
 				if (mc.player != null) mc.player.setXRot(15f);
 			});
@@ -31,7 +32,9 @@ public class WitchGametest implements FabricClientGameTest {
 					@Override
 					public void extractRenderState(net.minecraft.client.gui.GuiGraphicsExtractor g, int mx, int my, float d) {
 						var a = new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.NETHERITE_SWORD);
+						a.set(net.minecraft.core.component.DataComponents.ITEM_MODEL, net.minecraft.resources.Identifier.fromNamespaceAndPath("witch", "galaxy_netherite_sword"));
 						var b = new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.DIAMOND_SWORD);
+						b.set(net.minecraft.core.component.DataComponents.ITEM_MODEL, net.minecraft.resources.Identifier.fromNamespaceAndPath("witch", "galaxy_diamond_sword"));
 						g.fill(0, 0, this.width, this.height, 0xFF30343C);
 						for (int k = 0; k < 2; k++) {
 							g.pose().pushMatrix();
