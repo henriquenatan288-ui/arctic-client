@@ -13,10 +13,10 @@ public class WitchGametest implements FabricClientGameTest {
 			context.runOnClient(mc -> mc.gui.setScreen(new net.minecraft.client.gui.screens.PauseScreen(true)));
 			context.waitTicks(15);
 			context.takeScreenshot("pausa");
-			context.runOnClient(mc -> mc.gui.setScreen(new net.minecraft.client.gui.screens.options.OptionsScreen(mc.screen, mc.options)));
+			context.runOnClient(mc -> mc.gui.setScreen(new net.minecraft.client.gui.screens.options.OptionsScreen(mc.gui.screen(), mc.options)));
 			context.waitTicks(15);
 			context.takeScreenshot("opcoes");
-			context.runOnClient(mc -> mc.gui.setScreen(new net.minecraft.client.gui.screens.options.SoundOptionsScreen(mc.screen, mc.options)));
+			context.runOnClient(mc -> mc.gui.setScreen(new net.minecraft.client.gui.screens.options.SoundOptionsScreen(mc.gui.screen(), mc.options)));
 			context.waitTicks(15);
 			context.takeScreenshot("som-sliders");
 		}
