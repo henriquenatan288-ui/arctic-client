@@ -40,9 +40,9 @@ public abstract class LoadingOverlayMixin {
 					target = "Lnet/minecraft/client/gui/GuiGraphicsExtractor;blit(Lcom/mojang/blaze3d/pipeline/RenderPipeline;Lnet/minecraft/resources/Identifier;IIFFIIIIIII)V"),
 			require = 0)
 	private void witch$noMojang(GuiGraphicsExtractor g, com.mojang.blaze3d.pipeline.RenderPipeline pipe,
-			net.minecraft.resources.Identifier tex, int x, int y, float u, float v, int w, int h, int rw, int rh, int tw, int th) {
+			net.minecraft.resources.Identifier tex, int x, int y, float u, float v, int w, int h, int rw, int rh, int tw, int th, int color) {
 		if (com.witch.Edition.visuals()) return;
-		g.blit(pipe, tex, x, y, u, v, w, h, rw, rh, tw, th);
+		g.blit(pipe, tex, x, y, u, v, w, h, rw, rh, tw, th, color);
 	}
 
 	@Inject(method = "extractProgressBar", at = @At("HEAD"), cancellable = true, require = 0)
@@ -78,9 +78,22 @@ public abstract class LoadingOverlayMixin {
 		String name = "ARCTIC";
 		float sc = Math.max(2f, Math.min(5f, h / 110f));
 		float ty = h * 0.62f - com.witch.gui.FontUtil.height() * sc / 2f;
-		int mw = Math.round(Math.max(48f, Math.min(160f, h * 0.30f)));
-		int my0 = Math.round(h * 0.31f - mw / 2f + (1f - ease) * 6f);
-		com.witch.gui.WitchLogo.draw(g, (w - mw) / 2, my0, mw, a * ease);
+		float mw = Math.max(56f, Math.min(190f, h * 0.34f));
+		float scx = w / 2f, scy = h * 0.31f;
+		float ti = (now - witch$t0) / 1000f;
+		// entrada: cresce com leve overshoot; depois respira. Separacao RGB fecha na entrada e treme de leve de tempos em tempos
+		float k = Mth.clamp(ti / 1.1f, 0f, 1f);
+		float back = 1f + 2.2f * (float) Math.pow(k - 1f, 3) + 1.2f * (float) Math.pow(k - 1f, 2);
+		float sz = mw * (0.35f + 0.65f * back) * (1f + 0.025f * (float) Math.sin(now / 650.0));
+		float jolt = ((now % 2600L) < 110L) ? 1f : 0f;
+		float split = 9f * (1f - ease) * (1f - ease) + 2.2f * jolt + 0.8f;
+		{
+			float pulse = 0.55f + 0.15f * (float) Math.sin(now / 520.0);
+			com.witch.gui.StarLogo.glow(g, scx, scy, sz * 3.4f, a * ease * pulse);
+			com.witch.gui.StarLogo.draw(g, scx - split, scy, sz, a * ease * 0.85f, 0x3A8DFF);
+			com.witch.gui.StarLogo.draw(g, scx + split, scy + jolt, sz, a * ease * 0.6f, 0xFF3F6A);
+			com.witch.gui.StarLogo.draw(g, scx + jolt * 3f, scy, sz, a * ease, 0xFFFFFF);
+		}
 		com.witch.gui.Minimal.spaced(g, name, w / 2f, ty, sc, sc * 2.5f, 0xFFFFFFFF, a, true, (now - witch$t0) / 140f);
 	}
 }
