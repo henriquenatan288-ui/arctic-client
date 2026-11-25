@@ -47,7 +47,7 @@ public class CosmicFxModule extends Module implements EspSource {
 		var mc = Minecraft.getInstance();
 		var me = mc.player;
 		if (me == null) return;
-		var cam = mc.gameRenderer.getMainCamera();
+		var cam = mc.gameRenderer.mainCamera();
 		var l = cam.leftVector();
 		var u = cam.upVector();
 		rx = -l.x(); ry = -l.y(); rz = -l.z();
