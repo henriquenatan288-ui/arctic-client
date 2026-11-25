@@ -27,7 +27,7 @@ public class WitchGametest implements FabricClientGameTest {
 			context.takeScreenshot("espada-3p");
 			context.runOnClient(mc -> {
 				mc.options.setCameraType(net.minecraft.client.CameraType.FIRST_PERSON);
-				mc.setScreen(new net.minecraft.client.gui.screens.inventory.InventoryScreen(mc.player));
+				mc.gui.setScreen(new net.minecraft.client.gui.screens.inventory.InventoryScreen(mc.player));
 			});
 			context.waitTicks(20);
 			context.takeScreenshot("espada-inv");
