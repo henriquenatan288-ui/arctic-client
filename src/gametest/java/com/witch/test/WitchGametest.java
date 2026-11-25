@@ -25,6 +25,8 @@ public class WitchGametest implements FabricClientGameTest {
 			context.takeScreenshot("golpe-1-reto");
 			context.waitTicks(1);
 			context.takeScreenshot("golpe-2-reto");
+			context.runOnClient(mc -> mc.player.swing(net.minecraft.world.InteractionHand.MAIN_HAND));
+			context.takeScreenshot("golpe-2b-reto");
 			context.waitTicks(10);
 			context.runOnClient(mc -> {
 				var m = com.witch.module.ModuleManager.byName("Straight Swing");
