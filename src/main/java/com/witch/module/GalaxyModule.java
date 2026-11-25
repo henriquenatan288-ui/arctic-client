@@ -15,6 +15,7 @@ public class GalaxyModule extends Module {
 	/** Lido pelo render de itens a cada frame; mantido em dia por onEnable/onDisable. */
 	public static volatile boolean on;
 
+	public final IntSetting model3d = add(new IntSetting("Espada 3D na mao (0 normal, 1 modelo 3D) - modo 1", 0, 1, 0, ""));
 	public final IntSetting mode = add(new IntSetting("Modo (1 animada, 2 shader)", 1, 2, 1, ""));
 	public final IntSetting scope = add(new IntSetting("Itens (1 ferramentas, 2 +totem/maca/elytra/armadura, 3 todos na mao/chao; hotbar so 1 e 2)", 1, 3, 2, ""));
 	public final IntSetting whole = add(new IntSetting("Ferramenta (1 so lamina/cabeca, 2 inteira) - modo 2", 1, 2, 2, ""));
