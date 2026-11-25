@@ -7,7 +7,7 @@ public class StraightSwingModule extends Module {
 	public static StraightSwingModule instance;
 	public static volatile boolean on;
 
-	public final IntSetting dist = add(new IntSetting("Distancia (1 curto .. 10 longo)", 1, 10, 5, ""));
+	public final IntSetting dist = add(new IntSetting("Distancia (1 curto .. 10 longo)", 1, 10, 3, ""));
 	public final IntSetting tilt = add(new IntSetting("Inclinacao para frente (0 so reto .. 40 graus)", 0, 40, 0, ""));
 
 	public StraightSwingModule() {
