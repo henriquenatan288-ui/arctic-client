@@ -33,6 +33,8 @@
     "ChinaHatMixin",
     "StraightSwingMixin",
     "ButtonStyleMixin",
+    "BoatNoclipMixin",
+    "BoatNoclipOverlayMixin",
     "SliderStyleMixin",
     "WingsMixin",
     "TridentSpecialRendererMixin"

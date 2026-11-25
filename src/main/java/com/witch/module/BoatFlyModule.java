@@ -14,6 +14,9 @@ public class BoatFlyModule extends Module {
 	private final IntSetting vSpeed = add(new IntSetting("Vertical speed", 1, 10, 3, ""));
 	private final IntSetting noClip = add(new IntSetting("No clip (0/1)", 0, 1, 0, ""));
 
+	/** Verdadeiro enquanto o No clip esta valendo (voce no barco): os mixins tiram o escurecimento e o empurrao para fora dos blocos. */
+	public static volatile boolean noclipActive;
+
 	private AbstractBoat last;
 	private double lockY = Double.NaN;
 
@@ -36,6 +39,7 @@ public class BoatFlyModule extends Module {
 		boat.setYRot(p.getYRot());
 		boat.setNoGravity(true);
 		boat.noPhysics = noClip.get() == 1;
+		noclipActive = boat.noPhysics;
 
 		double fwd = (o.keyUp.isDown() ? 1 : 0) - (o.keyDown.isDown() ? 1 : 0);
 		double str = (o.keyLeft.isDown() ? 1 : 0) - (o.keyRight.isDown() ? 1 : 0);
@@ -56,6 +60,7 @@ public class BoatFlyModule extends Module {
 	}
 
 	private void restore() {
+		noclipActive = false;
 		lockY = Double.NaN;
 		if (last != null) {
 			last.setNoGravity(false);
