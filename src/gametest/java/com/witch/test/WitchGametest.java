@@ -63,10 +63,12 @@ public class WitchGametest implements FabricClientGameTest {
 			});
 			context.waitTicks(10);
 			dbg(context, "antes");
-			context.getInput().holdKeyFor(context.computeOnClient(mc -> mc.options.keyUp), 60);
+			net.minecraft.client.KeyMapping kUp = context.computeOnClient(mc -> mc.options.keyUp);
+			context.getInput().holdKeyFor(kUp, 60);
 			dbg(context, "depois-frente");
 			context.takeScreenshot("noclip-parede");
-			context.getInput().holdKeyFor(context.computeOnClient(mc -> mc.options.keySprint), 40);
+			net.minecraft.client.KeyMapping kSp = context.computeOnClient(mc -> mc.options.keySprint);
+			context.getInput().holdKeyFor(kSp, 40);
 			dbg(context, "depois-descer");
 			context.takeScreenshot("noclip-chao");
 		}
