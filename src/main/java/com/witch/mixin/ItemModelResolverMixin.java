@@ -18,6 +18,8 @@ public class ItemModelResolverMixin {
 	/** Modo "textura animada" do modulo Galaxy: troca o modelo do item (vale na mao, hotbar, inventario e no chao). */
 	@ModifyVariable(method = "appendItemLayers", at = @At("HEAD"), argsOnly = true, require = 0)
 	private ItemStack witch$swap(ItemStack stack) {
+		ItemStack k = com.witch.module.KatanaModule.swap(stack);
+		if (k != null) return k;
 		return GalaxyTools.swap(stack);
 	}
 
