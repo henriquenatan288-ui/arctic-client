@@ -11,7 +11,7 @@ public final class WidgetStyle {
 	public static boolean applies() {
 		try {
 			if (!com.witch.Edition.visuals()) return false;
-			Screen s = Minecraft.getInstance().screen;
+			Screen s = Minecraft.getInstance().gui.screen();
 			if (s == null) return false;
 			return s instanceof PauseScreen || s.getClass().getName().startsWith("net.minecraft.client.gui.screens.options");
 		} catch (Throwable t) {
