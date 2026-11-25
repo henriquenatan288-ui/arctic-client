@@ -27,7 +27,21 @@ public class WitchGametest implements FabricClientGameTest {
 			context.takeScreenshot("espada-3p");
 			context.runOnClient(mc -> {
 				mc.options.setCameraType(net.minecraft.client.CameraType.FIRST_PERSON);
-				mc.gui.setScreen(new net.minecraft.client.gui.screens.inventory.InventoryScreen(mc.player));
+				mc.gui.setScreen(new net.minecraft.client.gui.screens.Screen(net.minecraft.network.chat.Component.literal("t")) {
+					@Override
+					public void extractRenderState(net.minecraft.client.gui.GuiGraphicsExtractor g, int mx, int my, float d) {
+						var a = new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.NETHERITE_SWORD);
+						var b = new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.DIAMOND_SWORD);
+						g.fill(0, 0, this.width, this.height, 0xFF30343C);
+						for (int k = 0; k < 2; k++) {
+							g.pose().pushMatrix();
+							g.pose().translate(40f + k * 190f, 60f);
+							g.pose().scale(11f, 11f);
+							g.item(k == 0 ? a : b, 0, 0);
+							g.pose().popMatrix();
+						}
+					}
+				});
 			});
 			context.waitTicks(20);
 			context.takeScreenshot("espada-inv");
