@@ -32,6 +32,8 @@
     "RenderTypesMixin",
     "ChinaHatMixin",
     "StraightSwingMixin",
+    "ButtonStyleMixin",
+    "SliderStyleMixin",
     "WingsMixin",
     "TridentSpecialRendererMixin"
   ],
