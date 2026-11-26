@@ -33,6 +33,16 @@ public class KatanaModule extends Module {
 		};
 	}
 
+	@Override
+	protected void onEnable() {
+		on = true;
+	}
+
+	@Override
+	protected void onDisable() {
+		on = false;
+	}
+
 	/** Copia do item apontando para o modelo katana_*; o proprio item nao muda. null se nao se aplica. */
 	public static net.minecraft.world.item.ItemStack swap(net.minecraft.world.item.ItemStack stack) {
 		if (!on || stack == null || stack.isEmpty()) return null;
