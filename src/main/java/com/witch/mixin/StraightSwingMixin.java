@@ -17,7 +17,7 @@ public abstract class StraightSwingMixin {
 	@Inject(method = "swingArm", at = @At("HEAD"), cancellable = true, require = 0)
 	private void witch$straight(float attack, PoseStack ps, int side, HumanoidArm arm, CallbackInfo ci) {
 		var m = StraightSwingModule.instance;
-		if (m == null || !StraightSwingModule.on) return;
+		if (m == null || !StraightSwingModule.on || com.witch.module.KatanaModule.slashing()) return;
 		// igual ao jogo, mas sem o puxao para o lado (x), sem o giro em Y e sem o giro em Z: so sobe/avanca um pouco e bate para baixo
 		float g = Mth.sin(Mth.sqrt(attack) * (float) Math.PI);
 		float h = 0.2f * Mth.sin(Mth.sqrt(attack) * (float) (Math.PI * 2));
