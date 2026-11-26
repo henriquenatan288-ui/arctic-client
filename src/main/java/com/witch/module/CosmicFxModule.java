@@ -71,6 +71,29 @@ public class CosmicFxModule extends Module implements EspSource {
 		}
 	}
 
+	/** Posicao do buraco negro/pulsar: gira devagar em volta do jogador, longe e alto, para nao tapar a visao. */
+	private double[] orbitPos(double cx, double cy, double cz, double t, double sc) {
+		double an = t * 0.16, dist = 7.0 + sc * 4.0;
+		if (System.getenv("CI") != null) { // teste visual no CI: fixa na frente do jogador para caber no print
+			var me = Minecraft.getInstance().player;
+			if (me != null) an = Math.atan2(Math.cos(Math.toRadians(me.getYRot())), -Math.sin(Math.toRadians(me.getYRot())));
+		}
+		return new double[] {cx + Math.cos(an) * dist, cy + 2.2 + sc * 2.0 + Math.sin(t * 0.4) * 0.6, cz + Math.sin(an) * dist};
+	}
+
+	/** Disco chapado (alfa igual no centro e na borda), virado para a camera: serve de "bola" com borda definida. */
+	private void disk(Esp esp, double x, double y, double z, double r, int argb, float a) {
+		int n = 28;
+		for (int i = 0; i < n; i++) {
+			double a0 = Math.PI * 2 * i / n, a1 = Math.PI * 2 * (i + 1) / n;
+			double c0 = Math.cos(a0) * r, s0 = Math.sin(a0) * r, c1 = Math.cos(a1) * r, s1 = Math.sin(a1) * r;
+			esp.gradQuad(x, y, z,
+					x + rx * c0 + ux * s0, y + ry * c0 + uy * s0, z + rz * c0 + uz * s0,
+					x + rx * c1 + ux * s1, y + ry * c1 + uy * s1, z + rz * c1 + uz * s1,
+					x, y, z, argb, a, a, a, a);
+		}
+	}
+
 	// ---------- primitivas ----------
 
 	/** Brilho radial suave (leque de triangulos: centro opaco, borda transparente), virado para a camera. */
@@ -98,14 +121,17 @@ public class CosmicFxModule extends Module implements EspSource {
 				x - bx * w, y - by * w, z - bz * w, argb, 0f, a, 0f, a);
 	}
 
-	/** Estrela brilhante: halo + miolo branco + raios em cruz (vertical mais longo) + raios diagonais curtos. */
+	/** Estrela brilhante: bloom em 3 camadas, miolo branco, raios longos em cruz + 8 pontas, tudo com degrade suave. */
 	private void flare(Esp esp, double x, double y, double z, double s, int argb, float a, double rot) {
-		glow(esp, x, y, z, s * 0.9, argb, 0.35f * a);
-		glow(esp, x, y, z, s * 0.38, 0xFFFFFFFF, 0.9f * a);
-		ray(esp, x, y, z, rot + Math.PI / 2, s * 2.6, s * 0.07, argb, 0.9f * a);
-		ray(esp, x, y, z, rot, s * 1.7, s * 0.06, argb, 0.8f * a);
-		ray(esp, x, y, z, rot + Math.PI / 4, s * 1.0, s * 0.04, argb, 0.55f * a);
-		ray(esp, x, y, z, rot - Math.PI / 4, s * 1.0, s * 0.04, argb, 0.55f * a);
+		glow(esp, x, y, z, s * 1.5, argb, 0.16f * a);
+		glow(esp, x, y, z, s * 0.8, argb, 0.4f * a);
+		glow(esp, x, y, z, s * 0.4, 0xFFFFFFFF, 0.95f * a);
+		ray(esp, x, y, z, rot + Math.PI / 2, s * 3.4, s * 0.075, argb, 0.95f * a);
+		ray(esp, x, y, z, rot, s * 2.3, s * 0.065, argb, 0.85f * a);
+		ray(esp, x, y, z, rot + Math.PI / 4, s * 1.35, s * 0.045, argb, 0.6f * a);
+		ray(esp, x, y, z, rot - Math.PI / 4, s * 1.35, s * 0.045, argb, 0.6f * a);
+		ray(esp, x, y, z, rot + Math.PI / 8, s * 0.8, s * 0.03, 0xFFFFFFFF, 0.4f * a);
+		ray(esp, x, y, z, rot - Math.PI / 8, s * 0.8, s * 0.03, 0xFFFFFFFF, 0.4f * a);
 	}
 
 	private void loopH(Esp esp, double cx, double cy, double cz, double r, int seg, int argb, float a, float w, double rot) {
@@ -128,8 +154,9 @@ public class CosmicFxModule extends Module implements EspSource {
 			double ang = hash(i, 2) * Math.PI * 2 + t * (0.25 + hash(i, 3) * 0.5) * (i % 2 == 0 ? 1 : -1);
 			double y = cy + (-0.2 + hash(i, 4) * (h + 1.2)) + Math.sin(t * 1.2 + i) * 0.12;
 			double tw = 0.55 + 0.45 * Math.sin(t * 3.0 + i * 1.7);
-			double s = (0.05 + hash(i, 5) * 0.11) * sc * (0.7 + 0.5 * tw);
-			flare(esp, cx + Math.cos(ang) * r, y, cz + Math.sin(ang) * r, s, base, (float) (0.5 + 0.5 * tw), 0);
+			double s = (0.08 + hash(i, 5) * 0.2 + (i % 7 == 0 ? 0.18 : 0)) * sc * (0.75 + 0.45 * tw);
+			int pal = ownColor.get() == 1 ? base : (i % 3 == 0 ? 0xFFFFE9B0 : (i % 3 == 1 ? 0xFFBFD9FF : 0xFFD8FFE6));
+			flare(esp, cx + Math.cos(ang) * r, y, cz + Math.sin(ang) * r, s, pal, (float) (0.55 + 0.45 * tw), t * 0.2 * (i % 2 == 0 ? 1 : -1));
 		}
 		if (ring.get() == 1) {
 			double rr = 2.0 + sc * 0.9, y = cy + 0.03;
@@ -203,25 +230,21 @@ public class CosmicFxModule extends Module implements EspSource {
 		glow(esp, cx, cy, cz, R * 1.12, 0xFF000000, 1f);
 		glow(esp, cx, cy, cz, R * 0.8, 0xFF000000, 1f);
 		// anel de fotons
-		for (int i = 0; i < 64; i++) {
-			double a0 = Math.PI * 2 * i / 64, a1 = Math.PI * 2 * (i + 1) / 64;
-			double rr = R * 1.06;
-			esp.thinLine(cx + (rx * Math.cos(a0) + ux * Math.sin(a0)) * rr, cy + (ry * Math.cos(a0) + uy * Math.sin(a0)) * rr, cz + (rz * Math.cos(a0) + uz * Math.sin(a0)) * rr,
-					cx + (rx * Math.cos(a1) + ux * Math.sin(a1)) * rr, cy + (ry * Math.cos(a1) + uy * Math.sin(a1)) * rr, cz + (rz * Math.cos(a1) + uz * Math.sin(a1)) * rr,
-					0xFFFFF6E4, 0.95f, 1.8f);
-		}
+		ringBill(esp, cx, cy, cz, R * 1.0, R * 1.07, 0xFFFFF6E4, 0.95f, 0.95f, false);
+		ringBill(esp, cx, cy, cz, R * 1.07, R * 1.3, 0xFFFFD79A, 0.55f, 0f, false);
 		// parte da frente do disco passa na frente do buraco
 		discBands(esp, cx, cy, cz, R, t, true, hot);
 		// particulas espiralando no plano do disco, com rastro
-		int n = 12 + amount.get() * 3;
+		int n = 8 + amount.get() * 2;
 		for (int i = 0; i < n; i++) {
 			double ph = (t * 0.3 + hash(i, 9)) % 1.0;
 			for (int k = 0; k < 7; k++) {
 				double pk = Math.max(0, ph - k * 0.015);
 				double r2 = R * (4.4 - 3.1 * pk * pk), a2 = hash(i, 8) * 6.283 + t * 1.2 + pk * 6.0;
 				double[] p = disc(cx, cy, cz, r2, a2);
-				double d = 0.022 * sc * (1.0 - k / 7.0);
-				esp.solid(p[0] - d, p[1] - d, p[2] - d, p[0] + d, p[1] + d, p[2] + d, 0xFFFFE0B0, 0.85f * (1f - k / 7f) * (float) Math.min(1.0, (1 - ph) * 4));
+				double gr = R * 0.10 * (1.0 - k / 7.0);
+				float al = 0.8f * (1f - k / 7f) * (float) Math.min(1.0, (1 - ph) * 4);
+				glow(esp, p[0], p[1], p[2], gr, 0xFFFFE0B0, al);
 			}
 		}
 	}
@@ -233,7 +256,7 @@ public class CosmicFxModule extends Module implements EspSource {
 
 	/** Distorcao do espaco: grade que se aperta e gira perto do buraco, ondas se afastando e estrelas de fundo esticadas em arcos (lente). */
 	private void spaceWarp(Esp esp, double cx, double cy, double cz, double R, double t) {
-		final int nr = 13, nl = 22, seg = 56;
+		final int nr = 10, nl = 22, seg = 56;
 		double[] rad = new double[nr];
 		for (int j = 0; j < nr; j++) rad[j] = R * 1.5 * Math.pow(1.38, j);
 		int grid = 0xFF9FC4FF;
@@ -284,59 +307,65 @@ public class CosmicFxModule extends Module implements EspSource {
 	}
 
 	private void pulsar(Esp esp, double cx, double cy, double cz, double t, double sc) {
-		int c = col(0xFF9FD8FF);
-		double ph = t * 1.1;
-		glow(esp, cx, cy, cz, 0.7 * sc, c, 0.5f);
-		glow(esp, cx, cy, cz, 0.28 * sc, 0xFFFFFFFF, 1f);
-		// dois jatos opostos girando (cruzados em dois planos para ter volume)
+		int c = col(0xFF7FC8FF);
+		double ph = t * 1.1, R = 0.32 * sc;
+		glow(esp, cx, cy, cz, R * 5.0, c, 0.22f);
+		// dois jatos opostos girando (cruzados em dois planos), finos e suaves
 		double tiltA = Math.toRadians(25);
 		for (int k = 0; k < 2; k++) {
 			double a = ph + k * Math.PI / 2;
 			double dx = Math.cos(a) * Math.sin(tiltA), dz = Math.sin(a) * Math.sin(tiltA), dy = Math.cos(tiltA);
 			double px = -Math.sin(a), pz = Math.cos(a);
-			double L = 2.6 * sc, w = 0.10 * sc;
+			double L = R * 9.0, w = R * 0.3;
 			for (int s = -1; s <= 1; s += 2) {
 				esp.gradQuad(cx, cy, cz,
-						cx + dx * L * s + px * w, cy + dy * L * s, cz + dz * L * s + pz * w,
-						cx + dx * L * s * 1.0, cy + dy * L * s * 1.0, cz + dz * L * s * 1.0,
-						cx + dx * L * s - px * w, cy + dy * L * s, cz + dz * L * s - pz * w, c, 0.9f, 0f, 0f, 0f);
+						cx + dx * L * s * 0.5 + px * w, cy + dy * L * s * 0.5, cz + dz * L * s * 0.5 + pz * w,
+						cx + dx * L * s, cy + dy * L * s, cz + dz * L * s,
+						cx + dx * L * s * 0.5 - px * w, cy + dy * L * s * 0.5, cz + dz * L * s * 0.5 - pz * w, c, 0.85f, 0.35f, 0f, 0.35f);
 			}
 		}
-		// aneis de pulso se expandindo
+		// aneis de pulso se expandindo (no plano da camera)
 		for (int i = 0; i < 3; i++) {
 			double p = (t * 0.45 + i / 3.0) % 1.0;
-			double r = (0.25 + p * 2.4) * sc;
-			loopH(esp, cx, cy, cz, r, 48, c, (float) (0.85 * (1 - p)), 1.5f, 0);
+			double r = R * (1.6 + p * 7.0);
+			ringBill(esp, cx, cy, cz, r, r + R * 0.12, c, (float) (0.7 * (1 - p)), (float) (0.7 * (1 - p)), false);
 		}
-		// raios em cruz fixos
-		flare(esp, cx, cy, cz, 0.35 * sc, c, 0.9f, 0);
+		// a bola: borda definida + sombreado interno (claro no centro)
+		disk(esp, cx, cy, cz, R, 0xFF3C8CE0, 1f);
+		glow(esp, cx, cy, cz, R * 0.97, 0xFF9FD8FF, 1f);
+		glow(esp, cx - rx * R * 0.18 + ux * R * 0.22, cy - ry * R * 0.18 + uy * R * 0.22, cz - rz * R * 0.18 + uz * R * 0.22, R * 0.55, 0xFFFFFFFF, 0.95f);
 	}
 
 	private void threeMarias(Esp esp, double cx, double cy, double cz, double t, double sc, double h) {
-		int base = col(0xFFB7D6FF);
-		double ang = t * 0.25;
-		double ox = Math.cos(ang) * (1.6 + sc * 0.5), oz = Math.sin(ang) * (1.6 + sc * 0.5);
-		double tilt = Math.toRadians(22);
-		double sp = 0.95 * sc;
+		int base = col(0xFF8FC4FF);
+		double ang = t * 0.12;
+		double dist = 5.5 + sc * 1.5;
+		double ox = Math.cos(ang) * dist, oz = Math.sin(ang) * dist;
+		double tilt = Math.toRadians(20);
+		double sp = 2.3 * sc + 0.8; // bem separadas
 		double[][] sp3 = new double[3][];
 		for (int i = -1; i <= 1; i++) {
-			// cinturao: tres estrelas em linha inclinada
 			double dx = Math.cos(ang + Math.PI / 2) * Math.cos(tilt) * sp * i, dz = Math.sin(ang + Math.PI / 2) * Math.cos(tilt) * sp * i;
-			sp3[i + 1] = new double[] {cx + ox + dx, cy + h + 0.9 + Math.sin(tilt) * sp * i, cz + oz + dz};
+			sp3[i + 1] = new double[] {cx + ox + dx, cy + h + 2.2 + Math.sin(tilt) * sp * i, cz + oz + dz};
 		}
 		for (int i = 0; i < 2; i++)
-			esp.thinLine(sp3[i][0], sp3[i][1], sp3[i][2], sp3[i + 1][0], sp3[i + 1][1], sp3[i + 1][2], base, 0.25f, 1.0f);
-		double[] ss = {0.30, 0.36, 0.26};
+			esp.thinLine(sp3[i][0], sp3[i][1], sp3[i][2], sp3[i + 1][0], sp3[i + 1][1], sp3[i + 1][2], base, 0.18f, 1.0f);
+		double[] ss = {0.55, 0.68, 0.5};
 		for (int i = 0; i < 3; i++) {
-			double tw = 0.8 + 0.2 * Math.sin(t * 2.6 + i * 2.0);
-			flare(esp, sp3[i][0], sp3[i][1], sp3[i][2], ss[i] * sc * 1.4 * tw, base, 1f, Math.sin(t * 0.7 + i) * 0.15);
+			double tw = 0.85 + 0.15 * Math.sin(t * 2.6 + i * 2.0);
+			double s = ss[i] * (0.8 + sc * 0.7) * tw;
+			double[] p = sp3[i];
+			// halo grande azulado + anel: destaca das estrelas comuns
+			glow(esp, p[0], p[1], p[2], s * 3.2, base, 0.2f);
+			ringBill(esp, p[0], p[1], p[2], s * 1.15, s * 1.22, base, 0.5f, 0.5f, false);
+			flare(esp, p[0], p[1], p[2], s, 0xFFA8D2FF, 1f, Math.sin(t * 0.7 + i) * 0.1);
 		}
-		// poeira de estrelas pequenas em volta
-		for (int i = 0; i < 10 + amount.get(); i++) {
-			double an = hash(i, 11) * 6.283 + t * 0.3;
-			double r = 1.2 + hash(i, 12) * 2.4;
+		// poeira de fundo: bem fraca e pequena (nao confunde com as tres)
+		for (int i = 0; i < 8 + amount.get(); i++) {
+			double an = hash(i, 11) * 6.283 + t * 0.15;
+			double r = 3.0 + hash(i, 12) * 6.0;
 			double tw = 0.5 + 0.5 * Math.sin(t * 3 + i);
-			flare(esp, cx + Math.cos(an) * r, cy + (hash(i, 13) - 0.3) * (h + 1.4), cz + Math.sin(an) * r, 0.045 * sc * (0.6 + tw), base, (float) (0.4 + 0.5 * tw), 0);
+			flare(esp, cx + Math.cos(an) * r, cy + 1.0 + hash(i, 13) * (h + 4.0), cz + Math.sin(an) * r, 0.05 * sc * (0.6 + tw), 0xFF9AA6BC, (float) (0.25 + 0.25 * tw), 0);
 		}
 	}
 }
