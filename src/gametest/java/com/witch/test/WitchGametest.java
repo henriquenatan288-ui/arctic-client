@@ -33,7 +33,10 @@ public class WitchGametest implements FabricClientGameTest {
 				context.waitTicks(25);
 				context.takeScreenshot("katana-fogo-" + f);
 			}
-			context.runOnClient(mc -> set("Katana 3D", "Fogo", 0));
+			context.runOnClient(mc -> { set("Katana 3D", "Fogo", 1); mc.options.setCameraType(net.minecraft.client.CameraType.THIRD_PERSON_FRONT); });
+			context.waitTicks(25);
+			context.takeScreenshot("katana-fogo-3a");
+			context.runOnClient(mc -> { set("Katana 3D", "Fogo", 0); mc.options.setCameraType(net.minecraft.client.CameraType.FIRST_PERSON); mc.player.setXRot(35f); });
 			context.waitTicks(10);
 			for (int t = 0; t < 3; t++) {
 				context.runOnClient(mc -> mc.player.swing(net.minecraft.world.InteractionHand.MAIN_HAND));
