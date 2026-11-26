@@ -69,7 +69,7 @@ public class CosmicFxModule extends Module implements EspSource {
 		switch (style.get()) {
 			case 2 -> {
 				double[] a = skyPos(cx, cy + me.getEyeHeight(), cz, t);
-				blackHole(esp, a[0], a[1], a[2], t, sc * 12.0);
+				blackHole(esp, a[0], a[1], a[2], t, sc * 18.0);
 			}
 			case 3 -> {
 				double[] a = skyPos(cx, cy + me.getEyeHeight(), cz, t);
@@ -268,7 +268,7 @@ public class CosmicFxModule extends Module implements EspSource {
 		if (warp.get() == 1) spaceWarp(esp, cx, cy, cz, R, t);
 		// lente gravitacional: o disco de tras "dobra" por cima e por baixo do buraco
 		// jatos fracos ao longo do eixo do disco
-		ray(esp, cx, cy, cz, Math.PI / 2 - Math.toRadians(11), R * 9, R * 0.45, 0xFF9FC8FF, 0.22f);
+		ray(esp, cx, cy, cz, Math.PI / 2 - Math.toRadians(11), R * 4.5, R * 0.4, 0xFF9FC8FF, 0.12f);
 		lensArc(esp, cx, cy, cz, R * 1.04, R * 2.5, hot, 0.85f);
 		lensArc(esp, cx, cy, cz, R * 1.04, R * 1.5, 0xFFFFF0D0, 0.95f);
 		discBands(esp, cx, cy, cz, R, t, false, hot);
