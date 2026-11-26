@@ -88,7 +88,7 @@ public class CosmicFxModule extends Module implements EspSource {
 		double az = Math.toRadians(azim.get()) + t * 0.004, el = Math.toRadians(elev.get()), D = 110.0;
 		if (System.getenv("CI") != null) { // teste visual no CI: na frente da camera para caber no print
 			var me = Minecraft.getInstance().player;
-			if (me != null) { az = Math.PI + Math.toRadians(me.getYRot()); el = Math.toRadians(24); }
+			if (me != null) { az = Math.PI + Math.toRadians(me.getYRot()); el = Math.toRadians(15); }
 		}
 		return new double[] {ex + Math.sin(az) * Math.cos(el) * D, ey + Math.sin(el) * D, ez - Math.cos(az) * Math.cos(el) * D};
 	}
@@ -190,22 +190,52 @@ public class CosmicFxModule extends Module implements EspSource {
 		return new double[] {cx + ex1x * c + ex2x * s, cy + ex1y * c + ex2y * s, cz + ex1z * c + ex2z * s};
 	}
 
+	private static int ramp(double k, int hot) { // 0 = interno (quase branco) ... 1 = externo (vermelho escuro)
+		int[] c = {0xFFFFFAEB, 0xFFFFD98A, hot, 0xFFE8561C, 0xFF9A2410};
+		double x = Math.max(0, Math.min(0.9999, k)) * (c.length - 1);
+		int i = (int) x; double f = x - i;
+		int r = (int) (((c[i] >> 16 & 255) * (1 - f)) + ((c[i + 1] >> 16 & 255) * f));
+		int g = (int) (((c[i] >> 8 & 255) * (1 - f)) + ((c[i + 1] >> 8 & 255) * f));
+		int bl = (int) (((c[i] & 255) * (1 - f)) + ((c[i + 1] & 255) * f));
+		return 0xFF000000 | r << 16 | g << 8 | bl;
+	}
+
+	/** Disco de acrecao liso: 14 aneis finos com degrade de cor (branco -> laranja -> vermelho), bordas suaves, filetes girando mais rapido por dentro. */
 	private void discBands(Esp esp, double cx, double cy, double cz, double R, double t, boolean front, int hot) {
-		int seg = 80;
-		double[] edges = {1.35, 1.8, 2.5, 3.5};
-		int[] cols = {0xFFFFF4DC, 0xFFFFC070, hot, 0xFFD2481A};
-		for (int band = 0; band < 3; band++) {
-			double r0 = R * edges[band], r1 = R * edges[band + 1];
+		final int seg = 96, steps = 14;
+		final double r0 = 1.25, r1 = 4.2;
+		for (int st = 0; st < steps; st++) {
+			double k0 = st / (double) steps, k1 = (st + 1) / (double) steps;
+			double ra = R * (r0 + (r1 - r0) * k0 * k0 * 0.6 - 0 + (r1 - r0) * k0 * 0.4), rb = R * (r0 + (r1 - r0) * k1 * k1 * 0.6 + (r1 - r0) * k1 * 0.4);
+			int c = ramp((k0 + k1) * 0.5, hot);
+			float env0 = (float) Math.min(Math.min(1.0, k0 * 12 + 0.25), 1.0 - Math.pow(k0, 1.6));
+			float env1 = (float) Math.min(Math.min(1.0, k1 * 12 + 0.25), 1.0 - Math.pow(k1, 1.6));
+			double w = 3.4 - k0 * 2.4; // velocidade angular: mais rapido por dentro
 			for (int i = 0; i < seg; i++) {
 				double a0 = Math.PI * 2 * i / seg, a1 = Math.PI * 2 * (i + 1) / seg;
 				if ((Math.sin((a0 + a1) * 0.5) < 0) != front) continue;
-				// brilho maior de um lado (efeito Doppler), girando devagar
-				float br = (float) (0.55 + 0.4 * Math.sin(3 * a0 + band * 1.3 - t * (3.2 - band * 0.9)) + 0.05 * Math.sin(a0));
-				br = Math.max(0.15f, Math.min(1f, br));
-				float in = br * (band == 2 ? 0.7f : 1f), out = br * (band == 2 ? 0.05f : 0.6f);
-				double[] p0 = disc(cx, cy, cz, r0, a0), p1 = disc(cx, cy, cz, r1, a0), p2 = disc(cx, cy, cz, r1, a1), p3 = disc(cx, cy, cz, r0, a1);
-				esp.gradQuad(p0[0], p0[1], p0[2], p1[0], p1[1], p1[2], p2[0], p2[1], p2[2], p3[0], p3[1], p3[2], cols[band], in, out, out, in);
+				double ph = a0 - t * w * 0.5;
+				double streak = 0.62 + 0.22 * Math.sin(3 * ph + k0 * 5.0) + 0.16 * Math.sin(11 * ph + k0 * 9.0 + 1.3);
+				float b0 = (float) Math.max(0.05, Math.min(1.0, streak)) * env0, b1 = (float) Math.max(0.05, Math.min(1.0, streak)) * env1;
+				double[] p0 = disc(cx, cy, cz, ra, a0), p1 = disc(cx, cy, cz, rb, a0), p2 = disc(cx, cy, cz, rb, a1), p3 = disc(cx, cy, cz, ra, a1);
+				esp.gradQuad(p0[0], p0[1], p0[2], p1[0], p1[1], p1[2], p2[0], p2[1], p2[2], p3[0], p3[1], p3[2], c, b0, b1, b1, b0);
 			}
+		}
+	}
+
+	/** Arco da lente gravitacional: o disco de tras dobrado por cima e por baixo do horizonte (mais forte em cima/embaixo). */
+	private void lensArc(Esp esp, double cx, double cy, double cz, double r0, double r1, int argb, float peak) {
+		int seg = 96;
+		for (int i = 0; i < seg; i++) {
+			double a0 = Math.PI * 2 * i / seg, a1 = Math.PI * 2 * (i + 1) / seg;
+			float w0 = (float) Math.pow(Math.abs(Math.sin(a0)), 1.4) * peak, w1 = (float) Math.pow(Math.abs(Math.sin(a1)), 1.4) * peak;
+			double c0 = Math.cos(a0), s0 = Math.sin(a0), c1 = Math.cos(a1), s1 = Math.sin(a1);
+			esp.gradQuad(
+					cx + (rx * c0 + ux * s0) * r0, cy + (ry * c0 + uy * s0) * r0, cz + (rz * c0 + uz * s0) * r0,
+					cx + (rx * c0 + ux * s0) * r1, cy + (ry * c0 + uy * s0) * r1, cz + (rz * c0 + uz * s0) * r1,
+					cx + (rx * c1 + ux * s1) * r1, cy + (ry * c1 + uy * s1) * r1, cz + (rz * c1 + uz * s1) * r1,
+					cx + (rx * c1 + ux * s1) * r0, cy + (ry * c1 + uy * s1) * r0, cz + (rz * c1 + uz * s1) * r0,
+					argb, w0, 0f, 0f, w1);
 		}
 	}
 
@@ -226,25 +256,28 @@ public class CosmicFxModule extends Module implements EspSource {
 
 	private void blackHole(Esp esp, double cx, double cy, double cz, double t, double sc) {
 		int hot = col(0xFFFF8A2A);
-		double R = 0.36 * sc;
+		double R = 0.42 * sc;
 		// base do disco: direita da camera rolada ~11 graus; segundo eixo = cima*0.25 + fundo
 		double roll = Math.toRadians(-11), cr = Math.cos(roll), sr = Math.sin(roll);
 		double bx = rx * cr + ux * sr, by = ry * cr + uy * sr, bz = rz * cr + uz * sr;
 		double vx = -rx * sr + ux * cr, vy = -ry * sr + uy * cr, vz = -rz * sr + uz * cr;
 		ex1x = bx; ex1y = by; ex1z = bz;
-		ex2x = vx * 0.26 + fx * 0.966; ex2y = vy * 0.26 + fy * 0.966; ex2z = vz * 0.26 + fz * 0.966;
-		glow(esp, cx, cy, cz, R * 3.6, hot, 0.12f);
+		ex2x = vx * 0.3 + fx * 0.954; ex2y = vy * 0.3 + fy * 0.954; ex2z = vz * 0.3 + fz * 0.954;
+		glow(esp, cx, cy, cz, R * 7.0, 0xFFB04A1E, 0.1f);
+		glow(esp, cx, cy, cz, R * 3.6, hot, 0.14f);
 		if (warp.get() == 1) spaceWarp(esp, cx, cy, cz, R, t);
 		// lente gravitacional: o disco de tras "dobra" por cima e por baixo do buraco
-		ringBill(esp, cx, cy, cz, R * 1.05, R * 1.65, 0xFFFFD79A, 0.9f, 0f, false);
-		ringBill(esp, cx, cy, cz, R * 1.05, R * 1.25, 0xFFFFFFFF, 0.8f, 0f, false);
+		// jatos fracos ao longo do eixo do disco
+		ray(esp, cx, cy, cz, Math.PI / 2 - Math.toRadians(11), R * 9, R * 0.45, 0xFF9FC8FF, 0.22f);
+		lensArc(esp, cx, cy, cz, R * 1.04, R * 2.5, hot, 0.85f);
+		lensArc(esp, cx, cy, cz, R * 1.04, R * 1.5, 0xFFFFF0D0, 0.95f);
 		discBands(esp, cx, cy, cz, R, t, false, hot);
 		// horizonte de eventos
 		glow(esp, cx, cy, cz, R * 1.12, 0xFF000000, 1f);
 		glow(esp, cx, cy, cz, R * 0.8, 0xFF000000, 1f);
 		// anel de fotons
 		ringBill(esp, cx, cy, cz, R * 1.0, R * 1.07, 0xFFFFF6E4, 0.95f, 0.95f, false);
-		ringBill(esp, cx, cy, cz, R * 1.07, R * 1.3, 0xFFFFD79A, 0.55f, 0f, false);
+		ringBill(esp, cx, cy, cz, R * 1.07, R * 1.45, 0xFFFFD79A, 0.6f, 0f, false);
 		// parte da frente do disco passa na frente do buraco
 		discBands(esp, cx, cy, cz, R, t, true, hot);
 		// particulas espiralando no plano do disco, com rastro
