@@ -33,39 +33,6 @@ public class KatanaModule extends Module {
 		};
 	}
 
-	@Override
-	public void onTick() {
-		var m = instance;
-		var mc = net.minecraft.client.Minecraft.getInstance();
-		var p = mc.player;
-		if (p == null || mc.level == null || fire.get() == 0 || swordId(p.getMainHandItem()) == null || mc.isPaused()) return;
-		// chamas subindo pela lamina (aproximacao da posicao da mao; vale em 1a e 3a pessoa)
-		var look = p.getViewVector(1f);
-		double rxx = -look.z, rzz = look.x, rl = Math.max(1e-4, Math.sqrt(rxx * rxx + rzz * rzz));
-		rxx /= rl; rzz /= rl;
-		var eye = p.getEyePosition();
-		boolean first = mc.options.getCameraType().isFirstPerson();
-		if (first) return; // em 1a pessoa a particula nasce colada na camera (enorme): ali vale so o fogo do modelo
-		double bx = eye.x + look.x * (first ? 0.55 : 0.35) + rxx * 0.34, by = eye.y - (first ? 0.30 : 0.55) + look.y * 0.3, bz = eye.z + look.z * (first ? 0.55 : 0.35) + rzz * 0.34;
-		var type = fire.get() == 2 ? net.minecraft.core.particles.ParticleTypes.SOUL_FIRE_FLAME : net.minecraft.core.particles.ParticleTypes.FLAME;
-		var rnd = p.getRandom();
-		for (int i = 0; i < 3; i++) {
-			double t = 0.25 + rnd.nextDouble() * 1.1;
-			mc.level.addParticle(type, bx + look.x * t * 0.4 + (rnd.nextDouble() - 0.5) * 0.06, by + t * 0.8, bz + look.z * t * 0.4 + (rnd.nextDouble() - 0.5) * 0.06,
-					(rnd.nextDouble() - 0.5) * 0.01, 0.012 + rnd.nextDouble() * 0.01, (rnd.nextDouble() - 0.5) * 0.01);
-		}
-	}
-
-	@Override
-	protected void onEnable() {
-		on = true;
-	}
-
-	@Override
-	protected void onDisable() {
-		on = false;
-	}
-
 	/** Copia do item apontando para o modelo katana_*; o proprio item nao muda. null se nao se aplica. */
 	public static net.minecraft.world.item.ItemStack swap(net.minecraft.world.item.ItemStack stack) {
 		if (!on || stack == null || stack.isEmpty()) return null;

@@ -40,11 +40,10 @@ def fire_overlay():
     for i in range(n):
         t0, t1 = i / n, (i + 1) / n
         cx = 8 + 0.9 * ((t0 + t1) / 2) ** 2
-        v1 = 16 - i * 1.25; v0 = v1 - 4.0  # fatia vertical da chama (bem maior que o segmento: chama alta)
-        v0 = max(0, v0)
-        faces = {k: {"uv": [3 + (i % 3) * 3, round(v0, 2), 7 + (i % 3) * 3, round(v1, 2)], "texture": "#f", "light_emission": 15}
+        v1 = 16 * (1 - i / n); v0 = 16 * (1 - (i + 1) / n)  # chama continua ao longo da lamina (sobe)
+        faces = {k: {"uv": [0, round(v0, 3), 16, round(v1, 3)], "texture": "#f", "light_emission": 15}
                  for k in ("north", "south", "east", "west", "up")}
-        E.append({"from": [round(cx - 0.8, 3), y, 7.62], "to": [round(cx + 0.8, 3), round(y + seg + 0.02, 3), 8.38], "faces": faces, "rotation": ROT})
+        E.append({"from": [round(cx - 1.0, 3), y, 7.6], "to": [round(cx + 1.0, 3), round(y + seg + 0.02, 3), 8.4], "faces": faces, "rotation": ROT})
         y += seg
     return E
 
@@ -56,7 +55,7 @@ for f in sorted(glob.glob(os.path.join(D, 'katana_*_sword.json'))):
     d['elements'] = elements()
     json.dump(d, open(f, 'w'), indent='\t')
     base = os.path.basename(f)[len('katana_'):-5]  # ex: iron_sword
-    for tag, tex in (('fire', 'minecraft:block/fire_0'), ('sfire', 'minecraft:block/soul_fire_0')):
+    for tag, tex in (('fire', 'witch:item/katana_flame'), ('sfire', 'witch:item/katana_flame_blue')):
         v = json.loads(json.dumps(d))
         v['textures']['f'] = tex
         v['elements'] = d['elements'] + fire_overlay()
