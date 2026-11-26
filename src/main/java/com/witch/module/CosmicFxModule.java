@@ -19,6 +19,7 @@ public class CosmicFxModule extends Module implements EspSource {
 	private final IntSetting amount = add(new IntSetting("Quantidade (estrelas)", 1, 10, 6, ""));
 	private final IntSetting ring = add(new IntSetting("Anel no chao - efeito 1 (0/1)", 0, 1, 1, ""));
 	private final ColorSetting color = add(new ColorSetting("Cor (padrao = do efeito)", 0));
+	private final IntSetting warp = add(new IntSetting("Distorcao do espaco - efeito 2 (0/1)", 0, 1, 1, ""));
 	private final IntSetting ownColor = add(new IntSetting("Usar a cor escolhida (0/1)", 0, 1, 0, ""));
 
 	// vetores da camera (direita e cima) do quadro atual
@@ -193,6 +194,7 @@ public class CosmicFxModule extends Module implements EspSource {
 		ex1x = bx; ex1y = by; ex1z = bz;
 		ex2x = vx * 0.26 + fx * 0.966; ex2y = vy * 0.26 + fy * 0.966; ex2z = vz * 0.26 + fz * 0.966;
 		glow(esp, cx, cy, cz, R * 3.6, hot, 0.12f);
+		if (warp.get() == 1) spaceWarp(esp, cx, cy, cz, R, t);
 		// lente gravitacional: o disco de tras "dobra" por cima e por baixo do buraco
 		ringBill(esp, cx, cy, cz, R * 1.05, R * 1.65, 0xFFFFD79A, 0.9f, 0f, false);
 		ringBill(esp, cx, cy, cz, R * 1.05, R * 1.25, 0xFFFFFFFF, 0.8f, 0f, false);
@@ -220,6 +222,63 @@ public class CosmicFxModule extends Module implements EspSource {
 				double[] p = disc(cx, cy, cz, r2, a2);
 				double d = 0.022 * sc * (1.0 - k / 7.0);
 				esp.solid(p[0] - d, p[1] - d, p[2] - d, p[0] + d, p[1] + d, p[2] + d, 0xFFFFE0B0, 0.85f * (1f - k / 7f) * (float) Math.min(1.0, (1 - ph) * 4));
+			}
+		}
+	}
+
+	private void bill(Esp esp, double cx, double cy, double cz, double x1, double y1, double x2, double y2, int argb, float a, float w) {
+		esp.thinLine(cx + rx * x1 + ux * y1, cy + ry * x1 + uy * y1, cz + rz * x1 + uz * y1,
+				cx + rx * x2 + ux * y2, cy + ry * x2 + uy * y2, cz + rz * x2 + uz * y2, argb, a, w);
+	}
+
+	/** Distorcao do espaco: grade que se aperta e gira perto do buraco, ondas se afastando e estrelas de fundo esticadas em arcos (lente). */
+	private void spaceWarp(Esp esp, double cx, double cy, double cz, double R, double t) {
+		final int nr = 13, nl = 22, seg = 56;
+		double[] rad = new double[nr];
+		for (int j = 0; j < nr; j++) rad[j] = R * 1.5 * Math.pow(1.38, j);
+		int grid = 0xFF9FC4FF;
+		// linhas radiais: giram em espiral perto do buraco (arrasto do espaco)
+		for (int i = 0; i < nl; i++) {
+			double a0 = Math.PI * 2 * i / nl;
+			double px = 0, py = 0;
+			for (int j = 0; j < nr; j++) {
+				double ang = a0 + 1.5 * R * 1.5 / rad[j] * 2.2 - t * 0.12;
+				double x = Math.cos(ang) * rad[j], y = Math.sin(ang) * rad[j];
+				if (j > 0) bill(esp, cx, cy, cz, px, py, x, y, grid, 0.34f * (1f - j / (float) nr), 1.0f);
+				px = x; py = y;
+			}
+		}
+		// aneis concentricos, com onda saindo do buraco
+		for (int j = 0; j < nr; j++) {
+			double r = rad[j] * (1.0 + 0.035 * Math.sin(t * 2.2 - j * 0.9));
+			float al = 0.38f * (1f - j / (float) nr);
+			double px = r, py = 0;
+			for (int k = 1; k <= seg; k++) {
+				double an = Math.PI * 2 * k / seg;
+				double x = Math.cos(an) * r, y = Math.sin(an) * r;
+				bill(esp, cx, cy, cz, px, py, x, y, grid, al, 1.0f);
+				px = x; py = y;
+			}
+		}
+		// estrelas de fundo: imagem principal esticada em arco + imagem fraca do lado oposto (anel de Einstein)
+		double e2 = (R * 1.7) * (R * 1.7);
+		for (int i = 0; i < 40; i++) {
+			double d = R * (2.2 + hash(i, 21) * 7.5);
+			double an = hash(i, 22) * Math.PI * 2 + t * 0.05 * (i % 2 == 0 ? 1 : -1);
+			double rp = 0.5 * (d + Math.sqrt(d * d + 4 * e2));
+			double rm = 0.5 * (Math.sqrt(d * d + 4 * e2) - d);
+			double arc = Math.min(0.9, (R * 1.7) / d * 0.55);
+			float tw = (float) (0.6 + 0.4 * Math.sin(t * 2.5 + i));
+			double[][] imgs = {{rp, 1.0}, {rm, 0.45}};
+			for (int m = 0; m < 2; m++) {
+				double r = imgs[m][0], ang = an + (m == 1 ? Math.PI : 0);
+				double px = Math.cos(ang - arc) * r, py = Math.sin(ang - arc) * r;
+				for (int k = 1; k <= 5; k++) {
+					double a2 = ang - arc + 2 * arc * k / 5.0;
+					double x = Math.cos(a2) * r, y = Math.sin(a2) * r;
+					bill(esp, cx, cy, cz, px, py, x, y, 0xFFE8F1FF, (float) (0.85 * imgs[m][1]) * tw, 1.6f);
+					px = x; py = y;
+				}
 			}
 		}
 	}
