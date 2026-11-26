@@ -19,9 +19,9 @@ public class WitchGametest implements FabricClientGameTest {
 				var m = com.witch.module.ModuleManager.byName("Cosmic FX");
 				if (!m.isEnabled()) m.toggle();
 			});
-			String[] names = {"estrelas", "buraco-negro", "pulsar", "tres-marias"};
-			for (int i = 0; i < 4; i++) {
-				final int st = i + 1;
+			String[] names = {"buraco-negro", "buraco-negro-b"};
+			for (int i = 0; i < 2; i++) {
+				final int st = 2;
 				context.runOnClient(mc -> {
 					var m = com.witch.module.ModuleManager.byName("Cosmic FX");
 					for (var s : m.settings()) if (s.name.startsWith("Efeito")) ((com.witch.setting.IntSetting) s).set(st);
@@ -29,19 +29,6 @@ public class WitchGametest implements FabricClientGameTest {
 				context.waitTicks(25);
 				context.takeScreenshot("cosmic-" + names[i]);
 			}
-			context.runOnClient(mc -> {
-				var m = com.witch.module.ModuleManager.byName("Cosmic FX");
-				if (m.isEnabled()) m.toggle();
-				var k = com.witch.module.ModuleManager.byName("Katana 3D");
-				if (!k.isEnabled()) k.toggle();
-				mc.options.setCameraType(net.minecraft.client.CameraType.FIRST_PERSON);
-			});
-			srv.runCommand("give @p netherite_sword");
-			context.waitTicks(20);
-			context.takeScreenshot("katana-1a-pessoa");
-			context.runOnClient(mc -> mc.options.setCameraType(net.minecraft.client.CameraType.THIRD_PERSON_FRONT));
-			context.waitTicks(15);
-			context.takeScreenshot("katana-3a-pessoa");
 		}
 	}
 }
