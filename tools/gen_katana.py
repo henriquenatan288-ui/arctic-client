@@ -43,7 +43,7 @@ def fire_overlay():
         v1 = 16 * (1 - i / n); v0 = 16 * (1 - (i + 1) / n)  # chama continua ao longo da lamina (sobe)
         faces = {k: {"uv": [0, round(v0, 3), 16, round(v1, 3)], "texture": "#f", "light_emission": 15}
                  for k in ("north", "south", "east", "west", "up")}
-        E.append({"from": [round(cx - 1.0, 3), y, 7.6], "to": [round(cx + 1.0, 3), round(y + seg + 0.02, 3), 8.4], "faces": faces, "rotation": ROT})
+        E.append({"from": [round(cx - 1.35, 3), y, 7.5], "to": [round(cx + 1.35, 3), round(y + seg + 0.02, 3), 8.5], "faces": faces, "rotation": ROT})
         y += seg
     return E
 

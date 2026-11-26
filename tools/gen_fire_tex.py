@@ -26,10 +26,10 @@ def frame(t, stops):
         f += a * np.sin(fx * X + fy * (1.0 - Y) * 3.0 + ph - 2 * np.pi * m * t / N * np.sign(1)) 
         tot += a
     f = 0.5 + 0.5 * f / tot * 1.6
-    center = np.exp(-(((X - 0.5) / 0.36) ** 2))
+    center = np.exp(-(((X - 0.5) / 0.5) ** 2))
     flick = 0.8 + 0.2 * np.sin(2 * np.pi * t / N + Y * 9)
-    v = np.clip(f * center * flick * 1.25, 0, 1)
-    a = np.clip((v - 0.12) / 0.45, 0, 1) ** 1.3
+    v = np.clip(f * center * flick * 1.7, 0, 1)
+    a = np.clip((v - 0.05) / 0.30, 0, 1) ** 0.85
     col = ramp(v, stops)
     img = np.dstack([col, a * 255]).astype(np.uint8)
     return img
