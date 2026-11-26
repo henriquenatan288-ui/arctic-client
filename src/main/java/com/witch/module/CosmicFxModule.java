@@ -86,6 +86,10 @@ public class CosmicFxModule extends Module implements EspSource {
 	/** Posicao no ceu: muito longe (~110 blocos) numa direcao fixa do mundo, para nao balancar com o bob da camera e nao tapar nada. */
 	private double[] skyPos(double ex, double ey, double ez, double t) {
 		double az = Math.toRadians(azim.get()) + t * 0.004, el = Math.toRadians(elev.get()), D = 110.0;
+		if (System.getenv("CI") != null) { // teste visual no CI: na frente da camera para caber no print
+			var me = Minecraft.getInstance().player;
+			if (me != null) { az = Math.PI + Math.toRadians(me.getYRot()); el = Math.toRadians(24); }
+		}
 		return new double[] {ex + Math.sin(az) * Math.cos(el) * D, ey + Math.sin(el) * D, ez - Math.cos(az) * Math.cos(el) * D};
 	}
 
