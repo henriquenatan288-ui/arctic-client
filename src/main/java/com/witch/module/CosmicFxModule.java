@@ -22,7 +22,7 @@ public class CosmicFxModule extends Module implements EspSource {
 	private final IntSetting ownColor = add(new IntSetting("Usar a cor escolhida (0/1)", 0, 1, 0, ""));
 
 	// vetores da camera (direita e cima) do quadro atual
-	private double rx, ry, rz, ux, uy, uz;
+	private double rx, ry, rz, ux, uy, uz, fx, fy, fz;
 
 	public CosmicFxModule() {
 		super("Cosmic FX", Category.EFFECTS);
@@ -52,6 +52,8 @@ public class CosmicFxModule extends Module implements EspSource {
 		var u = cam.upVector();
 		rx = -l.x(); ry = -l.y(); rz = -l.z();
 		ux = u.x(); uy = u.y(); uz = u.z();
+		var f = cam.forwardVector();
+		fx = f.x(); fy = f.y(); fz = f.z();
 
 		float pt = esp.partial();
 		double cx = Mth.lerp(pt, me.xOld, me.getX());
@@ -61,7 +63,7 @@ public class CosmicFxModule extends Module implements EspSource {
 		double t = System.nanoTime() / 1.0e9 * (0.35 + speed.get() * 0.15);
 		double sc = 0.35 + size.get() * 0.13;
 		switch (style.get()) {
-			case 2 -> blackHole(esp, cx, cy + h + 0.9 * sc + 0.4, cz, t, sc);
+			case 2 -> blackHole(esp, cx, cy + h + 1.6 * sc + 0.6, cz, t, sc);
 			case 3 -> pulsar(esp, cx, cy + h + 1.0 * sc + 0.5, cz, t, sc);
 			case 4 -> threeMarias(esp, cx, cy + h * 0.5, cz, t, sc, h);
 			default -> stars(esp, cx, cy, cz, t, sc, h);
@@ -140,53 +142,86 @@ public class CosmicFxModule extends Module implements EspSource {
 		}
 	}
 
-	private void blackHole(Esp esp, double cx, double cy, double cz, double t, double sc) {
-		int hot = col(0xFFFF9A3C);
-		double R = 0.55 * sc;
-		glow(esp, cx, cy, cz, R * 3.2, hot, 0.22f);
-		// disco de acrecao: faixas inclinadas girando, laranja por fora e quase branco por dentro
-		double tilt = Math.toRadians(72), ct = Math.cos(tilt), st = Math.sin(tilt);
-		int seg = 72;
-		for (int band = 0; band < 3; band++) {
-			double r0 = R * (1.35 + band * 0.55), r1 = R * (1.85 + band * 0.55);
-			int c = band == 0 ? 0xFFFFE9C0 : (band == 1 ? hot : 0xFFE0571E);
-			for (int i = 0; i < seg; i++) {
-				double a0 = Math.PI * 2 * i / seg + t * (1.6 - band * 0.4), a1 = Math.PI * 2 * (i + 1) / seg + t * (1.6 - band * 0.4);
-				float br = (float) (0.45 + 0.4 * Math.sin(a0 * 3 - t * 4 + band));
-				double[] p0 = disc(cx, cy, cz, r0, a0, ct, st), p1 = disc(cx, cy, cz, r1, a0, ct, st);
-				double[] p2 = disc(cx, cy, cz, r1, a1, ct, st), p3 = disc(cx, cy, cz, r0, a1, ct, st);
-				esp.gradQuad(p0[0], p0[1], p0[2], p1[0], p1[1], p1[2], p2[0], p2[1], p2[2], p3[0], p3[1], p3[2], c, br, br * 0.25f, br * 0.25f, br);
-			}
-		}
-		// anel de fotons (lente gravitacional): circulo fino virado para a camera
-		for (int i = 0; i < 48; i++) {
-			double a0 = Math.PI * 2 * i / 48, a1 = Math.PI * 2 * (i + 1) / 48;
-			esp.thinLine(cx + (rx * Math.cos(a0) + ux * Math.sin(a0)) * R * 1.12, cy + (ry * Math.cos(a0) + uy * Math.sin(a0)) * R * 1.12, cz + (rz * Math.cos(a0) + uz * Math.sin(a0)) * R * 1.12,
-					cx + (rx * Math.cos(a1) + ux * Math.sin(a1)) * R * 1.12, cy + (ry * Math.cos(a1) + uy * Math.sin(a1)) * R * 1.12, cz + (rz * Math.cos(a1) + uz * Math.sin(a1)) * R * 1.12,
-					0xFFFFF2D8, 0.9f, 1.6f);
-		}
-		// particulas espiralando para dentro, com rastro
-		int n = 10 + amount.get() * 2;
-		for (int i = 0; i < n; i++) {
-			double ph = (t * 0.35 + hash(i, 9)) % 1.0;
-			double rr = R * (3.4 - 2.2 * ph);
-			double an = hash(i, 8) * 6.283 + t * 1.4 + ph * 5.0;
-			for (int k = 0; k < 6; k++) {
-				double pk = Math.max(0, ph - k * 0.02);
-				double r2 = R * (3.4 - 2.2 * pk), a2 = hash(i, 8) * 6.283 + t * 1.4 + pk * 5.0 - k * 0.05;
-				double[] p = disc(cx, cy, cz, r2, a2, ct, st);
-				double d = 0.02 * sc * (1.0 - k / 6.0);
-				esp.solid(p[0] - d, p[1] - d, p[2] - d, p[0] + d, p[1] + d, p[2] + d, 0xFFFFD9A0, 0.8f * (1f - k / 6f));
-			}
-		}
-		// nucleo negro por cima
-		glow(esp, cx, cy, cz, R * 1.0, 0xFF000000, 1f);
-		glow(esp, cx, cy, cz, R * 0.7, 0xFF000000, 1f);
+	private double ex1x, ex1y, ex1z, ex2x, ex2y, ex2z;
+
+	/** Ponto do disco: base = direita da camera (levemente rolada) e um eixo quase de fundo (disco visto de lado, ~14 graus). */
+	private double[] disc(double cx, double cy, double cz, double r, double a) {
+		double c = Math.cos(a) * r, s = Math.sin(a) * r;
+		return new double[] {cx + ex1x * c + ex2x * s, cy + ex1y * c + ex2y * s, cz + ex1z * c + ex2z * s};
 	}
 
-	private double[] disc(double cx, double cy, double cz, double r, double a, double ct, double st) {
-		double x = Math.cos(a) * r, z = Math.sin(a) * r;
-		return new double[] {cx + x, cy + z * st, cz + z * ct};
+	private void discBands(Esp esp, double cx, double cy, double cz, double R, double t, boolean front, int hot) {
+		int seg = 80;
+		double[] edges = {1.35, 1.8, 2.5, 3.5};
+		int[] cols = {0xFFFFF4DC, 0xFFFFC070, hot, 0xFFD2481A};
+		for (int band = 0; band < 3; band++) {
+			double r0 = R * edges[band], r1 = R * edges[band + 1];
+			for (int i = 0; i < seg; i++) {
+				double a0 = Math.PI * 2 * i / seg, a1 = Math.PI * 2 * (i + 1) / seg;
+				if ((Math.sin((a0 + a1) * 0.5) < 0) != front) continue;
+				// brilho maior de um lado (efeito Doppler), girando devagar
+				float br = (float) (0.35 + 0.6 * (0.5 + 0.5 * Math.sin(a0 - t * (1.4 - band * 0.3))));
+				float in = br * (band == 2 ? 0.7f : 1f), out = br * (band == 2 ? 0.05f : 0.6f);
+				double[] p0 = disc(cx, cy, cz, r0, a0), p1 = disc(cx, cy, cz, r1, a0), p2 = disc(cx, cy, cz, r1, a1), p3 = disc(cx, cy, cz, r0, a1);
+				esp.gradQuad(p0[0], p0[1], p0[2], p1[0], p1[1], p1[2], p2[0], p2[1], p2[2], p3[0], p3[1], p3[2], cols[band], in, out, out, in);
+			}
+		}
+	}
+
+	private void ringBill(Esp esp, double cx, double cy, double cz, double r0, double r1, int argb, float in, float out, boolean upperOnly) {
+		int seg = 64;
+		for (int i = 0; i < seg; i++) {
+			double a0 = Math.PI * 2 * i / seg, a1 = Math.PI * 2 * (i + 1) / seg;
+			if (upperOnly && Math.sin((a0 + a1) * 0.5) < -0.15) continue;
+			double c0 = Math.cos(a0), s0 = Math.sin(a0), c1 = Math.cos(a1), s1 = Math.sin(a1);
+			esp.gradQuad(
+					cx + (rx * c0 + ux * s0) * r0, cy + (ry * c0 + uy * s0) * r0, cz + (rz * c0 + uz * s0) * r0,
+					cx + (rx * c0 + ux * s0) * r1, cy + (ry * c0 + uy * s0) * r1, cz + (rz * c0 + uz * s0) * r1,
+					cx + (rx * c1 + ux * s1) * r1, cy + (ry * c1 + uy * s1) * r1, cz + (rz * c1 + uz * s1) * r1,
+					cx + (rx * c1 + ux * s1) * r0, cy + (ry * c1 + uy * s1) * r0, cz + (rz * c1 + uz * s1) * r0,
+					argb, in, out, out, in);
+		}
+	}
+
+	private void blackHole(Esp esp, double cx, double cy, double cz, double t, double sc) {
+		int hot = col(0xFFFF8A2A);
+		double R = 0.5 * sc;
+		// base do disco: direita da camera rolada ~11 graus; segundo eixo = cima*0.25 + fundo
+		double roll = Math.toRadians(-11), cr = Math.cos(roll), sr = Math.sin(roll);
+		double bx = rx * cr + ux * sr, by = ry * cr + uy * sr, bz = rz * cr + uz * sr;
+		double vx = -rx * sr + ux * cr, vy = -ry * sr + uy * cr, vz = -rz * sr + uz * cr;
+		ex1x = bx; ex1y = by; ex1z = bz;
+		ex2x = vx * 0.26 + fx * 0.966; ex2y = vy * 0.26 + fy * 0.966; ex2z = vz * 0.26 + fz * 0.966;
+		glow(esp, cx, cy, cz, R * 4.2, hot, 0.16f);
+		// lente gravitacional: o disco de tras "dobra" por cima e por baixo do buraco
+		ringBill(esp, cx, cy, cz, R * 1.05, R * 1.9, 0xFFFFD79A, 0.9f, 0f, false);
+		ringBill(esp, cx, cy, cz, R * 1.05, R * 1.4, 0xFFFFFFFF, 0.8f, 0f, false);
+		discBands(esp, cx, cy, cz, R, t, false, hot);
+		// horizonte de eventos
+		glow(esp, cx, cy, cz, R * 1.12, 0xFF000000, 1f);
+		glow(esp, cx, cy, cz, R * 0.8, 0xFF000000, 1f);
+		// anel de fotons
+		for (int i = 0; i < 64; i++) {
+			double a0 = Math.PI * 2 * i / 64, a1 = Math.PI * 2 * (i + 1) / 64;
+			double rr = R * 1.06;
+			esp.thinLine(cx + (rx * Math.cos(a0) + ux * Math.sin(a0)) * rr, cy + (ry * Math.cos(a0) + uy * Math.sin(a0)) * rr, cz + (rz * Math.cos(a0) + uz * Math.sin(a0)) * rr,
+					cx + (rx * Math.cos(a1) + ux * Math.sin(a1)) * rr, cy + (ry * Math.cos(a1) + uy * Math.sin(a1)) * rr, cz + (rz * Math.cos(a1) + uz * Math.sin(a1)) * rr,
+					0xFFFFF6E4, 0.95f, 1.8f);
+		}
+		// parte da frente do disco passa na frente do buraco
+		discBands(esp, cx, cy, cz, R, t, true, hot);
+		// particulas espiralando no plano do disco, com rastro
+		int n = 12 + amount.get() * 3;
+		for (int i = 0; i < n; i++) {
+			double ph = (t * 0.3 + hash(i, 9)) % 1.0;
+			for (int k = 0; k < 7; k++) {
+				double pk = Math.max(0, ph - k * 0.015);
+				double r2 = R * (4.4 - 3.1 * pk * pk), a2 = hash(i, 8) * 6.283 + t * 1.2 + pk * 6.0;
+				double[] p = disc(cx, cy, cz, r2, a2);
+				double d = 0.022 * sc * (1.0 - k / 7.0);
+				esp.solid(p[0] - d, p[1] - d, p[2] - d, p[0] + d, p[1] + d, p[2] + d, 0xFFFFE0B0, 0.85f * (1f - k / 7f) * (float) Math.min(1.0, (1 - ph) * 4));
+			}
+		}
 	}
 
 	private void pulsar(Esp esp, double cx, double cy, double cz, double t, double sc) {
