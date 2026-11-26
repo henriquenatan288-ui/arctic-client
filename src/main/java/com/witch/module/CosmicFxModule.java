@@ -256,7 +256,7 @@ public class CosmicFxModule extends Module implements EspSource {
 
 	/** Distorcao do espaco: grade que se aperta e gira perto do buraco, ondas se afastando e estrelas de fundo esticadas em arcos (lente). */
 	private void spaceWarp(Esp esp, double cx, double cy, double cz, double R, double t) {
-		final int nr = 10, nl = 22, seg = 56;
+		final int nr = 8, nl = 20, seg = 56;
 		double[] rad = new double[nr];
 		for (int j = 0; j < nr; j++) rad[j] = R * 1.5 * Math.pow(1.38, j);
 		int grid = 0xFF9FC4FF;
@@ -353,10 +353,10 @@ public class CosmicFxModule extends Module implements EspSource {
 		double[] ss = {0.55, 0.68, 0.5};
 		for (int i = 0; i < 3; i++) {
 			double tw = 0.85 + 0.15 * Math.sin(t * 2.6 + i * 2.0);
-			double s = ss[i] * (0.8 + sc * 0.7) * tw;
+			double s = ss[i] * (0.8 + sc * 0.7) * 0.62 * tw;
 			double[] p = sp3[i];
 			// halo grande azulado + anel: destaca das estrelas comuns
-			glow(esp, p[0], p[1], p[2], s * 3.2, base, 0.2f);
+			glow(esp, p[0], p[1], p[2], s * 2.6, base, 0.2f);
 			ringBill(esp, p[0], p[1], p[2], s * 1.15, s * 1.22, base, 0.5f, 0.5f, false);
 			flare(esp, p[0], p[1], p[2], s, 0xFFA8D2FF, 1f, Math.sin(t * 0.7 + i) * 0.1);
 		}
