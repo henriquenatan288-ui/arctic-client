@@ -36,8 +36,8 @@ void main() {
     if (Hole.w > 0.001) {
         vec2 p = (uv - Hole.xy) * asp;
         float d = max(length(p), 1e-4);
-        float te = Hole.z * 1.9;
-        float keep = smoothstep(Hole.z * 1.02, Hole.z * 1.7, d);          // dentro do horizonte nao mexe
+        float te = Hole.z * 1.7;
+        float keep = smoothstep(Hole.z * 2.4, Hole.z * 3.8, d);          // dentro do horizonte nao mexe
         float far = 1.0 - smoothstep(te * 3.0, te * 9.0, d);               // some com a distancia
         float k = te * te / max(d * d, te * te * 0.35);
         vec2 src = p * (1.0 - clamp(k, 0.0, 1.6) * Hole.w * keep * far);
@@ -46,7 +46,7 @@ void main() {
 
     // ---- aberracao cromatica radial
     vec2 dir = uv - 0.5;
-    float ca = Params.y * 0.012;
+    float ca = Params.y * 0.008;
     vec3 c = vec3(S(uv + dir * ca).r, S(uv).g, S(uv - dir * ca).b);
 
     // ---- bloom: 3 aneis de 10 amostras
