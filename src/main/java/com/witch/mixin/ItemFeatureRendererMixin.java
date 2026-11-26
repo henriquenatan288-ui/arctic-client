@@ -39,6 +39,14 @@ public class ItemFeatureRendererMixin {
 	@Redirect(method = "prepareMainSubmit", require = 0,
 			at = @At(value = "INVOKE", target = "Lnet/minecraft/client/resources/model/geometry/BakedQuad$MaterialInfo;itemRenderType()Lnet/minecraft/client/renderer/rendertype/RenderType;"))
 	private RenderType witch$type(BakedQuad.MaterialInfo info) {
+		try { // fogo da katana: so as faces da textura de chama usam o shader proprio
+			String sp = info.sprite().contents().name().getPath();
+			if (sp.startsWith("block/katana_flame")) {
+				RenderType t = com.witch.render.FireItems.type(sp.endsWith("_blue"));
+				if (t != null) return t;
+			}
+		} catch (Throwable ignored) {
+		}
 		if (GalaxyTools.activeKind != 0) {
 			try {
 				RenderType t = GalaxyTools.type(GalaxyTools.activeKind, info.sprite().atlasLocation());
