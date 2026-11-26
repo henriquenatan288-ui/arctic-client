@@ -7,7 +7,7 @@
 		"w": "minecraft:block/red_concrete",
 		"g": "minecraft:block/gold_block",
 		"particle": "minecraft:block/oak_planks",
-		"f": "witch:item/katana_flame_blue"
+		"f": "witch:block/katana_flame_blue"
 	},
 	"elements": [
 		{

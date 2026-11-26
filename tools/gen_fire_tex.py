@@ -1,8 +1,8 @@
-"""Gera as texturas animadas de chama da katana (suaves, translucidas, resolucao alta): textures/item/katana_flame(.png/.mcmeta) e katana_flame_blue."""
+"""Gera as texturas animadas de chama da katana (suaves, translucidas, resolucao alta): textures/block/katana_flame(.png/.mcmeta) e katana_flame_blue."""
 import numpy as np, json, os
 from PIL import Image
 
-OUT = os.path.join(os.path.dirname(__file__), '..', 'src/main/resources/assets/witch/textures/item')
+OUT = os.path.join(os.path.dirname(__file__), '..', 'src/main/resources/assets/witch/textures/block')
 W, H, N = 48, 528, 20
 rng = np.random.default_rng(7)
 comps = []

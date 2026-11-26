@@ -55,7 +55,7 @@ for f in sorted(glob.glob(os.path.join(D, 'katana_*_sword.json'))):
     d['elements'] = elements()
     json.dump(d, open(f, 'w'), indent='\t')
     base = os.path.basename(f)[len('katana_'):-5]  # ex: iron_sword
-    for tag, tex in (('fire', 'witch:item/katana_flame'), ('sfire', 'witch:item/katana_flame_blue')):
+    for tag, tex in (('fire', 'witch:block/katana_flame'), ('sfire', 'witch:block/katana_flame_blue')):
         v = json.loads(json.dumps(d))
         v['textures']['f'] = tex
         v['elements'] = d['elements'] + fire_overlay()
