@@ -63,7 +63,7 @@ public class CosmicFxModule extends Module implements EspSource {
 		double t = System.nanoTime() / 1.0e9 * (0.35 + speed.get() * 0.15);
 		double sc = 0.35 + size.get() * 0.13;
 		switch (style.get()) {
-			case 2 -> blackHole(esp, cx, cy + h + 1.6 * sc + 0.6, cz, t, sc);
+			case 2 -> blackHole(esp, cx, cy + h + 0.7 * sc + 0.5, cz, t, sc);
 			case 3 -> pulsar(esp, cx, cy + h + 1.0 * sc + 0.5, cz, t, sc);
 			case 4 -> threeMarias(esp, cx, cy + h * 0.5, cz, t, sc, h);
 			default -> stars(esp, cx, cy, cz, t, sc, h);
@@ -185,17 +185,17 @@ public class CosmicFxModule extends Module implements EspSource {
 
 	private void blackHole(Esp esp, double cx, double cy, double cz, double t, double sc) {
 		int hot = col(0xFFFF8A2A);
-		double R = 0.5 * sc;
+		double R = 0.36 * sc;
 		// base do disco: direita da camera rolada ~11 graus; segundo eixo = cima*0.25 + fundo
 		double roll = Math.toRadians(-11), cr = Math.cos(roll), sr = Math.sin(roll);
 		double bx = rx * cr + ux * sr, by = ry * cr + uy * sr, bz = rz * cr + uz * sr;
 		double vx = -rx * sr + ux * cr, vy = -ry * sr + uy * cr, vz = -rz * sr + uz * cr;
 		ex1x = bx; ex1y = by; ex1z = bz;
 		ex2x = vx * 0.26 + fx * 0.966; ex2y = vy * 0.26 + fy * 0.966; ex2z = vz * 0.26 + fz * 0.966;
-		glow(esp, cx, cy, cz, R * 4.2, hot, 0.16f);
+		glow(esp, cx, cy, cz, R * 3.6, hot, 0.12f);
 		// lente gravitacional: o disco de tras "dobra" por cima e por baixo do buraco
-		ringBill(esp, cx, cy, cz, R * 1.05, R * 1.9, 0xFFFFD79A, 0.9f, 0f, false);
-		ringBill(esp, cx, cy, cz, R * 1.05, R * 1.4, 0xFFFFFFFF, 0.8f, 0f, false);
+		ringBill(esp, cx, cy, cz, R * 1.05, R * 1.65, 0xFFFFD79A, 0.9f, 0f, false);
+		ringBill(esp, cx, cy, cz, R * 1.05, R * 1.25, 0xFFFFFFFF, 0.8f, 0f, false);
 		discBands(esp, cx, cy, cz, R, t, false, hot);
 		// horizonte de eventos
 		glow(esp, cx, cy, cz, R * 1.12, 0xFF000000, 1f);
