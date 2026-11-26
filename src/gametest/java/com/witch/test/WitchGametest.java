@@ -4,6 +4,11 @@ import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
 
 public class WitchGametest implements FabricClientGameTest {
+	static void set(String mod, String prefix, int v) {
+		var m = com.witch.module.ModuleManager.byName(mod);
+		for (var s : m.settings()) if (s.name.startsWith(prefix)) ((com.witch.setting.IntSetting) s).set(v);
+	}
+
 	@Override
 	public void runTest(ClientGameTestContext context) {
 		context.waitTicks(100);
@@ -13,21 +18,28 @@ public class WitchGametest implements FabricClientGameTest {
 			var srv = sp.getServer();
 			srv.runCommand("time set midnight");
 			srv.runCommand("gamemode creative @p");
+			srv.runCommand("give @p netherite_sword");
 			context.runOnClient(mc -> {
-				mc.options.setCameraType(net.minecraft.client.CameraType.THIRD_PERSON_BACK);
-				mc.player.setXRot(12f);
-				var m = com.witch.module.ModuleManager.byName("Cosmic FX");
-				if (!m.isEnabled()) m.toggle();
+				var k = com.witch.module.ModuleManager.byName("Katana 3D");
+				if (!k.isEnabled()) k.toggle();
+				mc.options.setCameraType(net.minecraft.client.CameraType.FIRST_PERSON);
+				mc.player.setXRot(10f);
 			});
-			String[] names = {"buraco-negro", "buraco-negro-b"};
-			for (int i = 0; i < 2; i++) {
-				final int st = 2;
-				context.runOnClient(mc -> {
-					var m = com.witch.module.ModuleManager.byName("Cosmic FX");
-					for (var s : m.settings()) if (s.name.startsWith("Efeito")) ((com.witch.setting.IntSetting) s).set(st);
-				});
+			context.waitTicks(15);
+			context.takeScreenshot("katana-normal");
+			for (int f = 1; f <= 2; f++) {
+				final int fv = f;
+				context.runOnClient(mc -> set("Katana 3D", "Fogo", fv));
 				context.waitTicks(25);
-				context.takeScreenshot("cosmic-" + names[i]);
+				context.takeScreenshot("katana-fogo-" + f);
+			}
+			context.runOnClient(mc -> set("Katana 3D", "Fogo", 0));
+			context.waitTicks(10);
+			for (int t = 0; t < 3; t++) {
+				context.runOnClient(mc -> mc.player.swing(net.minecraft.world.InteractionHand.MAIN_HAND));
+				context.waitTicks(2 + t * 3);
+				context.takeScreenshot("golpe-" + t);
+				context.waitTicks(15);
 			}
 		}
 	}
