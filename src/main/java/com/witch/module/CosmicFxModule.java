@@ -23,13 +23,89 @@ public class CosmicFxModule extends Module implements EspSource {
 	private final IntSetting ring = add(new IntSetting("Anel no chao - efeito 1 (0/1)", 0, 1, 1, ""));
 	private final ColorSetting color = add(new ColorSetting("Cor (padrao = do efeito)", 0));
 	private final IntSetting warp = add(new IntSetting("Distorcao do espaco - efeito 2 (0/1)", 0, 1, 1, ""));
+	private final IntSetting shader = add(new IntSetting("Shader de tela (0/1): lente, bloom, rastro azul", 0, 1, 1, ""));
+	private final IntSetting shaderPower = add(new IntSetting("Shader - intensidade", 1, 10, 6, ""));
 	private final IntSetting ownColor = add(new IntSetting("Usar a cor escolhida (0/1)", 0, 1, 0, ""));
 
 	// vetores da camera (direita e cima) do quadro atual
 	private double rx, ry, rz, ux, uy, uz, fx, fy, fz;
 
+	public static CosmicFxModule instance;
+	// buraco negro do quadro atual (para a lente do shader)
+	private static volatile double hx, hy, hz, hR;
+	private static volatile long holeNanos;
+	private net.minecraft.resources.Identifier applied;
+
 	public CosmicFxModule() {
 		super("Cosmic FX", Category.EFFECTS);
+		instance = this;
+	}
+
+	private static boolean ours(net.minecraft.resources.Identifier id) {
+		return id != null && "witch".equals(id.getNamespace());
+	}
+
+	@Override
+	public void onTick() {
+		var gr = Minecraft.getInstance().gameRenderer;
+		if (gr == null) return;
+		var cur = gr.currentPostEffect();
+		if (shader.get() == 0 || (FilterModule.instance != null && FilterModule.instance.isEnabled())) {
+			if (applied != null && ours(cur)) gr.clearPostEffect();
+			applied = null;
+			return;
+		}
+		if (cur != null && !ours(cur)) return; // visao de creeper/aranha: deixa o jogo mandar
+		var want = net.minecraft.resources.Identifier.fromNamespaceAndPath("witch", "cosmic");
+		if (want.equals(cur) && want.equals(applied)) return;
+		try {
+			var m = net.minecraft.client.renderer.GameRenderer.class.getDeclaredMethod("setPostEffect", net.minecraft.resources.Identifier.class);
+			m.setAccessible(true);
+			m.invoke(gr, want);
+			applied = want;
+		} catch (Throwable t) {
+			applied = null;
+			System.out.println("[Witch] cosmic shader: " + t);
+		}
+	}
+
+	@Override
+	protected void onDisable() {
+		applied = null;
+		try {
+			var gr = Minecraft.getInstance().gameRenderer;
+			if (gr != null && ours(gr.currentPostEffect())) gr.clearPostEffect();
+		} catch (Throwable ignored) {
+		}
+	}
+
+	/** Dados do shader (2 vec4): posicao do buraco negro na tela + parametros. Chamado pelo PostPassMixin a cada quadro. */
+	public static float[] lensData() {
+		var m = instance;
+		if (m == null || !m.isEnabled() || m.shader.get() == 0) return null;
+		float pw = m.shaderPower.get() / 10f;
+		float[] d = {0.5f, 0.5f, 0f, 0f, 10f * pw, 0.35f + 0.9f * pw, 9f * pw, 0.18f + 0.25f * pw};
+		var mc = Minecraft.getInstance();
+		if (m.style.get() == 2 && System.nanoTime() - holeNanos < 300_000_000L && mc.gameRenderer != null && mc.getWindow() != null) {
+			var cam = mc.gameRenderer.mainCamera();
+			var pos = cam.position();
+			double dx = hx - pos.x, dy = hy - pos.y, dz = hz - pos.z;
+			var f = cam.forwardVector();
+			var l = cam.leftVector();
+			var u = cam.upVector();
+			double z = dx * f.x() + dy * f.y() + dz * f.z();
+			if (z > 1.0) {
+				double xr = -(dx * l.x() + dy * l.y() + dz * l.z()), yu = dx * u.x() + dy * u.y() + dz * u.z();
+				double th = Math.tan(Math.toRadians(cam.getFov()) * 0.5);
+				double aspect = (double) mc.getWindow().getWidth() / Math.max(1, mc.getWindow().getHeight());
+				double nx = xr / z / (th * aspect), ny = yu / z / th;
+				d[0] = (float) (nx * 0.5 + 0.5);
+				d[1] = (float) (ny * 0.5 + 0.5);
+				d[2] = (float) (hR / z / th * 0.5);
+				d[3] = d[2] > 0.002f ? 1f : 0f;
+			}
+		}
+		return d;
 	}
 
 	@Override
@@ -257,6 +333,7 @@ public class CosmicFxModule extends Module implements EspSource {
 	private void blackHole(Esp esp, double cx, double cy, double cz, double t, double sc) {
 		int hot = col(0xFFFF8A2A);
 		double R = 0.42 * sc;
+		hx = cx; hy = cy; hz = cz; hR = R * 1.05; holeNanos = System.nanoTime();
 		// base do disco: direita da camera rolada ~11 graus; segundo eixo = cima*0.25 + fundo
 		double roll = Math.toRadians(-11), cr = Math.cos(roll), sr = Math.sin(roll);
 		double bx = rx * cr + ux * sr, by = ry * cr + uy * sr, bz = rz * cr + uz * sr;
