@@ -45,6 +45,7 @@ public class KatanaModule extends Module {
 		rxx /= rl; rzz /= rl;
 		var eye = p.getEyePosition();
 		boolean first = mc.options.getCameraType().isFirstPerson();
+		if (first) return; // em 1a pessoa a particula nasce colada na camera (enorme): ali vale so o fogo do modelo
 		double bx = eye.x + look.x * (first ? 0.55 : 0.35) + rxx * 0.34, by = eye.y - (first ? 0.30 : 0.55) + look.y * 0.3, bz = eye.z + look.z * (first ? 0.55 : 0.35) + rzz * 0.34;
 		var type = fire.get() == 2 ? net.minecraft.core.particles.ParticleTypes.SOUL_FIRE_FLAME : net.minecraft.core.particles.ParticleTypes.FLAME;
 		var rnd = p.getRandom();
