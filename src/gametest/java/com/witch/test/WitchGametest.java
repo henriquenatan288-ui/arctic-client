@@ -29,6 +29,19 @@ public class WitchGametest implements FabricClientGameTest {
 				context.waitTicks(25);
 				context.takeScreenshot("cosmic-" + names[i]);
 			}
+			context.runOnClient(mc -> {
+				var m = com.witch.module.ModuleManager.byName("Cosmic FX");
+				if (m.isEnabled()) m.toggle();
+				var k = com.witch.module.ModuleManager.byName("Katana 3D");
+				if (!k.isEnabled()) k.toggle();
+				mc.options.setCameraType(net.minecraft.client.CameraType.FIRST_PERSON);
+			});
+			srv.runCommand("give @p netherite_sword");
+			context.waitTicks(20);
+			context.takeScreenshot("katana-1a-pessoa");
+			context.runOnClient(mc -> mc.options.setCameraType(net.minecraft.client.CameraType.THIRD_PERSON_FRONT));
+			context.waitTicks(15);
+			context.takeScreenshot("katana-3a-pessoa");
 		}
 	}
 }
