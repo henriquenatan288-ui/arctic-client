@@ -5,6 +5,8 @@
   "client": [
     "CameraMixin",
     "PostPassMixin",
+    "KatanaSlashMixin",
+    "KatanaSwingDurationMixin",
     "GameRendererMixin",
     "LevelLoadingScreenMixin",
     "ConnectScreenMixin",

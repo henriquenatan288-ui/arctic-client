@@ -24,7 +24,7 @@ vec3 S(vec2 uv) {
 
 vec3 bright(vec3 c) {
     float l = dot(c, vec3(0.2126, 0.7152, 0.0722));
-    return c * smoothstep(0.50, 1.0, l);
+    return c * smoothstep(0.28, 0.85, l);
 }
 
 void main() {
@@ -71,9 +71,18 @@ void main() {
     }
     c += st * vec3(0.45, 0.65, 1.0) * (Params.z * 0.035);
 
+    // ---- cor com vida: saturacao, curva de contraste suave e tinta dividida (sombras azul-violeta, luzes quentes)
+    float lum = dot(c, vec3(0.2126, 0.7152, 0.0722));
+    c = mix(vec3(lum), c, 1.0 + 0.22 * Params.w * 4.0);
+    c = c * c * (3.0 - 2.0 * c) * 0.35 + c * 0.65;
+    c += vec3(0.020, 0.012, 0.045) * (1.0 - lum) * 0.8;
+    c *= mix(vec3(1.0), vec3(1.06, 1.02, 0.95), smoothstep(0.35, 0.9, lum));
+    // brilho suave geral (neblina de luz): da maciez mesmo sem fontes fortes na tela
+    c += bl * 0.004 * Params.x;
+
     // ---- vinheta suave
     float v = length((texCoord - 0.5) * asp);
-    c *= 1.0 - Params.w * smoothstep(0.45, 1.15, v);
+    c *= 1.0 - Params.w * 0.7 * smoothstep(0.55, 1.2, v);
 
     fragColor = vec4(clamp(c, 0.0, 1.0), 1.0);
 }
