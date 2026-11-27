@@ -35,12 +35,18 @@ public class BlockOutlineModule extends Module {
 			case 2 -> base = m.color.get();
 			case 3 -> base = ColorSetting.hsvToRgb((float) (t % 1.0), 0.75f, 1f);
 			case 4 -> {
-				base = com.witch.gui.Theme.accent();
+				base = theme();
 				a *= 0.55f + 0.45f * (float) (0.5 + 0.5 * Math.sin(t * 6.0));
 			}
-			default -> base = com.witch.gui.Theme.accent();
+			default -> base = theme();
 		}
 		return (Math.round(Math.max(0f, Math.min(1f, a)) * 255f) << 24) | (base & 0xFFFFFF);
+	}
+
+	/** Cor do tema; se o destaque for branco puro, usa o azul bebe do Arctic (branco some no gramado). */
+	private static int theme() {
+		int c = com.witch.gui.Theme.accent() & 0xFFFFFF;
+		return c == 0xFFFFFF ? 0x8EC5FF : c;
 	}
 
 	public static float lineWidth() {
