@@ -1,53 +1,32 @@
 package com.witch.test;
 
-import com.witch.gui.ClickGuiScreen;
 import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
 
-/** Roda o jogo sem tela no CI e tira screenshots das telas do Witch Client. */
 public class WitchGametest implements FabricClientGameTest {
+	static float ti, prog, exit = 0f, alpha = 1f;
+
+	static class Preview extends net.minecraft.client.gui.screens.Screen {
+		Preview() { super(net.minecraft.network.chat.Component.empty()); }
+
+		@Override
+		public void extractRenderState(net.minecraft.client.gui.GuiGraphicsExtractor g, int mx, int my, float delta) {
+			var w = net.minecraft.client.Minecraft.getInstance().getWindow();
+			com.witch.gui.LoadingAnim.snap(prog);
+			com.witch.gui.LoadingAnim.draw(g, w.getGuiScaledWidth(), w.getGuiScaledHeight(), ti, prog, alpha, exit, 100.0 + ti);
+		}
+	}
+
 	@Override
 	public void runTest(ClientGameTestContext context) {
-		context.waitTicks(120);
-		context.takeScreenshot("01-title");
-		try (var sp = context.worldBuilder().create()) {
-			sp.getClientLevel().waitForChunksRender();
-			context.waitTicks(20);
-			context.takeScreenshot("03-world");
-			context.runOnClient(mc -> {
-				for (var m : com.witch.module.ModuleManager.all()) {
-					if (m.name.equals("Fullbright") || m.name.equals("Tracers") || m.name.equals("Player ESP") || m.name.equals("Fly") || m.name.equals("Crosshair") || m.name.equals("Sky") || m.name.equals("Fog") || m.name.equals("Glow Players") || m.name.equals("Jump Circles") || m.name.equals("Card Particles") || m.name.equals("Filter")) m.toggle();
-				}
-			});
-			context.waitTicks(40);
-			context.runOnClient(mc -> com.witch.module.CardParticlesModule.burst(mc.player.getX(), mc.player.getY() + 1.6, mc.player.getZ() + 2.5, 14));
-			context.waitTicks(8);
-			context.takeScreenshot("04-hud");
-			context.runOnClient(mc -> mc.player.getInventory().setItem(0, new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.DIAMOND_SWORD)));
-			context.waitTicks(10);
-			context.takeScreenshot("13-karambit");
-			context.runOnClient(mc -> { var gm = com.witch.module.ModuleManager.byName("Glow Items"); if (gm != null && !gm.isEnabled()) gm.toggle(); });
-			context.waitTicks(10);
-			context.takeScreenshot("14-glowitem");
-			context.runOnClient(mc -> { var gm = com.witch.module.ModuleManager.byName("Glow Items"); if (gm != null && gm.isEnabled()) gm.toggle(); });
-			context.runOnClient(mc -> mc.gui.setScreen(new net.minecraft.client.gui.screens.inventory.InventoryScreen(mc.player)));
-			context.waitTicks(30);
-			context.takeScreenshot("07-inventory");
-			context.runOnClient(mc -> mc.gui.setScreen(new net.minecraft.client.gui.screens.options.OptionsScreen(null, mc.options, false)));
-			context.waitTicks(30);
-			context.takeScreenshot("08-options");
-			context.runOnClient(mc -> mc.gui.setScreen(new com.witch.gui.HudEditScreen()));
-			context.waitTicks(20);
-			context.takeScreenshot("12-hudedit");
-			context.runOnClient(mc -> mc.gui.setScreen(new ClickGuiScreen()));
-			context.waitTicks(60);
-			context.takeScreenshot("05-clickgui-world");
+		context.waitTicks(100);
+		context.runOnClient(mc -> mc.gui.setScreen(new Preview()));
+		float[][] k = {{0.25f, 0f, 0f, 1f}, {0.8f, 0.05f, 0f, 1f}, {1.15f, 0.1f, 0f, 1f}, {1.6f, 0.3f, 0f, 1f}, {2.8f, 0.65f, 0f, 1f}, {4.5f, 1f, 0.55f, 0.75f}};
+		for (int i = 0; i < k.length; i++) {
+			final int n = i;
+			context.runOnClient(mc -> { ti = k[n][0]; prog = k[n][1]; exit = k[n][2]; alpha = k[n][3]; });
+			context.waitTicks(3);
+			context.takeScreenshot("load-" + i);
 		}
-		context.runOnClient(mc -> mc.gui.setScreen(new ClickGuiScreen()));
-		context.waitTicks(60);
-		context.takeScreenshot("02-clickgui");
-		System.setProperty("witch.noTitleSwap", "true");
-		context.runOnClient(mc -> mc.gui.setScreen(new net.minecraft.client.gui.screens.TitleScreen()));
-		context.waitTicks(5);
 	}
 }
