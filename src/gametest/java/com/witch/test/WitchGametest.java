@@ -4,46 +4,28 @@ import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
 
 public class WitchGametest implements FabricClientGameTest {
-	static void set(String mod, String prefix, int v) {
-		var m = com.witch.module.ModuleManager.byName(mod);
-		for (var s : m.settings()) if (s.name.startsWith(prefix)) ((com.witch.setting.IntSetting) s).set(v);
+	static float ti, prog, exit = 0f, alpha = 1f;
+
+	static class Preview extends net.minecraft.client.gui.screens.Screen {
+		Preview() { super(net.minecraft.network.chat.Component.empty()); }
+
+		@Override
+		public void extractRenderState(net.minecraft.client.gui.GuiGraphicsExtractor g, int mx, int my, float delta) {
+			com.witch.gui.LoadingAnim.snap(prog);
+			com.witch.gui.LoadingAnim.draw(g, net.minecraft.client.Minecraft.getInstance().getWindow().getGuiScaledWidth(), net.minecraft.client.Minecraft.getInstance().getWindow().getGuiScaledHeight(), ti, prog, alpha, exit, 100.0 + ti);
+		}
 	}
 
 	@Override
 	public void runTest(ClientGameTestContext context) {
 		context.waitTicks(100);
-		try (var sp = context.worldBuilder().create()) {
-			sp.getClientLevel().waitForChunksRender();
-			context.waitTicks(20);
-			var srv = sp.getServer();
-			srv.runCommand("time set midnight");
-			srv.runCommand("gamemode creative @p");
-			srv.runCommand("give @p netherite_sword");
-			context.runOnClient(mc -> {
-				var k = com.witch.module.ModuleManager.byName("Katana 3D");
-				if (!k.isEnabled()) k.toggle();
-				mc.options.setCameraType(net.minecraft.client.CameraType.FIRST_PERSON);
-				mc.player.setXRot(10f);
-			});
-			context.waitTicks(15);
-			context.takeScreenshot("katana-normal");
-			for (int f = 1; f <= 2; f++) {
-				final int fv = f;
-				context.runOnClient(mc -> set("Katana 3D", "Fogo", fv));
-				context.waitTicks(25);
-				context.takeScreenshot("katana-fogo-" + f);
-			}
-			context.runOnClient(mc -> { set("Katana 3D", "Fogo", 1); mc.options.setCameraType(net.minecraft.client.CameraType.THIRD_PERSON_FRONT); });
-			context.waitTicks(25);
-			context.takeScreenshot("katana-fogo-3a");
-			context.runOnClient(mc -> { set("Katana 3D", "Fogo", 0); mc.options.setCameraType(net.minecraft.client.CameraType.FIRST_PERSON); mc.player.setXRot(35f); });
-			context.waitTicks(10);
-			for (int t = 0; t < 3; t++) {
-				context.runOnClient(mc -> mc.player.swing(net.minecraft.world.InteractionHand.MAIN_HAND));
-				context.waitTicks(2 + t * 3);
-				context.takeScreenshot("golpe-" + t);
-				context.waitTicks(15);
-			}
+		context.runOnClient(mc -> mc.gui.setScreen(new Preview()));
+		float[][] k = {{0.15f, 0f, 0f, 1f}, {0.6f, 0.05f, 0f, 1f}, {1.1f, 0.2f, 0f, 1f}, {1.8f, 0.45f, 0f, 1f}, {3.2f, 0.8f, 0f, 1f}, {4.5f, 1f, 0.55f, 0.75f}};
+		for (int i = 0; i < k.length; i++) {
+			final int n = i;
+			context.runOnClient(mc -> { ti = k[n][0]; prog = k[n][1]; exit = k[n][2]; alpha = k[n][3]; });
+			context.waitTicks(3);
+			context.takeScreenshot("load-" + i);
 		}
 	}
 }
