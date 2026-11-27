@@ -77,6 +77,7 @@ public final class ModuleManager {
 		MODULES.add(new ChinaHatModule());
 		MODULES.add(new StraightSwingModule());
 		MODULES.add(new KatanaModule());
+		MODULES.add(new BlockOutlineModule());
 		MODULES.add(new WingsModule());
 		MODULES.add(new OptimizationModule());
 		MODULES.add(new FrameFixModule());
@@ -206,7 +207,7 @@ public final class ModuleManager {
 						"Sus Hole Finder", "Sus Solo Finder", "Entity Alert", "Chunk Borders", "Waypoints", "Light Level", "Freecam", "FreeLook", "Zoom",
 						"FOV Changer", "Render Distance"},
 				// efeitos
-				{"EFFECTS", "Particles 3D", "Cosmic FX", "Particles 2D"},
+				{"EFFECTS", "Particles 3D", "Cosmic FX", "Particles 2D", "Block Outline"},
 				{"AVATAR", "Players Galaxy", "China Hat", "Wings", "Straight Swing", "Katana 3D", "No Legs", "Fire Head"},
 				{"SHADERS", "Galaxy", "Elytra Shader", "Glow Items", "Filter", "Mirror Floor", "Better Rain"},
 				// HUD: o que so mostra informacao na tela
