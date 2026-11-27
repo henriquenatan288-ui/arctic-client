@@ -4,7 +4,7 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.util.Mth;
 
 /**
- * Animacao da tela de carregamento do Arctic: aurora e estrelas ao fundo, a estrela acende (faiscas, onda de choque, raios),
+ * Animacao da tela de carregamento do Arctic: aurora e estrelas ao fundo, um olho abre e mostra o rasgo multiversal (onda de choque, raios),
  * anel de marcas que enche com o progresso real, faiscas orbitando, nome letra por letra e saida com zoom.
  * Fica numa classe so para o teste visual poder desenhar em qualquer instante.
  */
@@ -64,23 +64,24 @@ public final class LoadingAnim {
 			g.fill((int) x, (int) y, (int) x + 1 + (hash(i, 15) > 0.7f ? 1 : 0), (int) y + 1 + (hash(i, 15) > 0.7f ? 1 : 0), c);
 		}
 
-		// ---- estrela
+		// ---- olho que abre e mostra o rasgo multiversal
 		float mw = Math.max(56f, Math.min(190f, h * 0.34f));
 		float cx = w / 2f, cy = h * 0.37f;
-		float k = Mth.clamp((ti - 0.35f) / 1.1f, 0f, 1f);
-		float back = 1f + 2.2f * (float) Math.pow(k - 1f, 3) + 1.2f * (float) Math.pow(k - 1f, 2);
-		float sz = mw * (0.2f + 0.8f * back) * (1f + 0.025f * (float) Math.sin(sec * 1.7));
+		float sz = mw * (0.6f + 0.4f * ease3((ti - 0.15f) / 1.0f)) * (1f + 0.02f * (float) Math.sin(sec * 1.7));
 		sz *= 1f + exit * 0.55f;
-		float star = ease3((ti - 0.25f) / 0.5f);
+		float star = ease3((ti - 0.3f) / 0.6f);
+		float ok = Mth.clamp((ti - 0.5f) / 1.3f, 0f, 1f);
+		float open = 1f + 2.2f * (float) Math.pow(ok - 1f, 3) + 1.2f * (float) Math.pow(ok - 1f, 2); // abre com leve overshoot
+		float slit = ease3((ti - 0.1f) / 0.4f);
 
-		// ignicao: ponto de luz que cresce antes da estrela
+		// luz que cresce antes de o olho abrir
 		float ig = ease3(ti / 0.4f);
-		StarLogo.glow(g, cx, cy, mw * (0.25f + 1.4f * ig), a * (1f - 0.5f * star) * 0.9f * (1f - exit), 0xFFFFFF);
+		StarLogo.glow(g, cx, cy, mw * (0.25f + 1.4f * ig), a * (1f - 0.5f * star) * 0.9f * (1f - exit), 0xC9B8FF);
 
-		// halo
+		// halo (violeta + ciano, as cores do outro universo)
 		float pulse = 0.55f + 0.15f * (float) Math.sin(sec * 1.9);
-		StarLogo.glow(g, cx, cy, sz * 3.6f, a * star * pulse, 0x6FA8FF);
-		StarLogo.glow(g, cx, cy, sz * 1.9f, a * star * 0.45f, 0xFFFFFF);
+		StarLogo.glow(g, cx, cy, sz * 3.6f, a * star * pulse * 0.85f, 0x8A5CFF);
+		StarLogo.glow(g, cx, cy, sz * 2.0f, a * star * 0.30f, 0x4FD6E8);
 
 		// raios girando devagar (8 longos + 8 curtos)
 		float rayA = a * star * (0.55f + 0.2f * (float) Math.sin(sec * 2.0)) * (1f - exit * 0.5f);
@@ -93,22 +94,16 @@ public final class LoadingAnim {
 			g.pose().rotate(ang);
 			int a0 = (int) (rayA * (longRay ? 200f : 120f));
 			int y0 = -(int) (sz * 0.42f + len), y1 = -(int) (sz * 0.42f);
-			g.fillGradient(-1, y0, 1, y1, 0x00BFD8FF, (a0 << 24) | 0xBFD8FF);
+			g.fillGradient(-1, y0, 1, y1, 0x00D7C4FF, (a0 << 24) | 0xD7C4FF);
 			g.pose().popMatrix();
 		}
 
-		// onda de choque na ignicao (e na saida)
-		float sw = (ti - 0.3f) / 1.3f;
-		if (sw > 0f && sw < 1f) ring(g, cx, cy, sz * (0.5f + 2.6f * ease3(sw)), a * (1f - sw) * 0.55f, 0xCFE2FF);
-		if (exit > 0f) ring(g, cx, cy, sz * (1f + 2.2f * exit), a * (1f - exit) * 0.6f, 0xCFE2FF);
+		// onda de choque quando o olho abre (e na saida)
+		float sw = (ti - 0.7f) / 1.3f;
+		if (sw > 0f && sw < 1f) ring(g, cx, cy, sz * (0.5f + 2.6f * ease3(sw)), a * (1f - sw) * 0.55f, 0xD8C8FF);
+		if (exit > 0f) ring(g, cx, cy, sz * (1f + 2.2f * exit), a * (1f - exit) * 0.6f, 0xD8C8FF);
 
-		// estrela com separacao RGB que fecha na entrada e treme de leve
-		float jolt = ((long) (sec * 1000) % 2600L) < 110L ? 1f : 0f;
-		float split = 10f * (1f - star) * (1f - star) + 2.0f * jolt + 0.7f;
-		float ss = sz * 0.82f;
-		StarLogo.draw(g, cx - split, cy, ss, a * star * 0.85f, 0x3A8DFF);
-		StarLogo.draw(g, cx + split, cy + jolt, ss, a * star * 0.6f, 0xFF3F6A);
-		StarLogo.draw(g, cx + jolt * 3f, cy, ss, a * star, 0xFFFFFF);
+		eye(g, cx, cy, sz * 0.9f, open, slit, a);
 
 		// ---- anel de marcas (progresso real) + faiscas orbitando
 		float ringIn = ease3((ti - 0.9f) / 0.7f);
@@ -146,6 +141,70 @@ public final class LoadingAnim {
 		if (pa > 0.01f && exit <= 0f) {
 			String pct = Math.round(shown * 100f) + "%";
 			Minimal.spaced(g, pct, w / 2f, ty + FontUtil.height() * sc + 12f, Math.max(1.2f, sc * 0.4f), 2f, 0xFF9CB8E6, pa * 0.9f, true, 99f);
+		}
+	}
+
+	private static final int[] RIFT_T = {96, 128, 192, 256, 384, 512};
+	private static final net.minecraft.resources.Identifier[] RIFT = new net.minecraft.resources.Identifier[RIFT_T.length];
+
+	static {
+		for (int i = 0; i < RIFT_T.length; i++) RIFT[i] = net.minecraft.resources.Identifier.fromNamespaceAndPath("witch", "textures/gui/rift_" + RIFT_T[i] + ".png");
+	}
+
+	/**
+	 * Olho em forma de amendoa (pontas nos cantos) que abre de uma fenda de luz e mostra o rasgo multiversal como pupila.
+	 * Sem stencil: o olho e desenhado em faixas horizontais, cada uma com a largura do contorno naquele ponto.
+	 * S = lado do quadrado da textura do rasgo; open 0..1.1 = abertura das palpebras; slit 0..1 = fenda de luz antes de abrir.
+	 */
+	private static void eye(GuiGraphicsExtractor g, float cx, float cy, float S, float open, float slit, float a) {
+		float W = S * 0.62f * Math.max(0.05f, slit);
+		float Ho = S * 0.30f * Math.max(0f, open);
+		int vio = 0xD7C4FF;
+		if (Ho < 1.5f) {
+			// fenda fechada: linha de luz
+			float hl = W * Math.max(0.1f, slit);
+			g.fill(Math.round(cx - hl), Math.round(cy), Math.round(cx + hl), Math.round(cy) + 1, (Mth.clamp((int) (a * slit * 255f), 0, 255) << 24) | vio);
+			StarLogo.glow(g, cx, cy, Math.max(6f, hl * 0.6f), a * slit * 0.8f, 0xB58CFF);
+			return;
+		}
+		double scale = 1.0;
+		try { scale = net.minecraft.client.Minecraft.getInstance().getWindow().getGuiScale(); } catch (Throwable ignored) { }
+		double real = S * scale;
+		int best = 0;
+		for (int i = 0; i < RIFT_T.length; i++) if (Math.abs(RIFT_T[i] - real) < Math.abs(RIFT_T[best] - real)) best = i;
+		int t = RIFT_T[best];
+		float x00 = cx - S / 2f, y00 = cy - S / 2f;
+		int rows = 90;
+		float totalH = 2f * Ho;
+		int ca = Mth.clamp((int) (a * 255f), 0, 255);
+		for (int r = 0; r < rows; r++) {
+			float y0 = cy - Ho + totalH * r / rows, y1 = cy - Ho + totalH * (r + 1) / rows;
+			float ym = Math.abs((y0 + y1) / 2f - cy);
+			float q = 1f - ym / Ho;
+			if (q <= 0f) continue;
+			float hw = W * (float) Math.sqrt(q);
+			int iy0 = Math.round(y0), iy1 = Math.max(iy0 + 1, Math.round(y1));
+			int ix0 = Math.round(cx - hw), ix1 = Math.round(cx + hw);
+			if (ix1 <= ix0) continue;
+			// fundo do olho: violeta escuro, um pouco mais claro perto das palpebras
+			int shade = (int) (0x0B + 0x1A * (1f - q));
+			g.fill(ix0, iy0, ix1, iy1, ((int) (ca * 0.93f) << 24) | (shade << 16) | (0x06 + (int) (0x10 * (1f - q)) << 8) | (0x24 + (int) (0x30 * (1f - q))));
+			// rasgo (pupila): recorta a textura no mesmo intervalo
+			float rx0 = Math.max(ix0, x00), rx1 = Math.min(ix1, x00 + S);
+			int jx0 = Math.round(rx0), jx1 = Math.round(rx1);
+			if (jx1 <= jx0) continue;
+			float u = (jx0 - x00) / S * t, v = (iy0 - y00) / S * t;
+			int rw = Math.max(1, Math.round((jx1 - jx0) / S * t)), rh = Math.max(1, Math.round((iy1 - iy0) / S * t));
+			g.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, RIFT[best], jx0, iy0, u, v, jx1 - jx0, iy1 - iy0, rw, rh, t, t, (ca << 24) | 0xFFFFFF);
+		}
+		// contorno das palpebras: pontinhos de luz ao longo da curva
+		int dots = 30;
+		for (int i = 0; i <= dots; i++) {
+			float x = -W + 2f * W * i / dots;
+			float yy = Ho * (1f - (x / W) * (x / W));
+			float edge = 0.55f + 0.45f * Math.abs(x / W);
+			StarLogo.glow(g, cx + x, cy - yy, 8f, a * edge * 0.75f, 0xCDB8FF);
+			StarLogo.glow(g, cx + x, cy + yy, 8f, a * edge * 0.75f, 0xCDB8FF);
 		}
 	}
 
