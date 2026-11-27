@@ -29,7 +29,7 @@ for i in range(n):
     dx=px-t*ab[0];dy=py-t*ab[1]
     dd=np.sqrt(dx*dx+dy*dy);m=dd<dist
     dist=np.where(m,dd,dist);tpar=np.where(m,(i+t)/n*2-1,tpar)
-wid=.052*(1-np.abs(tpar)**1.4)+.003
+wid=.09*(1-np.abs(tpar)**1.4)+.003
 sd=(dist+(fbm(16,40)-.5)*.026)-wid
 inside=sd<0
 w1=fbm(5,10);w2=fbm(5,20)

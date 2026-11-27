@@ -169,11 +169,12 @@ public final class LoadingAnim {
 		}
 		double scale = 1.0;
 		try { scale = net.minecraft.client.Minecraft.getInstance().getWindow().getGuiScale(); } catch (Throwable ignored) { }
-		double real = S * scale;
+		double real = S * 1.4 * scale;
 		int best = 0;
 		for (int i = 0; i < RIFT_T.length; i++) if (Math.abs(RIFT_T[i] - real) < Math.abs(RIFT_T[best] - real)) best = i;
 		int t = RIFT_T[best];
-		float x00 = cx - S / 2f, y00 = cy - S / 2f;
+		float RS = S * 1.4f; // o rasgo e maior que o olho: so o miolo aparece, enchendo a pupila
+		float x00 = cx - RS / 2f, y00 = cy - RS / 2f;
 		int rows = 90;
 		float totalH = 2f * Ho;
 		int ca = Mth.clamp((int) (a * 255f), 0, 255);
@@ -190,11 +191,11 @@ public final class LoadingAnim {
 			int shade = (int) (0x0B + 0x1A * (1f - q));
 			g.fill(ix0, iy0, ix1, iy1, ((int) (ca * 0.93f) << 24) | (shade << 16) | (0x06 + (int) (0x10 * (1f - q)) << 8) | (0x24 + (int) (0x30 * (1f - q))));
 			// rasgo (pupila): recorta a textura no mesmo intervalo
-			float rx0 = Math.max(ix0, x00), rx1 = Math.min(ix1, x00 + S);
+			float rx0 = Math.max(ix0, x00), rx1 = Math.min(ix1, x00 + RS);
 			int jx0 = Math.round(rx0), jx1 = Math.round(rx1);
 			if (jx1 <= jx0) continue;
-			float u = (jx0 - x00) / S * t, v = (iy0 - y00) / S * t;
-			int rw = Math.max(1, Math.round((jx1 - jx0) / S * t)), rh = Math.max(1, Math.round((iy1 - iy0) / S * t));
+			float u = (jx0 - x00) / RS * t, v = (iy0 - y00) / RS * t;
+			int rw = Math.max(1, Math.round((jx1 - jx0) / RS * t)), rh = Math.max(1, Math.round((iy1 - iy0) / RS * t));
 			g.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, RIFT[best], jx0, iy0, u, v, jx1 - jx0, iy1 - iy0, rw, rh, t, t, (ca << 24) | 0xFFFFFF);
 		}
 		// contorno das palpebras: pontinhos de luz ao longo da curva
