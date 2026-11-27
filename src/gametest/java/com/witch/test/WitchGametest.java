@@ -4,28 +4,32 @@ import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
 
 public class WitchGametest implements FabricClientGameTest {
-	static float ti, prog, exit = 0f, alpha = 1f;
-
-	static class Preview extends net.minecraft.client.gui.screens.Screen {
-		Preview() { super(net.minecraft.network.chat.Component.empty()); }
-
-		@Override
-		public void extractRenderState(net.minecraft.client.gui.GuiGraphicsExtractor g, int mx, int my, float delta) {
-			com.witch.gui.LoadingAnim.snap(prog);
-			com.witch.gui.LoadingAnim.draw(g, net.minecraft.client.Minecraft.getInstance().getWindow().getGuiScaledWidth(), net.minecraft.client.Minecraft.getInstance().getWindow().getGuiScaledHeight(), ti, prog, alpha, exit, 100.0 + ti);
-		}
+	static void set(String mod, String prefix, int v) {
+		var m = com.witch.module.ModuleManager.byName(mod);
+		for (var s : m.settings()) if (s.name.startsWith(prefix)) ((com.witch.setting.IntSetting) s).set(v);
 	}
 
 	@Override
 	public void runTest(ClientGameTestContext context) {
 		context.waitTicks(100);
-		context.runOnClient(mc -> mc.gui.setScreen(new Preview()));
-		float[][] k = {{0.15f, 0f, 0f, 1f}, {0.6f, 0.05f, 0f, 1f}, {1.1f, 0.2f, 0f, 1f}, {1.8f, 0.45f, 0f, 1f}, {3.2f, 0.8f, 0f, 1f}, {4.5f, 1f, 0.55f, 0.75f}};
-		for (int i = 0; i < k.length; i++) {
-			final int n = i;
-			context.runOnClient(mc -> { ti = k[n][0]; prog = k[n][1]; exit = k[n][2]; alpha = k[n][3]; });
-			context.waitTicks(3);
-			context.takeScreenshot("load-" + i);
+		try (var sp = context.worldBuilder().create()) {
+			sp.getClientLevel().waitForChunksRender();
+			context.waitTicks(20);
+			var srv = sp.getServer();
+			srv.runCommand("gamemode creative @p");
+			srv.runCommand("time set day");
+			context.runOnClient(mc -> { mc.options.setCameraType(net.minecraft.client.CameraType.FIRST_PERSON); mc.player.setXRot(55f); });
+			context.waitTicks(10);
+			context.takeScreenshot("outline-vanilla");
+			context.runOnClient(mc -> { var m = com.witch.module.ModuleManager.byName("Block Outline"); if (!m.isEnabled()) m.toggle(); });
+			context.waitTicks(8);
+			context.takeScreenshot("outline-tema");
+			context.runOnClient(mc -> set("Block Outline", "Cor (1", 3));
+			context.waitTicks(8);
+			context.takeScreenshot("outline-arcoiris");
+			context.runOnClient(mc -> { set("Block Outline", "Cor (1", 4); set("Block Outline", "Espessura", 8); });
+			context.waitTicks(8);
+			context.takeScreenshot("outline-pulso-grosso");
 		}
 	}
 }
