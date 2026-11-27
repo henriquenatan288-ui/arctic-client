@@ -17,19 +17,17 @@ public class WitchGametest implements FabricClientGameTest {
 			context.waitTicks(20);
 			var srv = sp.getServer();
 			srv.runCommand("gamemode creative @p");
-			srv.runCommand("time set day");
-			context.runOnClient(mc -> { mc.options.setCameraType(net.minecraft.client.CameraType.FIRST_PERSON); mc.player.setXRot(55f); });
-			context.waitTicks(10);
-			context.takeScreenshot("outline-vanilla");
-			context.runOnClient(mc -> { var m = com.witch.module.ModuleManager.byName("Block Outline"); if (!m.isEnabled()) m.toggle(); });
-			context.waitTicks(8);
-			context.takeScreenshot("outline-tema");
-			context.runOnClient(mc -> set("Block Outline", "Cor (1", 3));
-			context.waitTicks(8);
-			context.takeScreenshot("outline-arcoiris");
-			context.runOnClient(mc -> { set("Block Outline", "Cor (1", 4); set("Block Outline", "Espessura", 8); });
-			context.waitTicks(8);
-			context.takeScreenshot("outline-pulso-grosso");
+			srv.runCommand("time set midnight");
+			context.runOnClient(mc -> { mc.options.setCameraType(net.minecraft.client.CameraType.FIRST_PERSON); mc.player.setXRot(10f); });
+			context.runOnClient(mc -> { var m = com.witch.module.ModuleManager.byName("Cosmic FX"); set("Cosmic FX", "Efeito", 2); set("Cosmic FX", "Shader de tela (0", 1); if (!m.isEnabled()) m.toggle(); });
+			context.waitTicks(40);
+			context.takeScreenshot("cosmic-shader-on");
+			context.runOnClient(mc -> set("Cosmic FX", "Shader de tela (0", 0));
+			context.waitTicks(15);
+			context.takeScreenshot("cosmic-shader-off");
+			context.runOnClient(mc -> { set("Cosmic FX", "Shader de tela (0", 1); set("Cosmic FX", "Efeito", 1); });
+			context.waitTicks(30);
+			context.takeScreenshot("cosmic-estrelas-shader");
 		}
 	}
 }
