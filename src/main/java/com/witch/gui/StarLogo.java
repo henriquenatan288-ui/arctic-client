@@ -38,10 +38,14 @@ public final class StarLogo {
 
 	/** Halo suave (gradiente radial) atras da estrela. */
 	public static void glow(GuiGraphicsExtractor g, float cx, float cy, float size, float alpha) {
+		glow(g, cx, cy, size, alpha, 0xFFFFFF);
+	}
+
+	public static void glow(GuiGraphicsExtractor g, float cx, float cy, float size, float alpha, int rgb) {
 		int a = Mth.clamp((int) (alpha * 255f), 0, 255);
 		if (a <= 0) return;
 		int s = Math.max(2, Math.round(size));
 		g.blit(RenderPipelines.GUI_TEXTURED, GLOW, Math.round(cx - s / 2f), Math.round(cy - s / 2f), 0f, 0f, s, s, 256, 256, 256, 256,
-				(a << 24) | 0xFFFFFF);
+				(a << 24) | (rgb & 0xFFFFFF));
 	}
 }
