@@ -74,6 +74,11 @@ void main() {
     }
     c += st * vec3(0.45, 0.65, 1.0) * (prm.z * 0.035);
 
+    // ---- limitador suave: bloom/rastro somam acima de 1.0, e a curva de contraste abaixo so vale entre 0 e 1
+    // (acima disso ela inverte para preto: nucleos escuros nas estrelas e cores trocadas)
+    vec3 over = max(c - 0.7, vec3(0.0));
+    c = min(c, vec3(0.7)) + 0.3 * (1.0 - exp(-over / 0.3));
+
     // ---- cor com vida: saturacao, curva de contraste suave e tinta dividida (sombras azul-violeta, luzes quentes)
     float lum = dot(c, vec3(0.2126, 0.7152, 0.0722));
     c = mix(vec3(lum), c, clamp(1.0 + 0.22 * prm.w * 4.0, 1.0, 1.35));
