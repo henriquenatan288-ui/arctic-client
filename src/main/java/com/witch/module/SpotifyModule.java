@@ -6,6 +6,7 @@ import com.witch.gui.RenderUtil;
 import com.witch.music.CoverArt;
 import com.witch.music.MusicPlayer;
 import com.witch.setting.IntSetting;
+import com.witch.setting.KeybindSetting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 
@@ -24,6 +25,8 @@ public class SpotifyModule extends Module {
 	private static final int GREEN = 0xFF1DB954;
 
 	private final IntSetting showPaused = add(new IntSetting("Mostrar pausado (0/1)", 0, 1, 1, ""));
+	private final IntSetting openPlayer = add(new IntSetting("Abrir player de musicas (mude para 1)", 0, 1, 0, ""));
+	private final KeybindSetting playerKey = add(new KeybindSetting("Tecla do player de musicas"));
 
 	private static volatile String track = null;   // "Artista - Musica" quando tocando
 	private static volatile boolean running = false; // Spotify aberto
@@ -34,6 +37,23 @@ public class SpotifyModule extends Module {
 	public SpotifyModule() {
 		super("Spotify", Category.HUD);
 		instance = this;
+	}
+
+	@Override
+	public void onTick() {
+		var mc = Minecraft.getInstance();
+		boolean open = false;
+		if (openPlayer.get() == 1) {
+			openPlayer.set(0);
+			open = true;
+		}
+		int k = playerKey.key();
+		if (k != 0 && mc.getWindow() != null) {
+			boolean down = com.mojang.blaze3d.platform.InputConstants.isKeyDown(mc.getWindow(), k);
+			if (down && !playerKey.wasDown && mc.gui.screen() == null) open = true;
+			playerKey.wasDown = down;
+		}
+		if (open) mc.gui.setScreen(new com.witch.gui.MusicScreen());
 	}
 
 	@Override
