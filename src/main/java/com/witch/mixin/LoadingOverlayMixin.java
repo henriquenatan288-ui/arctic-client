@@ -48,11 +48,6 @@ public abstract class LoadingOverlayMixin {
 	@Inject(method = "extractProgressBar", at = @At("HEAD"), cancellable = true, require = 0)
 	private void witch$bar(GuiGraphicsExtractor g, int minX, int minY, int maxX, int maxY, float alpha, CallbackInfo ci) {
 		if (!com.witch.Edition.visuals()) return;
-		int cy = (minY + maxY) / 2;
-		int a = Mth.clamp((int) (alpha * 255f), 0, 255);
-		com.witch.gui.RenderUtil.roundRect(g, minX, cy - 1, maxX - minX, 3, 1, ((a * 40 / 255) << 24) | 0xFFFFFF);
-		int fw = Math.max(3, Math.round((maxX - minX) * Mth.clamp(currentProgress, 0f, 1f)));
-		com.witch.gui.RenderUtil.roundRect(g, minX, cy - 1, fw, 3, 1, (a << 24) | 0xFFFFFF);
 		ci.cancel();
 	}
 
@@ -65,35 +60,9 @@ public abstract class LoadingOverlayMixin {
 		var mc = Minecraft.getInstance();
 		int w = mc.getWindow().getGuiScaledWidth();
 		int h = mc.getWindow().getGuiScaledHeight();
-		int ai = (int) (a * 255f) << 24;
-		// garantia: cobre a faixa central onde ficaria o logo da Mojang, caso a troca da logo nao tenha pego
-		int half = Math.round(Math.min(w * 0.75f, h) * 0.32f);
-		g.fill(0, h / 2 - half, w, h / 2 + half, ((int) (a * 255f) << 24) | 0x0A0A0C);
 		long now = Util.getMillis();
 		if (witch$t0 == 0L) witch$t0 = now;
-		float t = Mth.clamp((now - witch$t0) / 900f, 0f, 1f);
-		float ease = 1f - (1f - t) * (1f - t) * (1f - t);
-		com.witch.gui.Minimal.petals(g, w, h, now / 1000.0, a * ease);
-		// nome do client no centro, letra por letra
-		String name = "ARCTIC";
-		float sc = Math.max(2f, Math.min(5f, h / 110f));
-		float ty = h * 0.62f - com.witch.gui.FontUtil.height() * sc / 2f;
-		float mw = Math.max(56f, Math.min(190f, h * 0.34f));
-		float scx = w / 2f, scy = h * 0.31f;
-		float ti = (now - witch$t0) / 1000f;
-		// entrada: cresce com leve overshoot; depois respira. Separacao RGB fecha na entrada e treme de leve de tempos em tempos
-		float k = Mth.clamp(ti / 1.1f, 0f, 1f);
-		float back = 1f + 2.2f * (float) Math.pow(k - 1f, 3) + 1.2f * (float) Math.pow(k - 1f, 2);
-		float sz = mw * (0.35f + 0.65f * back) * (1f + 0.025f * (float) Math.sin(now / 650.0));
-		float jolt = ((now % 2600L) < 110L) ? 1f : 0f;
-		float split = 9f * (1f - ease) * (1f - ease) + 2.2f * jolt + 0.8f;
-		{
-			float pulse = 0.55f + 0.15f * (float) Math.sin(now / 520.0);
-			com.witch.gui.StarLogo.glow(g, scx, scy, sz * 3.4f, a * ease * pulse);
-			com.witch.gui.StarLogo.draw(g, scx - split, scy, sz, a * ease * 0.85f, 0x3A8DFF);
-			com.witch.gui.StarLogo.draw(g, scx + split, scy + jolt, sz, a * ease * 0.6f, 0xFF3F6A);
-			com.witch.gui.StarLogo.draw(g, scx + jolt * 3f, scy, sz, a * ease, 0xFFFFFF);
-		}
-		com.witch.gui.Minimal.spaced(g, name, w / 2f, ty, sc, sc * 2.5f, 0xFFFFFFFF, a, true, (now - witch$t0) / 140f);
+		float exit = fo > 0f ? Mth.clamp(fo, 0f, 1f) : 0f;
+		com.witch.gui.LoadingAnim.draw(g, w, h, (now - witch$t0) / 1000f, currentProgress, a, exit, now / 1000.0);
 	}
 }
