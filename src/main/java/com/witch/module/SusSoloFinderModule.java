@@ -53,7 +53,7 @@ public class SusSoloFinderModule extends Module implements EspSource {
 	private final IntSetting fill = add(new IntSetting("Fill opacity", 5, 60, 25, "%"));
 	private final IntSetting autoWp = add(new IntSetting("Auto waypoint (0/1)", 0, 1, 0, ""));
 	private final IntSetting plateOn = add(new IntSetting("Imagem na placa (0/1) - pasta 'placas' do jogo", 0, 1, 0, ""));
-	private final IntSetting plateRes = add(new IntSetting("Resolucao da imagem (1 16x16, 2 32x32)", 1, 2, 1, ""));
+	private final IntSetting plateRes = add(new IntSetting("Resolucao da imagem (1 16, 2 32, 3 64, 4 128, 5 256)", 1, 5, 4, ""));
 	private final IntSetting plateTint = add(new IntSetting("Cor da chance sobre a imagem", 0, 50, 15, "%"));
 	private final KeybindSetting reloadKey = add(new KeybindSetting("Reload chunks"));
 
@@ -107,7 +107,7 @@ public class SusSoloFinderModule extends Module implements EspSource {
 		int n = plateN;
 		var pl = Minecraft.getInstance().player;
 		// so as placas mais proximas levam a imagem (cada uma vira ate n*n quadrados); as outras ficam como caixa
-		int budget = n >= 32 ? 3 : 8;
+		int budget = n >= 128 ? 1 : (n >= 64 ? 2 : (n >= 32 ? 3 : 8));
 		List<int[]> vs = view;
 		if (img != null && pl != null && vs.size() > 1) {
 			vs = new ArrayList<>(vs);
@@ -137,18 +137,28 @@ public class SusSoloFinderModule extends Module implements EspSource {
 		float base = Math.min(1f, fa * 3f);
 		int cr = (chanceArgb >> 16) & 255, cg = (chanceArgb >> 8) & 255, cb = chanceArgb & 255;
 		double y = gy + 0.06;
+		// junta pixels vizinhos de cor quase igual numa faixa so (menos quadrados: 128/256 ficam leves)
 		for (int j = 0; j < n; j++) {
-			for (int i = 0; i < n; i++) {
+			int i = 0;
+			while (i < n) {
 				int c = img[j * n + i];
 				int a = c >>> 24;
-				if (a < 10) continue;
+				if (a < 10) { i++; continue; }
+				int e = i + 1;
+				while (e < n) {
+					int d = img[j * n + e];
+					if (Math.abs((d >>> 24) - a) > 6 || Math.abs(((d >> 16) & 255) - ((c >> 16) & 255)) > 6
+							|| Math.abs(((d >> 8) & 255) - ((c >> 8) & 255)) > 6 || Math.abs((d & 255) - (c & 255)) > 6) break;
+					e++;
+				}
 				int r = Math.round(((c >> 16) & 255) * (1f - t) + cr * t);
 				int g = Math.round(((c >> 8) & 255) * (1f - t) + cg * t);
 				int b = Math.round((c & 255) * (1f - t) + cb * t);
 				float al = a / 255f * base;
-				double ax = x0 + i * cs, az = z0 + j * cs;
-				esp.gradQuad(ax, y, az, ax + cs, y, az, ax + cs, y, az + cs, ax, y, az + cs,
+				double ax = x0 + i * cs, ax2 = x0 + e * cs, az = z0 + j * cs;
+				esp.gradQuad(ax, y, az, ax2, y, az, ax2, y, az + cs, ax, y, az + cs,
 						0xFF000000 | (r << 16) | (g << 8) | b, al, al, al, al);
+				i = e;
 			}
 		}
 	}
@@ -157,7 +167,7 @@ public class SusSoloFinderModule extends Module implements EspSource {
 		if (plateOn.get() == 0 || plateLoading) return;
 		java.nio.file.Path dir = com.witch.config.Folders.get("placas");
 		java.nio.file.Path f = PlateImage.find(dir);
-		int n = plateRes.get() == 2 ? 32 : 16;
+		int n = 16 << (Math.max(1, Math.min(5, plateRes.get())) - 1);
 		long stamp = -2;
 		try { if (f != null) stamp = java.nio.file.Files.getLastModifiedTime(f).toMillis() * 4 + n; } catch (Throwable ignored) { }
 		if (stamp == plateStamp) return;
