@@ -101,7 +101,7 @@ public class CosmicFxModule extends Module implements EspSource {
 				double nx = xr / z / (th * aspect), ny = yu / z / th;
 				d[0] = (float) (nx * 0.5 + 0.5);
 				d[1] = (float) (ny * 0.5 + 0.5);
-				d[2] = (float) (hR / z / th * 0.5);
+				d[2] = (float) Math.min(0.09, hR / z / th * 0.5);
 				d[3] = d[2] > 0.002f ? 1f : 0f;
 			}
 		}
