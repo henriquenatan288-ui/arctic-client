@@ -84,7 +84,7 @@ public class CosmicFxModule extends Module implements EspSource {
 		var m = instance;
 		if (m == null || !m.isEnabled() || m.shader.get() == 0) return null;
 		float pw = m.shaderPower.get() / 10f;
-		float[] d = {0.5f, 0.5f, 0f, 0f, 10f * pw, 0.35f + 0.9f * pw, 9f * pw, 0.18f + 0.25f * pw};
+		float[] d = {0.5f, 0.5f, 0f, 0f, 5.5f * pw, 0.35f + 0.9f * pw, 6f * pw, 0.18f + 0.25f * pw};
 		var mc = Minecraft.getInstance();
 		if (m.style.get() == 2 && System.nanoTime() - holeNanos < 300_000_000L && mc.gameRenderer != null && mc.getWindow() != null) {
 			var cam = mc.gameRenderer.mainCamera();
