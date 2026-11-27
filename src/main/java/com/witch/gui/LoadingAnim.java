@@ -53,6 +53,7 @@ public final class LoadingAnim {
 			float tw = 0.35f + 0.65f * (0.5f + 0.5f * (float) Math.sin(sec * (0.8 + hash(i, 3) * 2.2) + i));
 			int sz = hash(i, 5) > 0.85f ? 2 : 1;
 			int c = ((int) (a * fadeIn * tw * (sz == 2 ? 200 : 140))) << 24 | (hash(i, 6) > 0.6f ? 0xBFD8FF : 0xFFFFFF);
+			if (sz == 2) StarLogo.glow(g, x + 1, y + 1, 7f, a * fadeIn * tw * 0.35f, 0xBFD8FF);
 			g.fill((int) x, (int) y, (int) x + sz, (int) y + sz, c);
 		}
 		for (int i = 0; i < 38; i++) {
@@ -65,7 +66,7 @@ public final class LoadingAnim {
 
 		// ---- estrela
 		float mw = Math.max(56f, Math.min(190f, h * 0.34f));
-		float cx = w / 2f, cy = h * 0.40f;
+		float cx = w / 2f, cy = h * 0.37f;
 		float k = Mth.clamp((ti - 0.35f) / 1.1f, 0f, 1f);
 		float back = 1f + 2.2f * (float) Math.pow(k - 1f, 3) + 1.2f * (float) Math.pow(k - 1f, 2);
 		float sz = mw * (0.2f + 0.8f * back) * (1f + 0.025f * (float) Math.sin(sec * 1.7));
@@ -104,14 +105,15 @@ public final class LoadingAnim {
 		// estrela com separacao RGB que fecha na entrada e treme de leve
 		float jolt = ((long) (sec * 1000) % 2600L) < 110L ? 1f : 0f;
 		float split = 10f * (1f - star) * (1f - star) + 2.0f * jolt + 0.7f;
-		StarLogo.draw(g, cx - split, cy, sz, a * star * 0.85f, 0x3A8DFF);
-		StarLogo.draw(g, cx + split, cy + jolt, sz, a * star * 0.6f, 0xFF3F6A);
-		StarLogo.draw(g, cx + jolt * 3f, cy, sz, a * star, 0xFFFFFF);
+		float ss = sz * 0.82f;
+		StarLogo.draw(g, cx - split, cy, ss, a * star * 0.85f, 0x3A8DFF);
+		StarLogo.draw(g, cx + split, cy + jolt, ss, a * star * 0.6f, 0xFF3F6A);
+		StarLogo.draw(g, cx + jolt * 3f, cy, ss, a * star, 0xFFFFFF);
 
 		// ---- anel de marcas (progresso real) + faiscas orbitando
 		float ringIn = ease3((ti - 0.9f) / 0.7f);
 		if (ringIn > 0.01f) {
-			float R = sz * 0.74f * (0.85f + 0.15f * ringIn);
+			float R = sz * 0.64f * (0.85f + 0.15f * ringIn);
 			int n = 60;
 			float p = shown * n;
 			for (int i = 0; i < n; i++) {
@@ -138,20 +140,32 @@ public final class LoadingAnim {
 
 		// ---- nome e porcentagem
 		float sc = Math.max(2f, Math.min(5f, h / 110f));
-		float ty = h * 0.66f - FontUtil.height() * sc / 2f;
+		float ty = h * 0.73f - FontUtil.height() * sc / 2f;
 		Minimal.spaced(g, "ARCTIC", w / 2f, ty, sc, sc * 2.5f, 0xFFFFFFFF, a, true, ti * 1000f / 140f);
 		float pa = a * ease3((ti - 1.4f) / 0.6f);
 		if (pa > 0.01f && exit <= 0f) {
 			String pct = Math.round(shown * 100f) + "%";
-			Minimal.spaced(g, pct, w / 2f, ty + FontUtil.height() * sc + 12f, Math.max(1.2f, sc * 0.4f), 2f, 0xFF9CB8E6, pa * 0.9f, false, 99f);
+			Minimal.spaced(g, pct, w / 2f, ty + FontUtil.height() * sc + 12f, Math.max(1.2f, sc * 0.4f), 2f, 0xFF9CB8E6, pa * 0.9f, true, 99f);
 		}
 	}
 
-	/** Anel fino (circulo) centrado, diametro d. */
+	/** Anel fino (circulo) centrado, diametro d: segmentos de 1px girados (nitido em qualquer tamanho) + halo suave. */
 	private static void ring(GuiGraphicsExtractor g, float cx, float cy, float d, float alpha, int rgb) {
 		int ai = Mth.clamp((int) (alpha * 255f), 0, 255);
 		if (ai <= 0) return;
-		int r = Math.max(2, Math.round(d / 2f));
-		RenderUtil.roundRing(g, Math.round(cx) - r, Math.round(cy) - r, r * 2, r * 2, r, (ai << 24) | (rgb & 0xFFFFFF));
+		float R = Math.max(2f, d / 2f);
+		int r = Math.round(R);
+		int n = Mth.clamp((int) (R * 1.3f), 36, 220);
+		int half = (int) Math.ceil(Math.PI * R / n) + 1;
+		int core = (ai << 24) | (rgb & 0xFFFFFF);
+		int halo = ((ai / 4) << 24) | (rgb & 0xFFFFFF);
+		for (int i = 0; i < n; i++) {
+			g.pose().pushMatrix();
+			g.pose().translate(cx, cy);
+			g.pose().rotate((float) (i * Math.PI * 2 / n));
+			g.fill(-half, -r - 1, half, -r + 2, halo);
+			g.fill(-half, -r, half, -r + 1, core);
+			g.pose().popMatrix();
+		}
 	}
 }
