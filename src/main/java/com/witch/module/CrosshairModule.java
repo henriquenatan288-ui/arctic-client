@@ -16,7 +16,7 @@ public class CrosshairModule extends Module {
 	private final ColorSetting color = add(new ColorSetting("Color", 7));
 	private final IntSetting size = add(new IntSetting("Size", 1, 14, 2, ""));
 	private final IntSetting gap = add(new IntSetting("Gap", 0, 10, 2, ""));
-	private final IntSetting opacity = add(new IntSetting("Opacity", 20, 100, 85, "%"));
+	private final IntSetting opacity = add(new IntSetting("Opacity", 20, 100, 100, "%"));
 	private final IntSetting outline = add(new IntSetting("Outline (0/1)", 0, 1, 1, ""));
 	private final IntSetting thick = add(new IntSetting("Thickness", 1, 3, 1, ""));
 
@@ -42,10 +42,17 @@ public class CrosshairModule extends Module {
 		});
 	}
 
-	/** Barra com contorno escuro pra ler em qualquer fundo. */
+	private final java.util.List<int[]> bars = new java.util.ArrayList<>();
+
 	private void bar(GuiGraphicsExtractor g, int x, int y, int w, int h, int col) {
-		if (outline.get() == 1) g.fill(x - 1, y - 1, x + w + 1, y + h + 1, 0x40000000);
-		g.fill(x, y, x + w, y + h, col);
+		bars.add(new int[] {x, y, w, h});
+	}
+
+	/** Contornos de todas as barras primeiro, depois o preenchimento (assim o contorno de uma nao risca a outra). */
+	private void flush(GuiGraphicsExtractor g, int col) {
+		if (outline.get() == 1) for (int[] r : bars) g.fill(r[0] - 1, r[1] - 1, r[0] + r[2] + 1, r[1] + r[3] + 1, 0xB0000000);
+		for (int[] r : bars) g.fill(r[0], r[1], r[0] + r[2], r[1] + r[3], col);
+		bars.clear();
 	}
 
 	private void draw(GuiGraphicsExtractor g) {
@@ -71,6 +78,7 @@ public class CrosshairModule extends Module {
 		if (st == 2 || st == 4) {
 			bar(g, x0, y0, t, t, col);
 		}
+		flush(g, col);
 		if (st == 3) {
 			int r = gp + s / 2 + 2;
 			cx = x0 + t / 2;
@@ -79,7 +87,7 @@ public class CrosshairModule extends Module {
 				double a = i * Math.PI * 2 / 72;
 				int px = cx + (int) Math.round(Math.cos(a) * r);
 				int py = cy + (int) Math.round(Math.sin(a) * r);
-				if (outline.get() == 1) g.fill(px - 1, py - 1, px + t + 1, py + t + 1, 0x30000000);
+				if (outline.get() == 1) g.fill(px - 1, py - 1, px + t + 1, py + t + 1, 0x90000000);
 			}
 			for (int i = 0; i < 72; i++) {
 				double a = i * Math.PI * 2 / 72;

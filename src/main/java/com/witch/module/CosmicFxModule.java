@@ -84,7 +84,7 @@ public class CosmicFxModule extends Module implements EspSource {
 		var m = instance;
 		if (m == null || !m.isEnabled() || m.shader.get() == 0) return null;
 		float pw = m.shaderPower.get() / 10f;
-		float[] d = {0.5f, 0.5f, 0f, 0f, 5.5f * pw, 0.35f + 0.9f * pw, 6f * pw, 0.18f + 0.25f * pw};
+		float[] d = {0.5f, 0.5f, 0f, 0f, 4.5f * pw * pw + 1f * pw, 0.3f + 0.55f * pw, 4.5f * pw * pw + 1.5f * pw, 0.18f + 0.2f * pw};
 		var mc = Minecraft.getInstance();
 		if (m.style.get() == 2 && System.nanoTime() - holeNanos < 300_000_000L && mc.gameRenderer != null && mc.getWindow() != null) {
 			var cam = mc.gameRenderer.mainCamera();
@@ -207,6 +207,31 @@ public class CosmicFxModule extends Module implements EspSource {
 				x + bx * w, y + by * w, z + bz * w,
 				x + ax * len, y + ay * len, z + az * len,
 				x - bx * w, y - by * w, z - bz * w, argb, 0f, a, 0f, a);
+	}
+
+	/**
+	 * Braco curvo no plano da camera: comeca reto saindo do centro e entorta para tras (angulo = ang0 - curv * u^2),
+	 * afinando e sumindo com a distancia. L = comprimento total, w0 = meia largura na base.
+	 */
+	private void spiralArm(Esp esp, double cx, double cy, double cz, double ang0, double r0, double L, double curv, double w0, int argb, float a) {
+		int n = 30;
+		double[] px = new double[n + 1], py = new double[n + 1], pz = new double[n + 1], qx = new double[n + 1], qy = new double[n + 1], qz = new double[n + 1];
+		for (int i = 0; i <= n; i++) {
+			double u = i / (double) n;
+			double r = r0 * 0.9 + u * L;
+			double ang = ang0 - curv * u * u;
+			double ca = Math.cos(ang), sa = Math.sin(ang);
+			double ax = rx * ca + ux * sa, ay = ry * ca + uy * sa, az = rz * ca + uz * sa;
+			double bx = -rx * sa + ux * ca, by = -ry * sa + uy * ca, bz = -rz * sa + uz * ca;
+			double w = w0 * (1.0 - 0.8 * u);
+			double x = cx + ax * r, y = cy + ay * r, z = cz + az * r;
+			px[i] = x + bx * w; py[i] = y + by * w; pz[i] = z + bz * w;
+			qx[i] = x - bx * w; qy[i] = y - by * w; qz[i] = z - bz * w;
+		}
+		for (int i = 0; i < n; i++) {
+			float a0 = (float) (a * Math.pow(1.0 - i / (double) n, 1.3)), a1 = (float) (a * Math.pow(1.0 - (i + 1) / (double) n, 1.3));
+			esp.gradQuad(px[i], py[i], pz[i], px[i + 1], py[i + 1], pz[i + 1], qx[i + 1], qy[i + 1], qz[i + 1], qx[i], qy[i], qz[i], argb, a0, a1, a1, a0);
+		}
 	}
 
 	/** Estrela brilhante: bloom em 3 camadas, miolo branco, raios longos em cruz + 8 pontas, tudo com degrade suave. */
@@ -440,10 +465,15 @@ public class CosmicFxModule extends Module implements EspSource {
 			ringBill(esp, cx, cy, cz, r, r + R * 0.1, c, (float) (0.6 * (1 - p)), (float) (0.6 * (1 - p)), false);
 		}
 		// feixes de farol: dois opostos varrendo (giram no plano da tela), mais um par fraco cruzado
-		ray(esp, cx, cy, cz, ph, R * 15, R * 0.55, c, 0.9f);
-		ray(esp, cx, cy, cz, ph, R * 15, R * 1.3, c, 0.25f);
-		ray(esp, cx, cy, cz, ph, R * 6, R * 0.25, 0xFFFFFFFF, 0.9f);
-		ray(esp, cx, cy, cz, ph + Math.PI / 2, R * 9, R * 0.3, c, 0.3f);
+		// dois bracos opostos: saem do astro em linha reta e, pela rotacao, vao entortando (espiral que fica para tras)
+		for (int arm = 0; arm < 2; arm++) {
+			double a0 = ph + arm * Math.PI;
+			spiralArm(esp, cx, cy, cz, a0, R, R * 15, 1.5, R * 1.1, c, 0.28f);
+			spiralArm(esp, cx, cy, cz, a0, R, R * 15, 1.5, R * 0.45, c, 0.95f);
+			spiralArm(esp, cx, cy, cz, a0, R, R * 7, 1.5 * 0.45, R * 0.2, 0xFFFFFFFF, 0.95f);
+		}
+		spiralArm(esp, cx, cy, cz, ph + Math.PI / 2, R, R * 8, 1.0, R * 0.35, c, 0.25f);
+		spiralArm(esp, cx, cy, cz, ph + Math.PI * 1.5, R, R * 8, 1.0, R * 0.35, c, 0.25f);
 		// a bola
 		disk(esp, cx, cy, cz, R, 0xFF3C8CE0, 1f);
 		glow(esp, cx, cy, cz, R * 0.97, 0xFF9FD8FF, 1f);

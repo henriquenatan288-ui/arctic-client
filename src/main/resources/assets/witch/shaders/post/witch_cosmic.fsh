@@ -24,7 +24,7 @@ vec3 S(vec2 uv) {
 
 vec3 bright(vec3 c) {
     float l = dot(c, vec3(0.2126, 0.7152, 0.0722));
-    return c * smoothstep(0.28, 0.85, l);
+    return c * smoothstep(0.70, 1.20, l); // so o que e realmente forte (estrelas, disco); ceu claro de dia nao entra
 }
 
 void main() {
@@ -63,7 +63,7 @@ void main() {
             bl += bright(S(uv + o)) * wt;
         }
     }
-    c += bl * (prm.x * 0.05);
+    c += min(bl * (prm.x * 0.05), vec3(0.45)); // teto: nunca lava a tela
 
     // ---- rastro anamorfico horizontal azulado
     vec3 st = vec3(0.0);
@@ -72,7 +72,7 @@ void main() {
         float w = exp(-abs(float(i)) * 0.28);
         st += bright(S(uv + vec2(float(i) * 0.011 / aspect, 0.0))) * w;
     }
-    c += st * vec3(0.45, 0.65, 1.0) * (prm.z * 0.035);
+    c += min(st * vec3(0.45, 0.65, 1.0) * (prm.z * 0.035), vec3(0.35));
 
     // ---- limitador suave: bloom/rastro somam acima de 1.0, e a curva de contraste abaixo so vale entre 0 e 1
     // (acima disso ela inverte para preto: nucleos escuros nas estrelas e cores trocadas)
@@ -86,7 +86,7 @@ void main() {
     c += vec3(0.020, 0.012, 0.045) * (1.0 - lum) * 0.8;
     c *= mix(vec3(1.0), vec3(1.06, 1.02, 0.95), smoothstep(0.35, 0.9, lum));
     // brilho suave geral (neblina de luz): da maciez mesmo sem fontes fortes na tela
-    c += bl * 0.004 * prm.x;
+    c += min(bl * 0.004 * prm.x, vec3(0.04));
 
     // ---- vinheta suave
     float v = length((texCoord - 0.5) * asp);
