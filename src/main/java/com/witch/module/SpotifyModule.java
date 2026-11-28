@@ -179,6 +179,8 @@ public class SpotifyModule extends Module {
 				title = "Pausado";
 			}
 		}
+		final int acc = local ? 0xFF8EC5FF : 0xFF1DB954; // player proprio = azul bebe do Arctic; app do Spotify = verde
+		final int soft = RenderUtil.mix(acc, 0xFFFFFFFF, 0.62f);
 		int lh = com.witch.gui.Hud.th();
 		int icon = lh * 2 + 3; // capa / equalizador: altura das duas linhas de texto
 		int maxText = 120; // em px reais do texto (antes da escala do widget)
@@ -192,7 +194,7 @@ public class SpotifyModule extends Module {
 		int sw = mc.getWindow().getGuiScaledWidth();
 		int x = (sw - w) / 2 + HudLayout.dx("spotify");
 		int y = 4 + HudLayout.dy("spotify");
-		drawLiquidGlass(g, x, y, w, h);
+		drawLiquidGlass(g, x, y, w, h, acc);
 
 		int ix = x + 6, iy = y + 5;
 		if (cover != null) {
@@ -200,46 +202,46 @@ public class SpotifyModule extends Module {
 					cover.w(), cover.h(), cover.w(), cover.h(), 0xFFFFFFFF);
 			RenderUtil.roundRing(g, ix - 1, iy - 1, icon + 2, icon + 2, 3, 0x99FFFFFF);
 		} else {
-			// equalizador animado (parado quando pausado)
-			double t = System.nanoTime() / 1.0e9;
-			int base = iy + icon - 2;
-			int maxH = icon - 4;
-			for (int i = 0; i < 4; i++) {
-				double k = isPlaying ? 0.5 + 0.5 * Math.sin(t * (5.0 + i * 1.7) + i * 1.3) : 0.25;
-				int bh = 3 + (int) (k * (maxH - 3));
-				RenderUtil.roundRect(g, ix + i * 5 + 1, base - bh, 3, bh, 1, isPlaying ? 0xFF3DDC84 : 0xAAB5C9BC);
-			}
+			// capa padrao: quadrado escuro com borda de luz, nota musical e equalizador animado
+			int r = Math.max(3, icon / 5);
+			RenderUtil.roundRect(g, ix, iy, icon, icon, r, RenderUtil.alpha(acc, 0.85f));
+			RenderUtil.roundRect(g, ix + 1, iy + 1, icon - 2, icon - 2, r - 1, 0xFF0D1426);
+			RenderUtil.roundRect(g, ix + 1, iy + 1, icon - 2, (icon - 2) / 2, r - 1, 0x16FFFFFF);
+			com.witch.gui.Icons.equalizer(g, ix + icon / 5, iy + icon / 4, icon * 3 / 5, icon / 2 + 1, isPlaying, isPlaying ? acc : RenderUtil.alpha(soft, 0.6f));
+			if (!isPlaying) com.witch.gui.Icons.pause(g, ix + icon / 2, iy + icon - icon / 5 - 1, Math.max(4, icon / 5), RenderUtil.alpha(soft, 0.8f));
 		}
 		int tx = ix + icon + 6;
-		com.witch.gui.Hud.text(g, artist, tx, iy, 0xFFBDF5D0);
-		com.witch.gui.Hud.text(g, title, tx, iy + lh + 1, isPlaying ? 0xFFFFFFFF : 0xFFD0DDD5);
+		com.witch.gui.Hud.text(g, artist, tx, iy, soft);
+		com.witch.gui.Hud.text(g, title, tx, iy + lh + 1, isPlaying ? 0xFFFFFFFF : 0xFFD6DCEA);
 		if (local) { // linha do tempo: 0:00 [=====-----] 3:35
 			int ry = y + h - lh - 3;
 			int tW = com.witch.gui.Hud.tw("00:00");
 			int bx = x + 6 + tW + 4;
 			int bw = w - 12 - 2 * (tW + 4);
 			float f = dur > 0 ? Math.min(1f, pos / dur) : 0f;
-			com.witch.gui.Hud.text(g, mmss(pos), x + 6, ry, 0xFFBDF5D0);
+			com.witch.gui.Hud.text(g, mmss(pos), x + 6, ry, soft);
 			String rt = mmss(dur);
-			com.witch.gui.Hud.text(g, rt, x + w - 6 - com.witch.gui.Hud.tw(rt), ry, 0xFFBDF5D0);
+			com.witch.gui.Hud.text(g, rt, x + w - 6 - com.witch.gui.Hud.tw(rt), ry, soft);
 			int by = ry + lh / 2 - 1;
 			RenderUtil.roundRect(g, bx, by, bw, 3, 1, 0x55FFFFFF);
 			int fw = Math.max(3, Math.round(bw * f));
-			RenderUtil.roundRect(g, bx, by, fw, 3, 1, 0xFF3DDC84);
+			RenderUtil.roundRect(g, bx, by, fw, 3, 1, acc);
 			RenderUtil.roundRect(g, bx + fw - 2, by - 1, 5, 5, 2, 0xFFFFFFFF); // bolinha
 		}
 		HudLayout.report("spotify", x, y, w, h);
 	}
 
 	/** Vidro liquido: base escura leve (legibilidade), tinta verde em degrade, brilho de cima, borda de luz e um reflexo que passa. */
-	private static void drawLiquidGlass(GuiGraphicsExtractor g, int x, int y, int w, int h) {
+	private static void drawLiquidGlass(GuiGraphicsExtractor g, int x, int y, int w, int h, int acc) {
+		int accRgb = acc & 0xFFFFFF;
+		int lite = RenderUtil.mix(acc, 0xFFFFFFFF, 0.55f) & 0xFFFFFF;
 		int r = Math.min(10, h / 2);
 		RenderUtil.softShadow(g, x, y, w, h, 4, 0x55000000);
-		RenderUtil.roundRect(g, x, y, w, h, r, 0x8A07140C);                 // base: escurece o fundo
+		RenderUtil.roundRect(g, x, y, w, h, r, 0x960A1226);                 // base: escurece o fundo
 		// degrade vertical verde: mais claro em cima, mais saturado embaixo
 		for (int yy = y + 1; yy < y + h - 1; yy++) {
 			float k = (yy - y) / (float) h;
-			int c = RenderUtil.mix(0x3A9BFFC4, 0x4A1DB954, k);
+			int c = RenderUtil.mix(0x3A000000 | lite, 0x4A000000 | accRgb, k);
 			int dy = Math.min(yy - y, y + h - 1 - yy);
 			int inset = 0;
 			if (dy < r) {
@@ -250,7 +252,7 @@ public class SpotifyModule extends Module {
 		}
 		RenderUtil.roundRect(g, x + 2, y + 2, w - 4, Math.max(6,h*2/5),r-2,0x1AFFFFFF); // brilho (gloss) de cima
 		RenderUtil.roundRing(g, x, y, w, h, r, 0xAAFFFFFF);                // borda de luz
-		RenderUtil.roundRing(g, x + 1, y + 1, w - 2, h - 2, r - 1, 0x2E3DDC84); // borda interna verde
+		RenderUtil.roundRing(g, x + 1, y + 1, w - 2, h - 2, r - 1, 0x2E000000 | accRgb); // borda interna verde
 		g.fill(x + r, y + 1, x + w - r, y + 2, 0x55FFFFFF);                // fio de luz no topo
 		// reflexo diagonal que atravessa devagar
 		float cyc = (System.nanoTime() / 1_000_000L % 6500L) / 6500f;
