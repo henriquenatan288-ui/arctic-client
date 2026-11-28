@@ -21,10 +21,12 @@ public class WitchGametest implements FabricClientGameTest {
 			context.waitTicks(20);
 			var srv = sp.getServer();
 			srv.runCommand("gamemode creative @p");
-			srv.runCommand("time set midnight");
-			context.runOnClient(mc -> { mc.options.setCameraType(net.minecraft.client.CameraType.FIRST_PERSON); mc.player.setXRot(10f);
-				var m = com.witch.module.ModuleManager.byName("Cosmic FX"); set("Cosmic FX", "Efeito", 3); set("Cosmic FX", "Shader de tela (0", 1); set("Cosmic FX", "Shader - intensidade", 6); set("Cosmic FX", "Hipermassivo", 3); if (!m.isEnabled()) m.toggle(); });
-			for (int i = 0; i < 6; i++) { context.waitTicks(i == 0 ? 25 : 9); context.takeScreenshot("pulsar-" + i); }
+			context.runOnClient(mc -> mc.gui.setScreen(new com.witch.gui.MusicScreen()));
+			context.waitTicks(10); context.takeScreenshot("anel-music");
+			context.runOnClient(mc -> mc.gui.setScreen(new com.witch.gui.ArcticGuiScreen()));
+			context.waitTicks(25); context.takeScreenshot("anel-arctic");
+			context.runOnClient(mc -> mc.gui.setScreen(new com.witch.gui.ClickGuiScreen()));
+			context.waitTicks(25); context.takeScreenshot("anel-click");
 		}
 	}
 }
