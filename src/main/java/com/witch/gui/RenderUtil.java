@@ -1,5 +1,6 @@
 package com.witch.gui;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.util.Mth;
 
@@ -48,6 +49,28 @@ public final class RenderUtil {
 			g.fill(x, y + h - 1, x + w, y + h, color);
 			g.fill(x, y + 1, x + 1, y + h - 1, color);
 			g.fill(x + w - 1, y + 1, x + w, y + h - 1, color);
+			return;
+		}
+		// caminho novo: cantos gerados no tamanho exato da tela + retas de 1 px (linha sempre uniforme)
+		int sc = 1;
+		try { sc = Math.max(1, (int) Math.round(Minecraft.getInstance().getWindow().getGuiScale())); } catch (Throwable ignored) { }
+		var exact = Corners.ring(r, sc);
+		if (exact != null) {
+			var PX = net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED;
+			int R = r * sc, T = 2 * R;
+			int xr = x + w - r, yb = y + h - r;
+			g.blit(PX, exact, x, y, 0f, 0f, r, r, R, R, T, T, color);
+			g.blit(PX, exact, xr, y, (float) R, 0f, r, r, R, R, T, T, color);
+			g.blit(PX, exact, x, yb, 0f, (float) R, r, r, R, R, T, T, color);
+			g.blit(PX, exact, xr, yb, (float) R, (float) R, r, r, R, R, T, T, color);
+			if (w - 2 * r > 0) {
+				g.fill(x + r, y, xr, y + 1, color);
+				g.fill(x + r, y + h - 1, xr, y + h, color);
+			}
+			if (h - 2 * r > 0) {
+				g.fill(x, y + r, x + 1, yb, color);
+				g.fill(x + w - 1, y + r, x + w, yb, color);
+			}
 			return;
 		}
 		var P = net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED;
