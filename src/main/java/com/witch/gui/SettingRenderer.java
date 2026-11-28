@@ -197,7 +197,7 @@ public final class SettingRenderer {
 			RenderUtil.roundRect(g, hx - 2, hy - 2, 5, HUE_H + 4, 2, RenderUtil.alpha(0xFFFFFFFF, a));
 		} else if (s instanceof KeybindSetting ks) {
 			FontUtil.draw(g, label(ks.name, w - 60), x + 7, ry + (sh - fh) / 2, RenderUtil.alpha(TXT_DIM, a));
-			String lab = ks.listening ? "..." : ks.label();
+			String lab = ks.listening ? "Del = clear" : ks.label();
 			int cw = Math.max(26, FontUtil.width(lab) + 10);
 			int cx = x + w - 6 - cw;
 			if (!flat || ks.listening) RenderUtil.roundRect(g, cx, ry + 2, cw, sh - 4, 3, RenderUtil.alpha(ks.listening ? 0xFFE2E4E8 : 0xFF3A3F47, a));
@@ -222,6 +222,12 @@ public final class SettingRenderer {
 	 */
 	public static IntSetting click(Setting s, int x, int ry, int w, int sh, double mx, double my, int fh,
 								   Runnable[] pendingOut) {
+		return click(s, x, ry, w, sh, mx, my, fh, pendingOut, 0);
+	}
+
+	/** Igual ao acima, com o botao do mouse (1 = direito: limpa o keybind). */
+	public static IntSetting click(Setting s, int x, int ry, int w, int sh, double mx, double my, int fh,
+								   Runnable[] pendingOut, int button) {
 		if (isToggle(s)) {
 			IntSetting t = (IntSetting) s;
 			pendingOut[0] = () -> { t.set(t.get() == 1 ? 0 : 1); Config.save(); };
@@ -267,7 +273,8 @@ public final class SettingRenderer {
 				drag(mx, my);
 			}
 		} else if (s instanceof KeybindSetting ks) {
-			pendingOut[0] = () -> ks.listening = !ks.listening;
+			if (button == 1) pendingOut[0] = () -> { ks.listening = false; ks.setKey(0); Config.save(); };
+			else pendingOut[0] = () -> ks.listening = !ks.listening;
 		} else if (s instanceof OreSetting os) {
 			final boolean onChip = mx >= x + w - 6 - 16;
 			pendingOut[0] = () -> {

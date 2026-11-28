@@ -392,6 +392,8 @@ public class ClickGuiScreen extends Screen {
 			boolean plus = hasPlus(m);
 			if (plus && mx >= plusX(rx)) {
 				deferred = () -> Minecraft.getInstance().gui.setScreen(new ModuleEditorScreen(m, this));
+			} else if (button == 1 && mx >= pillX(rx, m) && mx < pillX(rx, m) + pillW(m) && pillVisible(rx, m)) {
+				deferred = () -> { m.keybind.listening = false; m.keybind.setKey(0); Config.save(); };
 			} else if (button == 0 && mx >= pillX(rx, m) && mx < pillX(rx, m) + pillW(m) && pillVisible(rx, m)) {
 				deferred = () -> m.keybind.listening = !m.keybind.listening;
 			} else if (button == 1 && plus) {

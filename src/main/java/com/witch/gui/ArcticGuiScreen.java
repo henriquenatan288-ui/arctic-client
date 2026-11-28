@@ -395,7 +395,7 @@ public class ArcticGuiScreen extends Screen {
 						int sh = SettingRenderer.height(s, cw);
 						if (my >= sy && my < sy + sh) {
 							Runnable[] pend = new Runnable[1];
-							IntSetting di = SettingRenderer.click(s, cx, sy, cw, sh, mx, my, FontUtil.height(), pend);
+							IntSetting di = SettingRenderer.click(s, cx, sy, cw, sh, mx, my, FontUtil.height(), pend, button);
 							if (di != null) {
 								dragInt = di;
 								dragIx = cx + 7;
