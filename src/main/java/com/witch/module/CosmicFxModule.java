@@ -135,6 +135,8 @@ public class CosmicFxModule extends Module implements EspSource {
 		ux = u.x(); uy = u.y(); uz = u.z();
 		var f = cam.forwardVector();
 		fx = f.x(); fy = f.y(); fz = f.z();
+		var cp = cam.position();
+		camX = cp.x; camY = cp.y; camZ = cp.z;
 
 		float pt = esp.partial();
 		double cx = Mth.lerp(pt, me.xOld, me.getX());
@@ -456,30 +458,148 @@ public class CosmicFxModule extends Module implements EspSource {
 		}
 	}
 
+	// posicao da camera (olho) no quadro atual: o pulsar e visto de longe, entao a direcao ate ela define o angulo de visao
+	private double camX, camY, camZ;
+
+	private static double[] nrm(double x, double y, double z) {
+		double l = Math.sqrt(x * x + y * y + z * z);
+		return l < 1e-9 ? new double[] {0, 1, 0} : new double[] {x / l, y / l, z / l};
+	}
+
+	private static double[] cross(double[] a, double[] b) {
+		return new double[] {a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]};
+	}
+
+	/** Feixe conico em 3D: do centro ate c + d*L, abrindo com o angulo (tan = meia abertura), virado para a camera ao redor do eixo. */
+	private void beam3(Esp esp, double cx, double cy, double cz, double[] d, double L, double tan, double r0, int argb, float a) {
+		double[] f = {fx, fy, fz};
+		double[] b = cross(d, f);
+		double bl = Math.sqrt(b[0] * b[0] + b[1] * b[1] + b[2] * b[2]);
+		if (bl < 0.08) return; // apontando para a camera: so o flash (feito a parte)
+		b[0] /= bl; b[1] /= bl; b[2] /= bl;
+		int n = 14;
+		for (int i = 0; i < n; i++) {
+			double u0 = i / (double) n, u1 = (i + 1) / (double) n;
+			double s0 = r0 + u0 * L, s1 = r0 + u1 * L;
+			double w0 = Math.max(r0 * 0.15, s0 * tan), w1 = s1 * tan;
+			float a0 = (float) (a * Math.pow(1 - u0, 1.25)), a1 = (float) (a * Math.pow(1 - u1, 1.25));
+			double p0x = cx + d[0] * s0, p0y = cy + d[1] * s0, p0z = cz + d[2] * s0;
+			double p1x = cx + d[0] * s1, p1y = cy + d[1] * s1, p1z = cz + d[2] * s1;
+			esp.gradQuad(p0x + b[0] * w0, p0y + b[1] * w0, p0z + b[2] * w0, p1x + b[0] * w1, p1y + b[1] * w1, p1z + b[2] * w1,
+					p1x - b[0] * w1, p1y - b[1] * w1, p1z - b[2] * w1, p0x - b[0] * w0, p0y - b[1] * w0, p0z - b[2] * w0, argb, a0, a1, a1, a0);
+		}
+	}
+
+	/** Ponto do braco em espiral (plano da camera) no parametro u. */
+	private double[] armPt(double cx, double cy, double cz, double ang0, double r0, double L, double curv, double u) {
+		double r = r0 * 0.9 + u * L, ang = ang0 - curv * u * u;
+		double ca = Math.cos(ang), sa = Math.sin(ang);
+		return new double[] {cx + (rx * ca + ux * sa) * r, cy + (ry * ca + uy * sa) * r, cz + (rz * ca + uz * sa) * r};
+	}
+
+	/**
+	 * Pulsar (estrela de neutrons): astro minusculo e ultra quente, campo magnetico dipolar (lacos fechados) inclinado em relacao ao
+	 * eixo de rotacao, dois feixes de farol conicos no eixo magnetico que varrem o espaco (flash quando apontam para nos), jatos polares
+	 * retos, anel equatorial do vento, rastro em espiral com particulas e ondas de choque. Eixos fixos no ceu (nao giram com a camera).
+	 */
 	private void pulsar(Esp esp, double cx, double cy, double cz, double t, double sc) {
 		int c = col(0xFF7FC8FF);
+		int hotc = col(0xFFBFE4FF);
 		double ph = t * 1.3, R = 0.3 * sc;
-		glow(esp, cx, cy, cz, R * 6.0, c, 0.2f);
-		// anel de pulso saindo da bola
-		for (int i = 0; i < 3; i++) {
-			double p = (t * 0.4 + i / 3.0) % 1.0;
-			double r = R * (1.5 + p * 8.0);
-			ringBill(esp, cx, cy, cz, r, r + R * 0.1, c, (float) (0.6 * (1 - p)), (float) (0.6 * (1 - p)), false);
+		double ball = R * 0.62;
+		// ---- geometria: direcao ate o observador (v), eixo de rotacao (om) inclinado 30 graus para ele, eixo magnetico (m) a 62 graus de om
+		double[] v = nrm(camX - cx, camY - cy, camZ - cz);
+		double[] up = {0, 1, 0};
+		double k = up[0] * v[0] + up[1] * v[1] + up[2] * v[2];
+		double[] p1 = nrm(up[0] - v[0] * k, up[1] - v[1] * k, up[2] - v[2] * k);
+		double[] p2 = cross(v, p1);
+		double beta = Math.toRadians(30), alpha = Math.toRadians(62);
+		double[] om = {p1[0] * Math.cos(beta) + v[0] * Math.sin(beta), p1[1] * Math.cos(beta) + v[1] * Math.sin(beta), p1[2] * Math.cos(beta) + v[2] * Math.sin(beta)};
+		double[] e1 = nrm(p2[0], p2[1], p2[2]);
+		double[] e2 = cross(om, e1);
+		double cp = Math.cos(ph), sp = Math.sin(ph);
+		double[] perp = {e1[0] * cp + e2[0] * sp, e1[1] * cp + e2[1] * sp, e1[2] * cp + e2[2] * sp};
+		double[] perp2 = {-e1[0] * sp + e2[0] * cp, -e1[1] * sp + e2[1] * cp, -e1[2] * sp + e2[2] * cp};
+		double ca = Math.cos(alpha), sa = Math.sin(alpha);
+		double[] m = {om[0] * ca + perp[0] * sa, om[1] * ca + perp[1] * sa, om[2] * ca + perp[2] * sa};
+
+		// ---- nebulosa do vento (nuvem fraca violeta/azul)
+		glow(esp, cx, cy, cz, R * 9.0, 0xFF4A5CFF, 0.10f);
+		glow(esp, cx, cy, cz, R * 5.0, 0xFF6FA8FF, 0.14f);
+		// ---- anel equatorial do vento (perpendicular ao eixo de rotacao) + anel interno brilhante
+		for (int ring = 0; ring < 3; ring++) {
+			double rr = R * (5.5 + ring * 3.2);
+			float al = 0.55f - ring * 0.15f;
+			double px = cx + e1[0] * rr, py = cy + e1[1] * rr, pz = cz + e1[2] * rr;
+			int seg = 72;
+			for (int i = 1; i <= seg; i++) {
+				double an = Math.PI * 2 * i / seg, qa = Math.cos(an), qb = Math.sin(an);
+				double qx = cx + (e1[0] * qa + e2[0] * qb) * rr, qy = cy + (e1[1] * qa + e2[1] * qb) * rr, qz = cz + (e1[2] * qa + e2[2] * qb) * rr;
+				esp.thinLine(px, py, pz, qx, qy, qz, ring == 0 ? hotc : c, al, 1.0f);
+				px = qx; py = qy; pz = qz;
+			}
 		}
-		// feixes de farol: dois opostos varrendo (giram no plano da tela), mais um par fraco cruzado
-		// dois bracos opostos: saem do astro em linha reta e, pela rotacao, vao entortando (espiral que fica para tras)
+		// ---- campo magnetico: lacos dipolares r = L sin^2(theta) em torno do eixo magnetico (giram com ele)
+		double[] mm1 = nrm(perp2[0], perp2[1], perp2[2]);
+		double[] mm2 = cross(m, mm1);
+		double[] sh = {2.2, 3.6, 5.6};
+		for (int s2 = 0; s2 < sh.length; s2++) {
+			double Lm = R * sh[s2] * 1.9;
+			for (int mer = 0; mer < 6; mer++) {
+				double phi = Math.PI * 2 * mer / 6 + s2 * 0.3;
+				double cph = Math.cos(phi), sph = Math.sin(phi);
+				double[] pr = null;
+				int seg = 16;
+				for (int i = 0; i <= seg; i++) {
+					double th = 0.18 + (Math.PI - 0.36) * i / seg;
+					double r = Lm * Math.sin(th) * Math.sin(th);
+					double sx = Math.sin(th) * cph, sy = Math.sin(th) * sph, sz = Math.cos(th);
+					double[] pt = {cx + (mm1[0] * sx + mm2[0] * sy + m[0] * sz) * r, cy + (mm1[1] * sx + mm2[1] * sy + m[1] * sz) * r, cz + (mm1[2] * sx + mm2[2] * sy + m[2] * sz) * r};
+					if (pr != null) esp.thinLine(pr[0], pr[1], pr[2], pt[0], pt[1], pt[2], c, 0.38f - s2 * 0.08f, 1.0f);
+					pr = pt;
+				}
+			}
+		}
+		// ---- jatos polares retos (eixo de rotacao), finos e fracos
+		beam3(esp, cx, cy, cz, om, R * 16, 0.035, ball, 0xFFA8D8FF, 0.45f);
+		beam3(esp, cx, cy, cz, new double[] {-om[0], -om[1], -om[2]}, R * 16, 0.035, ball, 0xFFA8D8FF, 0.45f);
+		// ---- feixes de farol (eixo magnetico): cone largo fraco + nucleo estreito brilhante
+		double[] mn = {-m[0], -m[1], -m[2]};
+		for (double[] d : new double[][] {m, mn}) {
+			beam3(esp, cx, cy, cz, d, R * 20, 0.20, ball, c, 0.22f);
+			beam3(esp, cx, cy, cz, d, R * 20, 0.07, ball, hotc, 0.75f);
+			beam3(esp, cx, cy, cz, d, R * 9, 0.025, ball, 0xFFFFFFFF, 0.95f);
+		}
+		// ---- rastro em espiral (vento): comeca reto e entorta com a rotacao
 		for (int arm = 0; arm < 2; arm++) {
 			double a0 = ph + arm * Math.PI;
-			spiralArm(esp, cx, cy, cz, a0, R, R * 15, 1.5, R * 1.1, c, 0.28f);
-			spiralArm(esp, cx, cy, cz, a0, R, R * 15, 1.5, R * 0.45, c, 0.95f);
-			spiralArm(esp, cx, cy, cz, a0, R, R * 7, 1.5 * 0.45, R * 0.2, 0xFFFFFFFF, 0.95f);
+			spiralArm(esp, cx, cy, cz, a0, R, R * 15, 1.5, R * 0.55, c, 0.20f);
+			spiralArm(esp, cx, cy, cz, a0, R, R * 15, 1.5, R * 0.18, hotc, 0.65f);
+			// particulas escorrendo pelo braco
+			for (int i = 0; i < 12; i++) {
+				double u = (t * 0.16 + i / 12.0 + arm * 0.04) % 1.0;
+				double[] q = armPt(cx, cy, cz, a0, R, R * 15, 1.5, u);
+				glow(esp, q[0], q[1], q[2], R * (0.34 * (1 - u) + 0.06), 0xFFE8F6FF, (float) (0.85 * (1 - u)));
+			}
 		}
-		spiralArm(esp, cx, cy, cz, ph + Math.PI / 2, R, R * 8, 1.0, R * 0.35, c, 0.25f);
-		spiralArm(esp, cx, cy, cz, ph + Math.PI * 1.5, R, R * 8, 1.0, R * 0.35, c, 0.25f);
-		// a bola
-		disk(esp, cx, cy, cz, R, 0xFF3C8CE0, 1f);
-		glow(esp, cx, cy, cz, R * 0.97, 0xFF9FD8FF, 1f);
-		glow(esp, cx - rx * R * 0.18 + ux * R * 0.22, cy - ry * R * 0.18 + uy * R * 0.22, cz - rz * R * 0.18 + uz * R * 0.22, R * 0.55, 0xFFFFFFFF, 0.95f);
+		// ---- ondas de choque
+		for (int i = 0; i < 3; i++) {
+			double pp = (t * 0.4 + i / 3.0) % 1.0;
+			double r = R * (1.5 + pp * 9.0);
+			ringBill(esp, cx, cy, cz, r, r + R * 0.1, c, (float) (0.5 * (1 - pp)), (float) (0.5 * (1 - pp)), false);
+		}
+		// ---- flash: cada vez que um feixe aponta para nos (pulso real do pulsar)
+		double fl = Math.max(Math.pow(Math.max(0, m[0] * v[0] + m[1] * v[1] + m[2] * v[2]), 14), Math.pow(Math.max(0, mn[0] * v[0] + mn[1] * v[1] + mn[2] * v[2]), 14));
+		if (fl > 0.01) {
+			glow(esp, cx, cy, cz, R * (5 + 13 * fl), 0xFFFFFFFF, (float) (0.55 * fl));
+			flare(esp, cx, cy, cz, R * (1.2 + 3.2 * fl), 0xFFDDF0FF, (float) Math.min(1, 0.35 + fl), ph * 0.2);
+		}
+		// ---- a estrela de neutrons: bola pequena e ultra quente, com coroa
+		glow(esp, cx, cy, cz, R * 3.2, c, 0.35f);
+		glow(esp, cx, cy, cz, R * 1.7, 0xFFBFE4FF, 0.6f);
+		disk(esp, cx, cy, cz, ball, 0xFF8FC8FF, 1f);
+		glow(esp, cx, cy, cz, ball * 0.96, 0xFFE4F4FF, 1f);
+		glow(esp, cx - rx * ball * 0.2 + ux * ball * 0.25, cy - ry * ball * 0.2 + uy * ball * 0.25, cz - rz * ball * 0.2 + uz * ball * 0.25, ball * 0.55, 0xFFFFFFFF, 0.98f);
 	}
 
 	private void threeMarias(Esp esp, double cx, double cy, double cz, double t, double sc) {
