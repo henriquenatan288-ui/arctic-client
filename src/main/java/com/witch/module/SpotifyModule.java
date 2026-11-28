@@ -28,6 +28,8 @@ public class SpotifyModule extends Module {
 	private final IntSetting openPlayer = add(new IntSetting("Abrir player de musicas (mude para 1)", 0, 1, 0, ""));
 	private final KeybindSetting playerKey = add(new KeybindSetting("Tecla do player de musicas"));
 
+	/** Teste visual: 0 = normal, 1/2 = mostra o widget do player com musica de exemplo (tocando/pausado). */
+	public static volatile int previewMode = 0;
 	private static volatile String track = null;   // "Artista - Musica" quando tocando
 	private static volatile boolean running = false; // Spotify aberto
 	private static volatile boolean playing = false;
@@ -151,12 +153,18 @@ public class SpotifyModule extends Module {
 
 		// musica do player proprio do Witch (pasta "musicas"): com linha do tempo e capa
 		var tracks = MusicPlayer.tracks();
-		boolean local = MusicPlayer.isActive() && MusicPlayer.current >= 0 && MusicPlayer.current < tracks.size();
+		boolean local = previewMode > 0 || (MusicPlayer.isActive() && MusicPlayer.current >= 0 && MusicPlayer.current < tracks.size());
 		boolean isPlaying;
 		String artist, title;
 		float pos = 0f, dur = 0f;
 		CoverArt.Cover cover = null;
-		if (local) {
+		if (previewMode > 0) { // so para o teste visual: 1 = tocando, 2 = pausado
+			artist = "Mc Sid, Nog";
+			title = "Sitio do Tio Harry";
+			isPlaying = previewMode == 1;
+			pos = 32f;
+			dur = 272f;
+		} else if (local) {
 			var path = tracks.get(MusicPlayer.current);
 			String n = MusicPlayer.nameOf(path);
 			int i = n.indexOf(" - ");
