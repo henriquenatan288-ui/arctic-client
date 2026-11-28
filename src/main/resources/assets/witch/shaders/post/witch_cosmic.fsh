@@ -54,16 +54,21 @@ void main() {
 
     // ---- bloom: 3 aneis de 10 amostras
     vec3 bl = vec3(0.0);
+    float amb = 0.0;
     for (int r = 0; r < 3; r++) {
         float rad = r == 0 ? 0.006 : (r == 1 ? 0.020 : 0.052);
         float wt = r == 0 ? 1.0 : (r == 1 ? 0.75 : 0.55);
         for (int i = 0; i < 10; i++) {
             float a = float(i) * 0.6283 + float(r) * 0.31;
             vec2 o = vec2(cos(a), sin(a)) * rad / asp;
-            bl += bright(S(uv + o)) * wt;
+            vec3 sm = S(uv + o);
+            bl += bright(sm) * wt;
+            if (r == 2) amb += dot(sm, vec3(0.2126, 0.7152, 0.0722));
         }
     }
-    c += min(bl * (prm.x * 0.05), vec3(0.45)); // teto: nunca lava a tela
+    // cena clara (dia, ceu): quase sem bloom/rastro, senao o ceu inteiro vira branco; noite: efeito completo
+    float gate = 1.0 - 0.9 * smoothstep(0.28, 0.6, amb / 10.0);
+    c += min(bl * (prm.x * 0.05), vec3(0.45)) * gate; // teto: nunca lava a tela
 
     // ---- rastro anamorfico horizontal azulado
     vec3 st = vec3(0.0);
@@ -72,7 +77,7 @@ void main() {
         float w = exp(-abs(float(i)) * 0.28);
         st += bright(S(uv + vec2(float(i) * 0.011 / aspect, 0.0))) * w;
     }
-    c += min(st * vec3(0.45, 0.65, 1.0) * (prm.z * 0.035), vec3(0.35));
+    c += min(st * vec3(0.45, 0.65, 1.0) * (prm.z * 0.035), vec3(0.35)) * gate;
 
     // ---- limitador suave: bloom/rastro somam acima de 1.0, e a curva de contraste abaixo so vale entre 0 e 1
     // (acima disso ela inverte para preto: nucleos escuros nas estrelas e cores trocadas)
@@ -86,7 +91,7 @@ void main() {
     c += vec3(0.020, 0.012, 0.045) * (1.0 - lum) * 0.8;
     c *= mix(vec3(1.0), vec3(1.06, 1.02, 0.95), smoothstep(0.35, 0.9, lum));
     // brilho suave geral (neblina de luz): da maciez mesmo sem fontes fortes na tela
-    c += min(bl * 0.004 * prm.x, vec3(0.04));
+    c += min(bl * 0.004 * prm.x, vec3(0.04)) * gate;
 
     // ---- vinheta suave
     float v = length((texCoord - 0.5) * asp);
