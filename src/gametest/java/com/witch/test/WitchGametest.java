@@ -23,17 +23,8 @@ public class WitchGametest implements FabricClientGameTest {
 			srv.runCommand("gamemode creative @p");
 			srv.runCommand("time set midnight");
 			context.runOnClient(mc -> { mc.options.setCameraType(net.minecraft.client.CameraType.FIRST_PERSON); mc.player.setXRot(10f);
-				var m = com.witch.module.ModuleManager.byName("Cosmic FX"); set("Cosmic FX", "Shader de tela (0", 1); set("Cosmic FX", "Shader - intensidade", 6); if (!m.isEnabled()) m.toggle(); });
-			for (int e = 2; e <= 4; e++) {
-				final int ev = e;
-				context.runOnClient(mc -> set("Cosmic FX", "Efeito", ev));
-				context.waitTicks(30);
-				context.takeScreenshot("giant-" + e);
-			}
-			srv.runCommand("time set day");
-			context.runOnClient(mc -> set("Cosmic FX", "Efeito", 2));
-			context.waitTicks(30);
-			context.takeScreenshot("giant-2-dia");
+				var m = com.witch.module.ModuleManager.byName("Cosmic FX"); set("Cosmic FX", "Efeito", 3); set("Cosmic FX", "Shader de tela (0", 1); set("Cosmic FX", "Shader - intensidade", 6); set("Cosmic FX", "Hipermassivo", 3); if (!m.isEnabled()) m.toggle(); });
+			for (int i = 0; i < 6; i++) { context.waitTicks(i == 0 ? 25 : 9); context.takeScreenshot("pulsar-" + i); }
 		}
 	}
 }
