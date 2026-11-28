@@ -151,7 +151,7 @@ public class ModuleEditorScreen extends Screen {
 			int sh = SettingRenderer.height(s, w);
 			if (my >= ry && my < ry + sh) {
 				Runnable[] out = new Runnable[1];
-				IntSetting slid = SettingRenderer.click(s, x, ry, w, sh, mx, my, fh, out);
+				IntSetting slid = SettingRenderer.click(s, x, ry, w, sh, mx, my, fh, out, click.button());
 				if (slid != null) {
 					slider = slid;
 					sliderX = x + 7;

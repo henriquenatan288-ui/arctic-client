@@ -385,7 +385,7 @@ public class MeteorGuiScreen extends Screen {
 						int sh = SettingRenderer.height(s, W);
 						if (my >= sy && my < sy + sh) {
 							Runnable[] pend = new Runnable[1];
-							IntSetting di = SettingRenderer.click(s, x, sy, W, sh, mx, my, FontUtil.height(), pend);
+							IntSetting di = SettingRenderer.click(s, x, sy, W, sh, mx, my, FontUtil.height(), pend, button);
 							if (di != null) {
 								dragInt = di;
 								dragIx = x + 7;
