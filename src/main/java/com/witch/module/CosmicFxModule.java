@@ -17,6 +17,7 @@ public class CosmicFxModule extends Module implements EspSource {
 	private final IntSetting size = add(new IntSetting("Tamanho", 1, 10, 5, ""));
 	private final IntSetting speed = add(new IntSetting("Velocidade", 1, 10, 4, ""));
 	private final IntSetting amount = add(new IntSetting("Quantidade (estrelas)", 1, 10, 6, ""));
+	private final IntSetting giant = add(new IntSetting("Hipermassivo - escala no ceu (efeitos 2/3/4)", 1, 10, 6, ""));
 	private final IntSetting dist1 = add(new IntSetting("Distancia das estrelas - efeito 1", 1, 10, 3, ""));
 	private final IntSetting azim = add(new IntSetting("Direcao no ceu - efeitos 2/3/4 (graus)", 0, 359, 40, ""));
 	private final IntSetting elev = add(new IntSetting("Altura no ceu - efeitos 2/3/4 (graus)", 5, 80, 30, ""));
@@ -101,7 +102,7 @@ public class CosmicFxModule extends Module implements EspSource {
 				double nx = xr / z / (th * aspect), ny = yu / z / th;
 				d[0] = (float) (nx * 0.5 + 0.5);
 				d[1] = (float) (ny * 0.5 + 0.5);
-				d[2] = (float) Math.min(0.09, hR / z / th * 0.5);
+				d[2] = (float) Math.min(0.16, hR / z / th * 0.5);
 				d[3] = d[2] > 0.002f ? 1f : 0f;
 			}
 		}
@@ -142,18 +143,19 @@ public class CosmicFxModule extends Module implements EspSource {
 		double h = me.getBbHeight();
 		double t = System.nanoTime() / 1.0e9 * (0.35 + speed.get() * 0.15);
 		double sc = 0.35 + size.get() * 0.13;
+		double gm = 1.0 + (giant.get() - 1) * 0.35; // hipermassivo: gigante no ceu, mas sem parallax (direcao fixa, ~110 blocos)
 		switch (style.get()) {
 			case 2 -> {
 				double[] a = skyPos(cx, cy + me.getEyeHeight(), cz, t);
-				blackHole(esp, a[0], a[1], a[2], t, sc * 18.0);
+				blackHole(esp, a[0], a[1], a[2], t, sc * 18.0 * gm);
 			}
 			case 3 -> {
 				double[] a = skyPos(cx, cy + me.getEyeHeight(), cz, t);
-				pulsar(esp, a[0], a[1], a[2], t, sc * 12.0);
+				pulsar(esp, a[0], a[1], a[2], t, sc * 12.0 * gm);
 			}
 			case 4 -> {
 				double[] a = skyPos(cx, cy + me.getEyeHeight(), cz, t);
-				threeMarias(esp, a[0], a[1], a[2], t, sc);
+				threeMarias(esp, a[0], a[1], a[2], t, sc * Math.pow(gm, 0.75));
 			}
 			default -> stars(esp, cx, cy, cz, t, sc, h);
 		}

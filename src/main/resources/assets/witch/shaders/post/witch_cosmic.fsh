@@ -29,7 +29,7 @@ vec3 bright(vec3 c) {
 
 void main() {
     // protecao: valores de uniforme fora do esperado (driver/GPU diferente) nunca podem inverter cor nem entortar a tela toda
-    vec4 hole = vec4(clamp(Hole.xy, vec2(-1.0), vec2(2.0)), clamp(Hole.z, 0.0, 0.09), clamp(Hole.w, 0.0, 1.0));
+    vec4 hole = vec4(clamp(Hole.xy, vec2(-1.0), vec2(2.0)), clamp(Hole.z, 0.0, 0.16), clamp(Hole.w, 0.0, 1.0));
     vec4 prm = clamp(Params, vec4(0.0), vec4(14.0, 2.0, 14.0, 1.0));
     float aspect = OutSize.x / OutSize.y;
     vec2 asp = vec2(aspect, 1.0);
@@ -39,7 +39,7 @@ void main() {
     if (hole.w > 0.001) {
         vec2 p = (uv - hole.xy) * asp;
         float d = max(length(p), 1e-4);
-        float te = hole.z * 1.7;
+        float te = min(hole.z, 0.09) * 1.7;   // a lente nao cresce junto com o buraco: distorcao contida mesmo gigante
         float keep = smoothstep(hole.z * 2.4, hole.z * 3.8, d);          // dentro do horizonte nao mexe
         float far = 1.0 - smoothstep(te * 3.0, te * 9.0, d);               // some com a distancia
         float k = te * te / max(d * d, te * te * 0.35);
